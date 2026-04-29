@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="ReviewLoom.Api/ReviewLoom.Api.csproj" />
+  <Project Path="ReviewLoom.Domain/ReviewLoom.Domain.csproj" />
+  <Project Path="ReviewLoom.Application/ReviewLoom.Application.csproj" />
+  <Project Path="ReviewLoom.Infrastructure/ReviewLoom.Infrastructure.csproj" />
 </Solution>
