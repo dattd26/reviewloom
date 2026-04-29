@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ReviewLoom.Application.Services;
 using ReviewLoom.Domain.Interfaces;
 using ReviewLoom.Infrastructure.Data;
 using ReviewLoom.Infrastructure.Repositories;
+using ReviewLoom.Infrastructure.Services;
 
 namespace ReviewLoom.Infrastructure;
 
@@ -15,6 +17,9 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IScanRepository, ScanRepository>();
+        services.AddScoped<IStatsRepository, StatsRepository>();
+        services.AddScoped<IStripeService, StripeService>();
 
         return services;
     }
