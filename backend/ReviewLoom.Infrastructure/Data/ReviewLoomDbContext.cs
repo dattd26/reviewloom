@@ -82,6 +82,9 @@ public partial class ReviewLoomDbContext : DbContext
             entity.Property(e => e.BusinessName).HasColumnName("business_name");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("created_at");
             entity.Property(e => e.Email).HasColumnName("email");
+            entity.Property(e => e.ClerkId).HasColumnName("clerk_id");
+
+            entity.HasIndex(e => e.ClerkId, "users_clerk_id_key").IsUnique();
         });
     }
 }

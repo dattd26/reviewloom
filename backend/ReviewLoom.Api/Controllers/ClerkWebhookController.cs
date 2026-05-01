@@ -20,7 +20,6 @@ public class ClerkWebhookController : ControllerBase
 
     public ClerkWebhookController(IConfiguration configuration, IUnitOfWork unitOfWork)
     {
-        // Add "Clerk:WebhookSecret" in appsettings.json
         _webhookSecret = configuration["Clerk:WebhookSecret"] ?? string.Empty;
         _unitOfWork = unitOfWork;
     }
@@ -29,7 +28,7 @@ public class ClerkWebhookController : ControllerBase
     public async Task<IActionResult> HandleClerkWebhook()
     {
         var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
-        
+
         var svixId = Request.Headers["svix-id"].ToString();
         var svixTimestamp = Request.Headers["svix-timestamp"].ToString();
         var svixSignature = Request.Headers["svix-signature"].ToString();
@@ -68,11 +67,11 @@ public class ClerkWebhookController : ControllerBase
         {
             var userObj = data.RootElement.GetProperty("data");
             var clerkId = userObj.GetProperty("id").GetString();
-            
+
             // Clerk might have multiple emails, get the primary one
             var emailAddresses = userObj.GetProperty("email_addresses");
             var primaryEmailId = userObj.TryGetProperty("primary_email_address_id", out var pEmailId) ? pEmailId.GetString() : null;
-            
+
             string? email = null;
             if (emailAddresses.GetArrayLength() > 0)
             {
@@ -87,10 +86,10 @@ public class ClerkWebhookController : ControllerBase
                         }
                     }
                 }
-                
+
                 if (string.IsNullOrEmpty(email))
                 {
-                     email = emailAddresses[0].GetProperty("email_address").GetString();
+                    email = emailAddresses[0].GetProperty("email_address").GetString();
                 }
             }
 
@@ -106,7 +105,7 @@ public class ClerkWebhookController : ControllerBase
                         Email = email,
                         CreatedAt = DateTime.UtcNow
                     };
-                    
+
                     // Attempt to extract name if available (optional)
                     if (userObj.TryGetProperty("first_name", out var firstNameElem) && firstNameElem.ValueKind == JsonValueKind.String)
                     {
