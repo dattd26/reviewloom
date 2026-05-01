@@ -5,6 +5,8 @@ public partial class User
 {
     public Guid Id { get; set; }
 
+    public string ClerkId { get; set; } = null!;
+
     public string Email { get; set; } = null!;
 
     public string? BusinessName { get; set; }

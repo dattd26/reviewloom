@@ -1,20 +1,45 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using ReviewLoom.Application;
 using ReviewLoom.Infrastructure;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(
+    options =>
+    {
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT containing {schema.JWT_TOKEN}",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "Bearer",
+            BearerFormat = "JWT"
+        });
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] { }
+            }
+        });
+    }
+);
 
 // Clerk Authentication Configuration
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -26,6 +51,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false,
             NameClaimType = ClaimTypes.NameIdentifier
         };
+        options.RequireHttpsMetadata = false;
+
     });
 builder.Services.AddAuthorization();
 
@@ -38,7 +65,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }

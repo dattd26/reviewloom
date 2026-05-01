@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReviewLoom.Application.DTOs;
 using ReviewLoom.Application.Services;
+using ReviewLoom.Domain.Interfaces;
 
 namespace ReviewLoom.Api.Controllers;
 
@@ -15,11 +16,13 @@ public class CampaignsController : ControllerBase
 {
     private readonly ICampaignService _campaignService;
     private readonly IStatsService _statsService;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CampaignsController(ICampaignService campaignService, IStatsService statsService)
+    public CampaignsController(ICampaignService campaignService, IStatsService statsService, IUnitOfWork unitOfWork)
     {
         _campaignService = campaignService;
         _statsService = statsService;
+        _unitOfWork = unitOfWork;
     }
 
     [HttpGet]
@@ -50,13 +53,16 @@ public class CampaignsController : ControllerBase
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        // Note: Clerk user IDs are strings. If your DB uses UUID, you need to map them.
-        // For demonstration, we'll parse if it's a GUID, otherwise generate one.
-        if (!Guid.TryParse(userIdString, out var userId))
+        var clerkId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(clerkId)) return Unauthorized();
+
+        var user = await _unitOfWork.Users.GetByClerkIdAsync(clerkId);
+        if (user == null)
         {
-            userId = Guid.NewGuid(); // Placeholder
+            return BadRequest("User not found in system");
         }
+        
+        var userId = user.Id;
         
         var campaign = await _campaignService.CreateCampaignAsync(dto, userId);
         return CreatedAtAction(nameof(GetById), new { id = campaign.Id }, campaign);

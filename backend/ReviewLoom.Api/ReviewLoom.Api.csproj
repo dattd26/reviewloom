@@ -3,6 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>16749976-d543-4ddb-9bb9-9ecdd9513208</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,8 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+    <PackageReference Include="Microsoft.OpenApi" Version="1.6.14" />
+
+    <PackageReference Include="Svix" Version="1.92.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 </Project>

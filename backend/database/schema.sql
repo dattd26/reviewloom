@@ -1,6 +1,7 @@
 -- Bảng users
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
+    clerk_id TEXT UNIQUE NOT NULL,
     email TEXT NOT NULL,
     business_name TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
