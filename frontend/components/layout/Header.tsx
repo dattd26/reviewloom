@@ -3,27 +3,35 @@ import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 
 export function Header() {
   return (
-    <header className="fixed top-0 w-full z-50 bg-[#f7f9fb]/80 dark:bg-slate-950/80 backdrop-blur-md no-line-architecture">
-      <nav className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto font-display font-medium tracking-tight">
-        <Link href="/" className="text-2xl font-extrabold tracking-tighter text-[#1d4ed8] dark:text-blue-400">
+    <header className="fixed top-0 w-full z-50 glass-effect bg-surface/80 no-line-architecture">
+      <nav className="flex justify-between items-center px-8 py-5 max-w-7xl mx-auto font-display tracking-tight">
+        <Link href="/" className="text-2xl font-extrabold tracking-tighter text-primary-container flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <div className="w-4 h-4 bg-white rounded-sm rotate-45" />
+          </div>
           ReviewLoom
         </Link>
-        <div className="flex items-center gap-8">
+        
+        <div className="hidden md:flex items-center gap-10 text-sm font-semibold text-on-surface-variant">
+          <Link href="/#features" className="hover:text-primary transition-colors">Features</Link>
+          <Link href="/#pricing" className="hover:text-primary transition-colors">Pricing</Link>
+          <Link href="/#how-it-works" className="hover:text-primary transition-colors">How it works</Link>
+        </div>
+
+        <div className="flex items-center gap-6">
           <Show when="signed-out">
-            <SignInButton>
-              <button className="text-slate-600 dark:text-slate-400 hover:text-[#1d4ed8] transition-colors cursor-pointer">Log In</button>
+            <SignInButton mode="modal">
+              <button className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors cursor-pointer">Log In</button>
             </SignInButton>
-            <SignUpButton>
-              <button className="bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-lg font-bold transition-all duration-300 active:scale-95 transform cursor-pointer">
-                Start Free Trial
-              </button>
+            <SignUpButton mode="modal">
+              <button className="bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-primary/20 transition-all duration-300 active:scale-95 transform cursor-pointer">Get Started</button>
             </SignUpButton>
           </Show>
           <Show when="signed-in">
-            <Link href="/dashboard" className="text-slate-600 dark:text-slate-400 hover:text-[#1d4ed8] transition-colors font-semibold">
+            <Link href="/dashboard" className="text-sm font-bold text-primary hover:opacity-80 transition-opacity">
               Dashboard
             </Link>
-            <UserButton />
+            <UserButton appearance={{ elements: { userButtonAvatarBox: 'w-10 h-10' } }} />
           </Show>
         </div>
       </nav>
