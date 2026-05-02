@@ -7,10 +7,11 @@ export interface CampaignConfig {
   // Basic
   name: string;
   googleReviewUrl: string;
-  logo: string | null;
   routingThreshold: 4 | 5;
 
   // Visual Branding
+  logo: string | null;
+  logoStyle: 'circle' | 'square' | 'soft' | 'none';
   primaryColor: string;
   fontFamily: FontOption;
   backgroundStyle: BackgroundStyle;
@@ -39,8 +40,9 @@ export interface CampaignConfig {
 export const DEFAULT_CAMPAIGN: CampaignConfig = {
   name: '',
   googleReviewUrl: '',
-  logo: null,
   routingThreshold: 4,
+  logo: null,
+  logoStyle: 'soft',
   primaryColor: '#0037b0',
   fontFamily: 'Manrope',
   backgroundStyle: 'none',

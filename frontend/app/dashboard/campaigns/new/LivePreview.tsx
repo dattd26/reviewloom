@@ -135,15 +135,23 @@ export default function LivePreview({ campaign }: Props) {
                 {/* App Header */}
                 <div className="relative z-10 flex flex-col items-center pt-16 pb-6 px-6">
                   <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-xl border overflow-hidden transition-all duration-500"
+                    className={`w-16 h-16 flex items-center justify-center mb-4 transition-all duration-500 overflow-hidden ${
+                      campaign.logoStyle === 'circle' ? 'rounded-full' : 
+                      campaign.logoStyle === 'soft' ? 'rounded-2xl' : 
+                      campaign.logoStyle === 'square' ? 'rounded-md' : 'rounded-none'
+                    } ${campaign.logoStyle !== 'none' ? 'shadow-xl border' : ''}`}
                     style={{
-                      backgroundColor: isDarkBg ? `${campaign.primaryColor}40` : 'rgba(255,255,255,0.7)',
-                      borderColor: isDarkBg ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.08)',
-                      backdropFilter: 'blur(10px)',
+                      backgroundColor: campaign.logoStyle === 'none' ? 'transparent' : (isDarkBg ? `${campaign.primaryColor}40` : 'rgba(255,255,255,0.7)'),
+                      borderColor: campaign.logoStyle === 'none' ? 'transparent' : (isDarkBg ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.08)'),
+                      backdropFilter: campaign.logoStyle === 'none' ? 'none' : 'blur(10px)',
                     }}
                   >
                     {campaign.logo ? (
-                      <img src={campaign.logo} alt="Logo" className="w-full h-full object-contain p-1" />
+                      <img 
+                        src={campaign.logo} 
+                        alt="Logo" 
+                        className={`w-full h-full object-contain drop-shadow-sm ${campaign.logoStyle === 'none' ? 'p-0' : 'p-2'}`} 
+                      />
                     ) : (
                       <span className="material-symbols-outlined text-3xl" style={{ color: campaign.primaryColor }}>
                         storefront
