@@ -63,25 +63,31 @@ export default function LivePreview({ campaign }: Props) {
   const printableRef = useRef<HTMLDivElement>(null);
   const qrOnlyRef = useRef<HTMLDivElement>(null);
 
-  // Generate real QR Code when URL or Color changes
+  // Generate real QR Code with Debouncing to improve performance during color dragging
   useEffect(() => {
-    const generateQR = async () => {
-      try {
-        const url = await QRCode.toDataURL(campaign.googleReviewUrl || 'https://reviewloom.com', {
-          errorCorrectionLevel: 'H',
-          margin: 1,
-          width: 512, // High res for download
-          color: {
-            dark: campaign.qrDotColor || '#000000',
-            light: '#ffffff'
-          }
-        });
-        setQrCodeDataUrl(url);
-      } catch (err) {
-        console.error('Error generating QR code:', err);
-      }
-    };
-    generateQR();
+    const timer = setTimeout(() => {
+      const generateQR = async () => {
+        try {
+          const url = await QRCode.toDataURL(campaign.googleReviewUrl || 'https://reviewloom.com', {
+            errorCorrectionLevel: 'H',
+            margin: 1,
+            width: 512,
+            color: {
+              dark: campaign.qrDotColor || '#000000',
+              light: '#ffffff'
+            }
+          });
+          setQrCodeDataUrl(url);
+        } catch (err) {
+          console.error('Error generating QR code:', err);
+        }
+      };
+      generateQR();
+    }, 150);
+    // mỗi lần component re-render thì clear timer cũ, 
+    // Mỗi lần có change huỷ timer cũ và tạo một setTimeout(150ms) mới
+    // => Khi user đang kéo color thì không generate QR liên tục
+    return () => clearTimeout(timer);
   }, [campaign.googleReviewUrl, campaign.qrDotColor]);
 
   const handleDownload = async (type: 'qr' | 'standee') => {
@@ -299,7 +305,7 @@ export default function LivePreview({ campaign }: Props) {
             ) : (
               <span className="material-symbols-outlined text-[40px] opacity-20" style={{ color: campaign.qrDotColor }}>qr_code_2</span>
             )}
-            
+
             {/* Embedded Logo */}
             {campaign.logo && (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -309,7 +315,7 @@ export default function LivePreview({ campaign }: Props) {
               </div>
             )}
           </div>
-          
+
           <div className="flex-1 relative z-40">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
@@ -317,7 +323,7 @@ export default function LivePreview({ campaign }: Props) {
                 <h6 className="text-[10px] font-black uppercase tracking-widest text-on-surface">Dynamic Asset</h6>
               </div>
               <div className="flex gap-1">
-                <button 
+                <button
                   onClick={(e) => { e.stopPropagation(); handleDownload('qr'); }}
                   title="Download QR Only"
                   disabled={isDownloading}
@@ -325,7 +331,7 @@ export default function LivePreview({ campaign }: Props) {
                 >
                   <span className="material-symbols-outlined text-[18px]">download</span>
                 </button>
-                <button 
+                <button
                   onClick={(e) => { e.stopPropagation(); handleDownload('standee'); }}
                   title="Download Print-ready Standee"
                   disabled={isDownloading}
@@ -344,7 +350,7 @@ export default function LivePreview({ campaign }: Props) {
             </div>
           </div>
         </div>
-        </div>
+      </div>
 
       {/* Incentive Preview (if enabled) */}
       {campaign.incentiveEnabled && campaign.incentiveCoupon && (
