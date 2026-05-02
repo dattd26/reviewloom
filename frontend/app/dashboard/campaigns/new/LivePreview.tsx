@@ -1,6 +1,6 @@
 'use client';
 
-import { CampaignConfig } from './types';
+import { CampaignConfig, GRADIENT_PRESETS } from './types';
 
 interface Props {
   campaign: CampaignConfig;
@@ -75,100 +75,165 @@ export default function LivePreview({ campaign }: Props) {
         {/* Phone Shell */}
         <div className="relative bg-slate-900 rounded-[3rem] p-3 shadow-2xl overflow-hidden border-[6px] border-slate-800">
           {/* Screen */}
-          <div
-            className="rounded-[2.2rem] h-[580px] w-full overflow-hidden flex flex-col relative"
-            style={{
-              backgroundColor: '#ffffff',
+          {(() => {
+            // Derive which gradient preset is active (if any) to determine dark/light context
+            const activeGradient =
+              campaign.backgroundStyle === 'gradient' && campaign.backgroundGradient
+                ? GRADIENT_PRESETS.find((g) => g.css === campaign.backgroundGradient)
+                : null;
+
+            const isDarkBg = (activeGradient && activeGradient.isDark) || campaign.backgroundStyle === 'image';
+
+            const textPrimary = isDarkBg ? '#ffffff' : '#0f172a';
+            const textMuted = isDarkBg ? 'rgba(255,255,255,0.75)' : 'rgba(51,65,85,0.75)';
+
+            // Build the screen background style
+            const screenStyle: React.CSSProperties = {
               fontFamily: `'${campaign.fontFamily}', sans-serif`,
-            }}
-          >
-            {/* Background image overlay */}
-            {campaign.backgroundImage && (
-              <div
-                className="absolute inset-0 z-0"
-                style={{
-                  backgroundImage: `url(${campaign.backgroundImage})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  opacity: 0.12,
-                }}
-              />
-            )}
+              backgroundColor: '#ffffff',
+            };
+            if (campaign.backgroundStyle === 'gradient' && campaign.backgroundGradient) {
+              screenStyle.backgroundImage = campaign.backgroundGradient;
+            }
 
-            {/* Status Bar */}
-            <div className="h-6 px-6 pt-3 flex justify-between items-center text-[10px] font-bold text-slate-400 absolute top-0 w-full z-10">
-              <span>9:41</span>
-              <div className="flex gap-1 items-center">
-                <span className="material-symbols-outlined text-[12px]">signal_cellular_alt</span>
-                <span className="material-symbols-outlined text-[12px]">wifi</span>
-                <span className="material-symbols-outlined text-[12px]">battery_full</span>
-              </div>
-            </div>
-
-            {/* App Header */}
-            <div className="relative z-10 flex flex-col items-center pt-16 pb-6 px-6">
+            return (
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-black/5 overflow-hidden"
-                style={{ backgroundColor: `${campaign.primaryColor}15` }}
+                className="rounded-[2.2rem] h-[580px] w-full overflow-hidden flex flex-col relative"
+                style={screenStyle}
               >
-                {campaign.logo ? (
-                  <img src={campaign.logo} alt="Logo" className="w-full h-full object-contain p-1" />
-                ) : (
-                  <span className="material-symbols-outlined text-3xl" style={{ color: campaign.primaryColor }}>
-                    storefront
-                  </span>
+
+                {/* Background: custom image */}
+                {campaign.backgroundStyle === 'image' && campaign.backgroundImage && (
+                  <>
+                    <div
+                      className="absolute inset-0 z-0"
+                      style={{
+                        backgroundImage: `url(${campaign.backgroundImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                      }}
+                    />
+                    {/* Readability Scrim: Darker at top and bottom, subtle in middle */}
+                    <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/80 via-black/30 to-black/70" />
+                  </>
                 )}
-              </div>
-              <h5
-                className="text-base font-extrabold text-on-surface text-center leading-tight transition-all duration-300"
-                style={{ fontFamily: `'${campaign.fontFamily}', sans-serif` }}
-              >
-                {campaign.name || 'Business Name'}
-              </h5>
-              <p className="text-[10px] text-on-surface-variant/70 mt-1.5 text-center px-2">
-                Thank you for visiting us! We&apos;d love to hear your thoughts.
-              </p>
-            </div>
 
-            {/* Feedback Card */}
-            <div className="relative z-10 flex-1 px-4">
-              <div className="bg-white/90 backdrop-blur-sm p-5 rounded-2xl border border-black/5 flex flex-col items-center shadow-sm">
-                <span
-                  className="text-xs font-bold text-on-surface text-center transition-all duration-300"
-                  style={{ fontFamily: `'${campaign.fontFamily}', sans-serif` }}
+                {/* Status Bar */}
+                <div
+                  className="h-6 px-6 pt-3 flex justify-between items-center text-[10px] font-bold absolute top-0 w-full z-10"
+                  style={{ color: isDarkBg ? 'rgba(255,255,255,0.9)' : '#64748b' }}
                 >
-                  {campaign.heading || 'How was your experience?'}
-                </span>
-
-                <RatingPreview campaign={campaign} />
-
-                <div className="w-full h-16 bg-gray-50 border border-gray-100 rounded-xl mt-4 p-2">
-                  <p className="text-[9px] text-outline/50">Tell us more (optional)...</p>
+                  <span>9:41</span>
+                  <div className="flex gap-1 items-center">
+                    <span className="material-symbols-outlined text-[12px]">signal_cellular_alt</span>
+                    <span className="material-symbols-outlined text-[12px]">wifi</span>
+                    <span className="material-symbols-outlined text-[12px]">battery_full</span>
+                  </div>
                 </div>
 
-                {/* Contact field if enabled */}
-                {campaign.collectContact && (
-                  <div className="w-full h-8 bg-gray-50 border border-gray-100 rounded-xl mt-2 p-2 flex items-center">
-                    <p className="text-[9px] text-outline/50">Email or phone (optional)</p>
+                {/* App Header */}
+                <div className="relative z-10 flex flex-col items-center pt-16 pb-6 px-6">
+                  <div
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-xl border overflow-hidden transition-all duration-500"
+                    style={{
+                      backgroundColor: isDarkBg ? `${campaign.primaryColor}40` : 'rgba(255,255,255,0.7)',
+                      borderColor: isDarkBg ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.08)',
+                      backdropFilter: 'blur(10px)',
+                    }}
+                  >
+                    {campaign.logo ? (
+                      <img src={campaign.logo} alt="Logo" className="w-full h-full object-contain p-1" />
+                    ) : (
+                      <span className="material-symbols-outlined text-3xl" style={{ color: campaign.primaryColor }}>
+                        storefront
+                      </span>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
+                  <h5
+                    className="text-base font-extrabold text-center leading-tight transition-all duration-300 drop-shadow-md"
+                    style={{
+                      fontFamily: `'${campaign.fontFamily}', sans-serif`,
+                      color: textPrimary ?? '#191c1e',
+                      textShadow: isDarkBg ? '0 2px 4px rgba(0,0,0,0.3)' : 'none'
+                    }}
+                  >
+                    {campaign.name || 'Business Name'}
+                  </h5>
+                  <p
+                    className="text-[10px] mt-1.5 text-center px-2 font-medium drop-shadow-sm"
+                    style={{
+                      color: textMuted ?? 'rgba(67,70,85,0.7)',
+                      textShadow: isDarkBg ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'
+                    }}
+                  >
+                    Thank you for visiting us! We&apos;d love to hear your thoughts.
+                  </p>
+                </div>
 
-            {/* CTA Button */}
-            <div className="relative z-10 p-4 mt-auto">
-              <button
-                className="w-full py-3 font-bold text-xs text-white rounded-xl shadow-md transition-all duration-300"
-                style={{
-                  backgroundColor: campaign.primaryColor,
-                  fontFamily: `'${campaign.fontFamily}', sans-serif`,
-                  boxShadow: `0 4px 14px ${campaign.primaryColor}40`,
-                }}
-              >
-                {campaign.ctaLabel || 'Submit Feedback'}
-              </button>
-            </div>
-          </div>
+                {/* Feedback Card */}
+                <div className="relative z-10 flex-1 px-4">
+                  <div
+                    className="p-5 rounded-2xl border flex flex-col items-center shadow-sm"
+                    style={{
+                      backgroundColor: isDarkBg ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.92)',
+                      backdropFilter: 'blur(12px)',
+                      borderColor: isDarkBg ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.05)',
+                    }}
+                  >
+                    <span
+                      className="text-xs font-bold text-center transition-all duration-300"
+                      style={{ fontFamily: `'${campaign.fontFamily}', sans-serif`, color: textPrimary ?? '#191c1e' }}
+                    >
+                      {campaign.heading || 'How was your experience?'}
+                    </span>
+
+                    <RatingPreview campaign={campaign} />
+
+                    <div
+                      className="w-full h-16 rounded-xl mt-4 p-2 border"
+                      style={{
+                        backgroundColor: isDarkBg ? 'rgba(255,255,255,0.07)' : '#f9fafb',
+                        borderColor: isDarkBg ? 'rgba(255,255,255,0.10)' : '#f3f4f6',
+                      }}
+                    >
+                      <p className="text-[9px]" style={{ color: textMuted ?? 'rgba(116,118,134,0.5)' }}>
+                        Tell us more (optional)...
+                      </p>
+                    </div>
+
+                    {campaign.collectContact && (
+                      <div
+                        className="w-full h-8 rounded-xl mt-2 p-2 flex items-center border"
+                        style={{
+                          backgroundColor: isDarkBg ? 'rgba(255,255,255,0.07)' : '#f9fafb',
+                          borderColor: isDarkBg ? 'rgba(255,255,255,0.10)' : '#f3f4f6',
+                        }}
+                      >
+                        <p className="text-[9px]" style={{ color: textMuted ?? 'rgba(116,118,134,0.5)' }}>
+                          Email or phone (optional)
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <div className="relative z-10 p-4 mt-auto">
+                  <button
+                    className="w-full py-3 font-bold text-xs text-white rounded-xl shadow-md transition-all duration-300"
+                    style={{
+                      backgroundColor: campaign.primaryColor,
+                      fontFamily: `'${campaign.fontFamily}', sans-serif`,
+                      boxShadow: `0 4px 14px ${campaign.primaryColor}40`,
+                    }}
+                  >
+                    {campaign.ctaLabel || 'Submit Feedback'}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Floating QR Preview */}
