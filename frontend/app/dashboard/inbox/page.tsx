@@ -4,13 +4,13 @@ export default function FeedbackInbox() {
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden">
       {/* TopAppBar Shell */}
-      <header className="flex justify-between items-center w-full px-8 py-4 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border-b border-outline-variant/10 z-40 shadow-sm shrink-0">
+      <header className="flex justify-between items-center w-full px-8 py-4 bg-white/85 backdrop-blur-xl border-b border-outline-variant/10 z-40 shadow-sm shrink-0">
         <div className="flex items-center gap-4 flex-1">
           <div className="relative w-full max-w-md focus-within:ring-2 focus-within:ring-primary/20 rounded-xl transition-all">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
-            <input 
-              className="w-full bg-surface-container-low border-none rounded-xl py-2.5 pl-10 pr-4 text-sm font-body focus:ring-0 text-on-surface placeholder:text-outline" 
-              placeholder="Search feedback..." 
+            <input
+              className="w-full bg-surface-container-low border-none rounded-xl py-2.5 pl-10 pr-4 text-sm font-body focus:ring-0 text-on-surface placeholder:text-outline"
+              placeholder="Search feedback..."
               type="text"
             />
           </div>
@@ -41,7 +41,7 @@ export default function FeedbackInbox() {
               </button>
             </div>
           </div>
-          
+
           {/* Filter Bar */}
           <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
             <div className="flex bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/10">
@@ -63,10 +63,10 @@ export default function FeedbackInbox() {
 
         {/* Layout Wrapper */}
         <div className="flex-1 flex overflow-hidden px-4 sm:px-8 pb-8 gap-6">
-          
+
           {/* Left Column: Message List (35%) */}
           <section className="w-full sm:w-[350px] flex flex-col gap-4 overflow-y-auto pr-2 shrink-0 hidden sm:flex">
-            
+
             {/* Feedback Card: Active/Selected */}
             <div className="bg-surface-container-lowest p-5 rounded-2xl border-l-4 border-l-primary shadow-sm cursor-pointer hover:shadow-md transition-all border-t border-r border-b border-outline-variant/10">
               <div className="flex justify-between items-start mb-2">
@@ -122,7 +122,7 @@ export default function FeedbackInbox() {
 
           {/* Right Column: Detail View (65%) */}
           <section className="flex-1 bg-surface-container-lowest rounded-2xl flex flex-col shadow-sm border border-outline-variant/10 overflow-hidden">
-            
+
             {/* Detail Header */}
             <div className="p-6 sm:p-8 bg-surface-container-low/30 border-b border-outline-variant/10 flex justify-between items-center shrink-0">
               <div className="flex items-center gap-5">
@@ -162,7 +162,7 @@ export default function FeedbackInbox() {
                     "The checkout process was extremely frustrating. It kept declining my valid card three times before finally going through on the fourth attempt. This caused a duplicate hold on my account which my bank is now investigating. I've been a loyal user for 3 years, but this experience makes me want to switch to a competitor. I need this resolved and the extra holds cleared immediately."
                   </p>
                 </div>
-                
+
                 {/* Reputation Pulse Signature Component */}
                 <div className="mt-8 p-6 bg-surface-container-low/50 rounded-2xl border border-outline-variant/10 flex items-center justify-between">
                   <div>
@@ -194,13 +194,13 @@ export default function FeedbackInbox() {
                   <div className="w-px h-4 bg-outline-variant/30 mx-2"></div>
                   <button className="p-1.5 hover:bg-surface-container-high rounded-lg text-outline hover:text-on-surface transition-colors"><span className="material-symbols-outlined text-sm">format_list_bulleted</span></button>
                 </div>
-                <textarea 
-                  className="w-full p-4 text-sm font-body border-none focus:ring-0 resize-none bg-transparent outline-none text-on-surface placeholder:text-outline" 
-                  placeholder="Write your professional response here..." 
+                <textarea
+                  className="w-full p-4 text-sm font-body border-none focus:ring-0 resize-none bg-transparent outline-none text-on-surface placeholder:text-outline"
+                  placeholder="Write your professional response here..."
                   rows={4}
                 ></textarea>
               </div>
-              
+
               <div className="mt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
                 <div className="flex gap-3 w-full sm:w-auto">
                   <button className="flex-1 sm:flex-none bg-primary hover:bg-primary-container text-on-primary px-8 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2">
@@ -217,7 +217,7 @@ export default function FeedbackInbox() {
                 </div>
               </div>
             </div>
-            
+
           </section>
         </div>
       </main>

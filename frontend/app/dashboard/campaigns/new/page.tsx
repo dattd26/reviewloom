@@ -37,38 +37,41 @@ export default function CampaignBuilder() {
   return (
     <>
       {/* Top Nav */}
-      <header className="flex justify-between items-center w-full px-6 sm:px-8 py-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-lg shadow-sm border-b border-outline-variant/10 sticky top-0 z-40">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard/campaigns"
-            className="w-10 h-10 flex items-center justify-center bg-surface-container-lowest rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-200 shadow-sm border border-outline-variant/10"
-          >
-            <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
-          </Link>
-          <div>
-            <h2 className="text-xl sm:text-2xl font-headline font-extrabold text-on-surface tracking-tight">
-              Create New Campaign
-            </h2>
-            <p className="text-xs sm:text-sm font-body text-on-surface-variant">
-              Configure, brand, and generate your feedback QR
-            </p>
+      <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-xl border-b border-outline-variant/5">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 h-20 flex justify-between items-center">
+          <div className="flex items-center gap-5">
+            <Link
+              href="/dashboard/campaigns"
+              className="w-11 h-11 flex items-center justify-center bg-surface-container-lowest rounded-2xl hover:bg-surface-container-high transition-all active:scale-90 shadow-sm border border-outline-variant/10 group"
+            >
+              <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">arrow_back</span>
+            </Link>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-headline font-black text-on-surface tracking-tight leading-none">
+                Create Campaign
+              </h2>
+              <p className="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-outline mt-1.5 opacity-70">
+                Builder &bull; v1.0
+              </p>
+            </div>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-3">
+            <button className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-low rounded-xl border border-outline-variant/20 transition-all">
+              Save Draft
+            </button>
+            <button
+              className="px-6 py-2.5 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-xl hover:shadow-primary/20 active:scale-[0.98] transition-all"
+              style={{
+                background: `linear-gradient(135deg, ${campaign.primaryColor}, ${campaign.primaryColor}cc)`,
+              }}
+            >
+              Generate QR
+            </button>
           </div>
         </div>
-        <div className="hidden sm:flex gap-3">
-          <button className="px-6 py-2.5 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low rounded-xl border border-outline-variant/20 transition-all">
-            Save Draft
-          </button>
-          <button
-            className="px-6 py-2.5 text-sm font-semibold text-on-primary rounded-xl shadow-md active:scale-[0.98] transition-all"
-            style={{
-              background: `linear-gradient(135deg, ${campaign.primaryColor}, ${campaign.primaryColor}cc)`,
-              boxShadow: `0 4px 14px ${campaign.primaryColor}30`,
-            }}
-          >
-            Generate QR Code
-          </button>
-        </div>
       </header>
+
 
       <div className="p-5 sm:p-8 max-w-7xl mx-auto w-full">
         {/* Mobile CTAs */}
@@ -197,11 +200,10 @@ export default function CampaignBuilder() {
                       <button
                         key={val}
                         onClick={() => patch({ routingThreshold: val })}
-                        className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                          campaign.routingThreshold === val
-                            ? 'bg-primary text-on-primary shadow-sm'
-                            : 'text-on-surface-variant hover:bg-surface-container-low'
-                        }`}
+                        className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${campaign.routingThreshold === val
+                          ? 'bg-primary text-on-primary shadow-sm'
+                          : 'text-on-surface-variant hover:bg-surface-container-low'
+                          }`}
                       >
                         {val === 4 ? '4+ Stars' : '5 Stars Only'}
                       </button>
@@ -219,11 +221,10 @@ export default function CampaignBuilder() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 ${
-                      activeTab === tab.id
-                        ? 'bg-surface-container-lowest text-on-surface shadow-sm'
-                        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 ${activeTab === tab.id
+                      ? 'bg-surface-container-lowest text-on-surface shadow-sm'
+                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
+                      }`}
                   >
                     <span className="material-symbols-outlined text-[15px]">{tab.icon}</span>
                     <span className="hidden sm:inline">{tab.label}</span>

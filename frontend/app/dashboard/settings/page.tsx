@@ -4,7 +4,7 @@ export default function Settings() {
   return (
     <>
       {/* TopNavBar Anchor */}
-      <header className="flex justify-between items-center w-full px-8 py-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-outline-variant/10 z-30 sticky top-0 shadow-sm">
+      <header className="flex justify-between items-center w-full px-8 py-4 bg-white/80 backdrop-blur-xl border-b border-outline-variant/10 z-30 sticky top-0 shadow-sm">
         <div className="flex items-center space-x-8">
           <div className="text-lg font-black font-headline tracking-tighter text-primary">Settings</div>
           <nav className="hidden md:flex space-x-6">
@@ -23,7 +23,7 @@ export default function Settings() {
 
       {/* Main Content Canvas */}
       <div className="p-8 md:p-10 max-w-6xl mx-auto w-full flex-1">
-        
+
         {/* Header Section */}
         <div className="mb-10">
           <h1 className="text-4xl font-extrabold font-headline tracking-tight mb-2 text-on-surface">Billing & Plans</h1>
@@ -32,7 +32,7 @@ export default function Settings() {
 
         {/* Bento Grid Content */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          
+
           {/* 1. Current Plan Summary Card */}
           <div className="col-span-1 md:col-span-12 lg:col-span-7 bg-surface-container-lowest rounded-2xl p-8 flex flex-col justify-between shadow-sm border border-outline-variant/10 overflow-hidden relative group">
             <div className="relative z-10">
@@ -154,7 +154,7 @@ export default function Settings() {
               </table>
             </div>
           </div>
-          
+
         </div>
       </div>
     </>

@@ -59,11 +59,11 @@ export default function LivePreview({ campaign }: Props) {
     campaign.qrFrame === 'scan_to_rate'
       ? 'Scan to Rate Us'
       : campaign.qrFrame === 'review_discount'
-      ? 'Review & Get 10% Off'
-      : null;
+        ? 'Review & Get 10% Off'
+        : null;
 
   return (
-    <div className="lg:col-span-2 flex flex-col gap-8">
+    <div className="lg:col-span-2 flex flex-col gap-8 lg:sticky lg:top-28 lg:h-fit">
       {/* Phone Mockup */}
       <div className="relative mx-auto lg:mx-0 w-full max-w-[300px]">
         {/* Glow */}

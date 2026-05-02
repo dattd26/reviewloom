@@ -3,31 +3,44 @@ import Link from 'next/link';
 export default function CampaignList() {
   return (
     <>
-      {/* TopNavBar */}
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-8 py-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-lg shadow-sm border-b border-outline-variant/10 sticky top-0 z-40 gap-4 sm:gap-0">
-        <div className="flex items-center gap-6 w-full sm:w-auto">
-          <div className="relative w-full sm:w-80">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">search</span>
-            <input 
-              className="w-full pl-10 pr-4 py-2.5 bg-surface-container-low border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none text-on-surface" 
-              placeholder="Search campaigns..." 
-              type="text"
-            />
+      {/* Top Nav */}
+      <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-xl border-b border-outline-variant/5">
+        <div className="px-8 h-20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
+          <div className="flex items-center gap-8 w-full sm:w-auto">
+            <div>
+              <h2 className="text-xl font-headline font-black text-on-surface tracking-tight leading-none">
+                QR Campaigns
+              </h2>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-outline mt-1.5 opacity-70">
+                Active &bull; 24 Touchpoints
+              </p>
+            </div>
+
+            <div className="relative hidden md:block w-72">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline/50 text-lg">search</span>
+              <input
+                className="w-full pl-10 pr-4 py-2 bg-surface-container-low/50 border border-outline-variant/10 rounded-xl text-xs font-medium focus:ring-2 focus:ring-primary/10 transition-all outline-none text-on-surface placeholder:text-outline/40"
+                placeholder="Search campaigns..."
+                type="text"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 self-end sm:self-auto">
+            <button className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-surface-container-high transition-all text-outline hover:text-primary border border-outline-variant/10 sm:border-none">
+              <span className="material-symbols-outlined">notifications</span>
+            </button>
+            <Link
+              href="/dashboard/campaigns/new"
+              className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all"
+            >
+              <span className="material-symbols-outlined text-base">add</span>
+              Create New
+            </Link>
           </div>
         </div>
-        <div className="flex items-center gap-4 self-end sm:self-auto">
-          <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-outline hover:text-on-surface">
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-          <Link 
-            href="/dashboard/campaigns/new"
-            className="bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 shadow-md shadow-primary/20 hover:shadow-lg transition-all active:scale-95"
-          >
-            <span className="material-symbols-outlined text-lg">add</span>
-            Create New Campaign
-          </Link>
-        </div>
       </header>
+
 
       {/* Page Canvas */}
       <div className="p-8 max-w-7xl mx-auto w-full">
@@ -43,7 +56,7 @@ export default function CampaignList() {
             <div className="relative z-10">
               <p className="font-label text-on-surface-variant font-semibold tracking-wider uppercase text-[10px] mb-2">Network Performance</p>
               <h3 className="font-display text-5xl font-bold tracking-tighter text-on-surface mb-4 flex items-end gap-3">
-                2,400 
+                2,400
                 <span className="text-sm font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-md flex items-center mb-1">
                   <span className="material-symbols-outlined text-sm mr-1">trending_up</span> 12%
                 </span>
@@ -54,7 +67,7 @@ export default function CampaignList() {
               <span className="material-symbols-outlined text-[200px]" style={{ fontVariationSettings: "'wght' 100" }}>qr_code_2</span>
             </div>
           </div>
-          
+
           <div className="col-span-1 md:col-span-4 bg-secondary/10 p-8 rounded-2xl border border-secondary/20 flex flex-col justify-center">
             <p className="text-secondary font-bold tracking-wider uppercase text-[10px] mb-2">Conversion Rate</p>
             <h3 className="text-4xl font-bold tracking-tighter text-secondary mb-4">42.5%</h3>
@@ -75,7 +88,7 @@ export default function CampaignList() {
               <button className="px-4 py-1.5 text-xs font-bold text-on-surface-variant hover:text-on-surface rounded-md transition-colors">Inactive</button>
             </div>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
@@ -206,7 +219,7 @@ export default function CampaignList() {
               </tbody>
             </table>
           </div>
-          
+
           {/* Pagination/Footer */}
           <div className="px-8 py-4 bg-surface/50 border-t border-outline-variant/10 flex items-center justify-between">
             <p className="text-xs text-outline font-medium">Showing 3 of 24 campaigns</p>
