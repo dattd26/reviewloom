@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
 import { toPng } from 'html-to-image';
 import { CampaignConfig, GRADIENT_PRESETS } from './types';
+import StandeeDesignerModal from './StandeeDesignerModal';
 
 interface Props {
   campaign: CampaignConfig;
@@ -62,6 +63,7 @@ export default function LivePreview({ campaign }: Props) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isStandeeDesignerOpen, setIsStandeeDesignerOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const printableRef = useRef<HTMLDivElement>(null);
   const qrOnlyRef = useRef<HTMLDivElement>(null);
@@ -543,40 +545,55 @@ export default function LivePreview({ campaign }: Props) {
                   </button>
                 </div>
 
-                {/* Option 2: Print Standee */}
-                <div className="flex-1 border-2 border-primary/10 rounded-[1.5rem] p-6 flex flex-col items-center gap-5 hover:border-primary/20 transition-all bg-primary/5">
-                  <div className="w-28 h-28 bg-white rounded-2xl p-3 shadow-sm border border-primary/10 flex items-center justify-center relative">
-                    <div className="relative h-full aspect-[1/1.414] bg-white shadow-md rounded-sm border border-slate-100 flex flex-col p-2 items-center justify-between text-[2px] pointer-events-none">
-                      <div className="w-full space-y-1 mt-1">
-                        {campaign.logo && <img src={campaign.logo} className="h-2 mx-auto object-contain opacity-60" alt="" />}
-                        <div className="w-full h-[0.5px] bg-slate-100 mx-auto rounded-full" />
+                {/* Option 2: Design & Print Standee */}
+                <div className="flex-1 border-2 border-primary/10 rounded-[1.5rem] p-6 flex flex-col items-center gap-5 hover:border-primary/15 transition-all bg-gradient-to-br from-primary/5 to-primary/[0.03]">
+                  {/* Standee visual mockup thumbnail */}
+                  <div className="w-28 h-[168px] bg-white rounded-xl shadow-md border border-primary/10 flex flex-col overflow-hidden relative">
+                    {/* accent bar */}
+                    <div className="h-[3px] w-full bg-primary shrink-0" />
+                    <div className="flex-1 flex flex-col items-center justify-between p-2">
+                      {campaign.logo ? (
+                        <img src={campaign.logo} className="h-4 object-contain opacity-70" alt="" />
+                      ) : (
+                        <div className="h-4 w-12 rounded bg-slate-100" />
+                      )}
+                      <div className="w-14 h-14 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center">
+                        {qrCodeDataUrl ? (
+                          <img src={qrCodeDataUrl} className="w-11 h-11" alt="" />
+                        ) : (
+                          <span className="material-symbols-outlined text-slate-200 text-2xl">qr_code_2</span>
+                        )}
                       </div>
-                      <div className="w-10 h-10 bg-white rounded-sm flex items-center justify-center shadow-sm border border-slate-50">
-                        {qrCodeDataUrl && <img src={qrCodeDataUrl} className="w-8 h-8" alt="" />}
-                      </div>
-                      <div className="w-full pb-1 text-center">
-                        <div className="text-slate-300 font-bold tracking-[0.2em] text-[2px] uppercase">Kit</div>
-                      </div>
+                      <p className="text-[6px] font-black text-slate-300 uppercase tracking-[0.2em]">ReviewLoom</p>
                     </div>
                   </div>
+
                   <div className="text-center">
-                    <h4 className="font-bold text-slate-900 text-sm">Print Standee</h4>
-                    <p className="text-[11px] text-slate-500 mt-1 font-medium px-2">Ready-to-print A5 format for tables & counters</p>
+                    <h4 className="font-bold text-slate-900 text-sm">Design Your Standee</h4>
+                    <p className="text-[11px] text-slate-500 mt-1 font-medium px-2 leading-relaxed">
+                      Choose a template, customize text & colors, then export print-ready PNG.
+                    </p>
                   </div>
-                  <button
-                    onClick={() => executeDownload('standee')}
-                    disabled={isDownloading}
-                    className="w-full py-3.5 rounded-xl bg-primary text-white font-black text-[11px] uppercase tracking-widest hover:bg-primary-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-auto shadow-md shadow-primary/20"
-                  >
-                    {isDownloading ? (
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <span className="material-symbols-outlined text-[16px]">print</span>
-                        Download Print File
-                      </>
-                    )}
-                  </button>
+
+                  <div className="flex flex-col gap-2 w-full mt-auto">
+                    {/* Template preview chips */}
+                    <div className="flex gap-1.5 justify-center">
+                      {['#ffffff', '#0c1a2e', '#fff0f3', '#fef9ec'].map((bg, i) => (
+                        <div key={i} className="w-5 h-5 rounded-full border-2 border-white shadow-sm" style={{ background: bg }} />
+                      ))}
+                      <span className="text-[9px] font-bold text-slate-400 self-center ml-1">4 templates</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsExportModalOpen(false);
+                        setIsStandeeDesignerOpen(true);
+                      }}
+                      className="w-full py-3.5 rounded-xl bg-primary text-white font-black text-[11px] uppercase tracking-widest hover:bg-primary-hover transition-all flex items-center justify-center gap-2 shadow-md shadow-primary/20 active:scale-95"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">design_services</span>
+                      Open Designer
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -601,6 +618,16 @@ export default function LivePreview({ campaign }: Props) {
           </div>
         </div>,
         document.body
+      )}
+
+      {/* Standee Designer Modal */}
+      {mounted && (
+        <StandeeDesignerModal
+          campaign={campaign}
+          qrCodeDataUrl={qrCodeDataUrl}
+          isOpen={isStandeeDesignerOpen}
+          onClose={() => setIsStandeeDesignerOpen(false)}
+        />
       )}
     </div>
   );
