@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
 import { toPng } from 'html-to-image';
 import { CampaignConfig, GRADIENT_PRESETS } from './types';
@@ -60,8 +61,14 @@ function RatingPreview({ campaign }: { campaign: CampaignConfig }) {
 export default function LivePreview({ campaign }: Props) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const printableRef = useRef<HTMLDivElement>(null);
   const qrOnlyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Generate real QR Code with Debouncing to improve performance during color dragging
   useEffect(() => {
@@ -90,21 +97,31 @@ export default function LivePreview({ campaign }: Props) {
     return () => clearTimeout(timer);
   }, [campaign.googleReviewUrl, campaign.qrDotColor]);
 
-  const handleDownload = async (type: 'qr' | 'standee') => {
+  const executeDownload = async (type: 'qr' | 'standee') => {
     const ref = type === 'qr' ? qrOnlyRef : printableRef;
-    if (!ref.current) return;
+    if (!ref || !ref.current) return;
 
-    setIsDownloading(true);
     try {
+      setIsDownloading(true);
       const dataUrl = await toPng(ref.current, { quality: 1.0, pixelRatio: 3 });
       const link = document.createElement('a');
       link.download = `reviewloom-${type}-${Date.now()}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
-      console.error('Download failed', err);
+      console.error('Export failed:', err);
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    try {
+      await executeDownload('qr');
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      await executeDownload('standee');
+    } catch (err) {
+      console.error('Download all failed:', err);
     }
   };
 
@@ -322,24 +339,16 @@ export default function LivePreview({ campaign }: Props) {
                 <span className="material-symbols-outlined text-primary text-[14px]">qr_code_scanner</span>
                 <h6 className="text-[10px] font-black uppercase tracking-widest text-on-surface">Dynamic Asset</h6>
               </div>
-              <div className="flex gap-1">
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleDownload('qr'); }}
-                  title="Download QR Only"
-                  disabled={isDownloading}
-                  className="w-8 h-8 rounded-lg hover:bg-surface-container-high flex items-center justify-center transition-colors text-outline-variant hover:text-primary pointer-events-auto"
-                >
-                  <span className="material-symbols-outlined text-[18px]">download</span>
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleDownload('standee'); }}
-                  title="Download Print-ready Standee"
-                  disabled={isDownloading}
-                  className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center transition-colors text-primary hover:bg-primary hover:text-white pointer-events-auto"
-                >
-                  <span className="material-symbols-outlined text-[18px]">print</span>
-                </button>
-              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExportModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all duration-300 flex items-center justify-center gap-1.5 pointer-events-auto shadow-sm group font-bold text-[11px] uppercase tracking-wider"
+              >
+                <span className="material-symbols-outlined text-[16px] transition-transform group-hover:-translate-y-0.5">download</span>
+
+              </button>
             </div>
             <p className="text-[11px] font-bold text-on-surface-variant/80 leading-tight">
               {qrFrameLabel || 'Standard QR Code'}
@@ -385,6 +394,7 @@ export default function LivePreview({ campaign }: Props) {
           </div>
         </div>
       </div>
+
 
       {/* --- HIDDEN EXPORT TEMPLATES (Moved outside main flow for safety) --- */}
       <div className="fixed top-[-9999px] left-[-9999px] pointer-events-none overflow-hidden" style={{ opacity: 0 }}>
@@ -467,6 +477,131 @@ export default function LivePreview({ campaign }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Confirm Download Modal */}
+      {mounted && isExportModalOpen && createPortal(
+        <div className="fixed inset-0 lg:pl-64 z-[9999] flex items-center justify-center p-4 sm:p-8 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="p-6 pb-4 flex items-center justify-between border-b border-slate-100 shrink-0 bg-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <span className="material-symbols-outlined text-xl">download</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 tracking-tight">Download Assets</h3>
+                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mt-0.5">High-Resolution PNG</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsExportModalOpen(false)}
+                className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-all hover:rotate-90 active:scale-90"
+              >
+                <span className="material-symbols-outlined text-2xl">close</span>
+              </button>
+            </div>
+
+            {/* Modal Content - Confirm Download Options */}
+            <div className="p-6 overflow-y-auto flex flex-col gap-6">
+              <div className="flex flex-col sm:flex-row gap-6">
+                {/* Option 1: QR Only */}
+                <div className="flex-1 border-2 border-slate-100 rounded-[1.5rem] p-6 flex flex-col items-center gap-5 hover:border-slate-200 transition-all bg-slate-50/50">
+                  <div className="w-28 h-28 bg-white rounded-2xl p-3 shadow-sm border border-slate-100 relative group">
+                    <div className="absolute inset-0 bg-slate-50/30 rounded-2xl pointer-events-none"></div>
+                    {qrCodeDataUrl ? (
+                      <div className="relative w-full h-full">
+                        <img src={qrCodeDataUrl} className="w-full h-full object-contain" alt="QR Preview" />
+                        {campaign.logo && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-[22%] h-[22%] bg-white rounded-md flex items-center justify-center shadow-lg border-2 border-white overflow-hidden p-0.5">
+                              <img src={campaign.logo} className="w-full h-full object-contain" alt="" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-full h-full rounded-xl bg-slate-100 animate-pulse" />
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <h4 className="font-bold text-slate-900 text-sm">Raw QR Image</h4>
+                    <p className="text-[11px] text-slate-500 mt-1 font-medium px-2">Perfect for digital use or adding to your own designs</p>
+                  </div>
+                  <button
+                    onClick={() => executeDownload('qr')}
+                    disabled={isDownloading}
+                    className="w-full py-3.5 rounded-xl bg-slate-900 text-white font-black text-[11px] uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-auto shadow-md shadow-slate-900/10"
+                  >
+                    {isDownloading ? (
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-[16px]">download</span>
+                        Download Image
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Option 2: Print Standee */}
+                <div className="flex-1 border-2 border-primary/10 rounded-[1.5rem] p-6 flex flex-col items-center gap-5 hover:border-primary/20 transition-all bg-primary/5">
+                  <div className="w-28 h-28 bg-white rounded-2xl p-3 shadow-sm border border-primary/10 flex items-center justify-center relative">
+                    <div className="relative h-full aspect-[1/1.414] bg-white shadow-md rounded-sm border border-slate-100 flex flex-col p-2 items-center justify-between text-[2px] pointer-events-none">
+                      <div className="w-full space-y-1 mt-1">
+                        {campaign.logo && <img src={campaign.logo} className="h-2 mx-auto object-contain opacity-60" alt="" />}
+                        <div className="w-full h-[0.5px] bg-slate-100 mx-auto rounded-full" />
+                      </div>
+                      <div className="w-10 h-10 bg-white rounded-sm flex items-center justify-center shadow-sm border border-slate-50">
+                        {qrCodeDataUrl && <img src={qrCodeDataUrl} className="w-8 h-8" alt="" />}
+                      </div>
+                      <div className="w-full pb-1 text-center">
+                        <div className="text-slate-300 font-bold tracking-[0.2em] text-[2px] uppercase">Kit</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <h4 className="font-bold text-slate-900 text-sm">Print Standee</h4>
+                    <p className="text-[11px] text-slate-500 mt-1 font-medium px-2">Ready-to-print A5 format for tables & counters</p>
+                  </div>
+                  <button
+                    onClick={() => executeDownload('standee')}
+                    disabled={isDownloading}
+                    className="w-full py-3.5 rounded-xl bg-primary text-white font-black text-[11px] uppercase tracking-widest hover:bg-primary-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-auto shadow-md shadow-primary/20"
+                  >
+                    {isDownloading ? (
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-[16px]">print</span>
+                        Download Print File
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer - All in one Action */}
+            <div className="p-5 px-6 bg-slate-50 border-t border-slate-100 shrink-0 flex items-center justify-center">
+              <button
+                onClick={handleDownloadAll}
+                disabled={isDownloading}
+                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white border-2 border-slate-200 text-slate-700 font-black text-[11px] uppercase tracking-[0.1em] hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isDownloading ? (
+                  <span className="w-4 h-4 border-2 border-slate-300 border-t-slate-700 rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[18px]">library_add</span>
+                    Download Full Asset Kit
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
