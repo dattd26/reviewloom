@@ -1,5 +1,8 @@
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
+import QRCode from 'qrcode';
+import { toPng } from 'html-to-image';
 import { CampaignConfig, GRADIENT_PRESETS } from './types';
 
 interface Props {
@@ -55,6 +58,50 @@ function RatingPreview({ campaign }: { campaign: CampaignConfig }) {
 }
 
 export default function LivePreview({ campaign }: Props) {
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const printableRef = useRef<HTMLDivElement>(null);
+  const qrOnlyRef = useRef<HTMLDivElement>(null);
+
+  // Generate real QR Code when URL or Color changes
+  useEffect(() => {
+    const generateQR = async () => {
+      try {
+        const url = await QRCode.toDataURL(campaign.googleReviewUrl || 'https://reviewloom.com', {
+          errorCorrectionLevel: 'H',
+          margin: 1,
+          width: 512, // High res for download
+          color: {
+            dark: campaign.qrDotColor || '#000000',
+            light: '#ffffff'
+          }
+        });
+        setQrCodeDataUrl(url);
+      } catch (err) {
+        console.error('Error generating QR code:', err);
+      }
+    };
+    generateQR();
+  }, [campaign.googleReviewUrl, campaign.qrDotColor]);
+
+  const handleDownload = async (type: 'qr' | 'standee') => {
+    const ref = type === 'qr' ? qrOnlyRef : printableRef;
+    if (!ref.current) return;
+
+    setIsDownloading(true);
+    try {
+      const dataUrl = await toPng(ref.current, { quality: 1.0, pixelRatio: 3 });
+      const link = document.createElement('a');
+      link.download = `reviewloom-${type}-${Date.now()}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Download failed', err);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const qrFrameLabel =
     campaign.qrFrame === 'scan_to_rate'
       ? 'Scan to Rate Us'
@@ -135,12 +182,11 @@ export default function LivePreview({ campaign }: Props) {
                 {/* App Header */}
                 <div className="relative z-10 flex flex-col items-center pt-16 pb-6 px-6">
                   <div
-                    className={`w-16 h-16 flex items-center justify-center mb-4 transition-all duration-500 ${
-                      campaign.logoStyle === 'circle' ? 'rounded-full shadow-xl border' : 
-                      campaign.logoStyle === 'soft' ? 'rounded-2xl shadow-xl border' : 
-                      campaign.logoStyle === 'square' ? 'rounded-md shadow-xl border' : 
-                      'rounded-none shadow-none border-none'
-                    }`}
+                    className={`w-16 h-16 flex items-center justify-center mb-4 transition-all duration-500 ${campaign.logoStyle === 'circle' ? 'rounded-full shadow-xl border' :
+                      campaign.logoStyle === 'soft' ? 'rounded-2xl shadow-xl border' :
+                        campaign.logoStyle === 'square' ? 'rounded-md shadow-xl border' :
+                          'rounded-none shadow-none border-none'
+                      }`}
                     style={{
                       backgroundColor: campaign.logoStyle === 'none' ? 'transparent' : (isDarkBg ? `${campaign.primaryColor}40` : 'rgba(255,255,255,0.7)'),
                       borderColor: campaign.logoStyle === 'none' ? 'transparent' : (isDarkBg ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.08)'),
@@ -245,37 +291,60 @@ export default function LivePreview({ campaign }: Props) {
           })()}
         </div>
 
-        {/* Floating QR Preview */}
-        <div className="absolute -bottom-6 -right-6 lg:-right-10 bg-white p-3 rounded-2xl shadow-xl border border-outline-variant/10 flex flex-col items-center gap-1.5 w-[110px]">
-          {/* QR Dots simulation */}
-          <div className="w-[72px] h-[72px] rounded-lg border border-outline-variant/20 relative overflow-hidden flex items-center justify-center bg-white">
-            <span
-              className="material-symbols-outlined text-[60px] opacity-80"
-              style={{ color: campaign.qrDotColor }}
-            >
-              qr_code_2
-            </span>
+        {/* Redesigned QR Asset Card (Safe layout, real QR generation) */}
+        <div className="mt-8 bg-surface-container-lowest p-4 rounded-3xl shadow-sm border border-outline-variant/10 flex items-center gap-5 w-[300px] sm:w-[320px] transition-all duration-500 animate-in fade-in slide-in-from-bottom-4 relative z-30">
+          <div className="relative w-[76px] h-[76px] rounded-2xl overflow-hidden bg-white flex items-center justify-center shrink-0 shadow-sm border border-outline-variant/10">
+            {qrCodeDataUrl ? (
+              <img src={qrCodeDataUrl} alt="QR Code" className="w-full h-full object-contain p-1" />
+            ) : (
+              <span className="material-symbols-outlined text-[40px] opacity-20" style={{ color: campaign.qrDotColor }}>qr_code_2</span>
+            )}
+            
+            {/* Embedded Logo */}
             {campaign.logo && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-5 h-5 bg-white rounded-sm p-0.5 shadow-sm">
-                  <img src={campaign.logo} alt="" className="w-full h-full object-contain" />
+                <div className="w-[22px] h-[22px] bg-white rounded-md flex items-center justify-center shadow-md border border-outline-variant/10 overflow-hidden">
+                  <img src={campaign.logo} alt="Embedded Logo" className="w-full h-full object-contain p-0.5" />
                 </div>
               </div>
             )}
           </div>
-          {qrFrameLabel && (
-            <span
-              className="text-[8px] font-black text-center leading-tight px-1"
-              style={{ color: campaign.qrDotColor }}
-            >
-              {qrFrameLabel}
-            </span>
-          )}
-          <span className="text-[8px] font-black uppercase tracking-widest text-on-surface-variant">
-            Dynamic QR
-          </span>
+          
+          <div className="flex-1 relative z-40">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-primary text-[14px]">qr_code_scanner</span>
+                <h6 className="text-[10px] font-black uppercase tracking-widest text-on-surface">Dynamic Asset</h6>
+              </div>
+              <div className="flex gap-1">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDownload('qr'); }}
+                  title="Download QR Only"
+                  disabled={isDownloading}
+                  className="w-8 h-8 rounded-lg hover:bg-surface-container-high flex items-center justify-center transition-colors text-outline-variant hover:text-primary pointer-events-auto"
+                >
+                  <span className="material-symbols-outlined text-[18px]">download</span>
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDownload('standee'); }}
+                  title="Download Print-ready Standee"
+                  disabled={isDownloading}
+                  className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center transition-colors text-primary hover:bg-primary hover:text-white pointer-events-auto"
+                >
+                  <span className="material-symbols-outlined text-[18px]">print</span>
+                </button>
+              </div>
+            </div>
+            <p className="text-[11px] font-bold text-on-surface-variant/80 leading-tight">
+              {qrFrameLabel || 'Standard QR Code'}
+            </p>
+            <div className="mt-2.5 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full shadow-inner border border-black/5" style={{ backgroundColor: campaign.qrDotColor }}></span>
+              <span className="text-[9px] font-mono font-bold text-outline uppercase tracking-wider">{campaign.qrDotColor}</span>
+            </div>
+          </div>
         </div>
-      </div>
+        </div>
 
       {/* Incentive Preview (if enabled) */}
       {campaign.incentiveEnabled && campaign.incentiveCoupon && (
@@ -306,6 +375,88 @@ export default function LivePreview({ campaign }: Props) {
               Campaigns with custom logos see a{' '}
               <span className="font-extrabold text-white bg-white/20 px-1 rounded">24% higher</span>{' '}
               scan-to-feedback conversion rate.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* --- HIDDEN EXPORT TEMPLATES (Moved outside main flow for safety) --- */}
+      <div className="fixed top-[-9999px] left-[-9999px] pointer-events-none overflow-hidden" style={{ opacity: 0 }}>
+        {/* 1. QR Only High-Res Template */}
+        <div ref={qrOnlyRef} className="w-[1024px] h-[1024px] bg-white flex items-center justify-center relative">
+          {qrCodeDataUrl && (
+            <img src={qrCodeDataUrl} className="w-full h-full object-contain" alt="" />
+          )}
+          {campaign.logo && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-[280px] h-[280px] bg-white rounded-[60px] flex items-center justify-center shadow-2xl border-[16px] border-white overflow-hidden">
+                <img src={campaign.logo} className="w-full h-full object-contain p-4" alt="" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 2. Professional Standee Template (A5 Ratio) */}
+        <div
+          ref={printableRef}
+          className="w-[1240px] h-[1754px] bg-white p-20 flex flex-col items-center justify-between text-center"
+          style={{ fontFamily: `'${campaign.fontFamily}', sans-serif` }}
+        >
+          {/* Header Area */}
+          <div className="w-full space-y-12 pt-20">
+            {campaign.logo && (
+              <img src={campaign.logo} className="h-32 mx-auto object-contain mb-8" alt="" />
+            ) || <div className="h-32" />}
+            <h1 className="text-8xl font-black tracking-tight text-slate-900 leading-tight">
+              {campaign.heading}
+            </h1>
+            <p className="text-4xl font-bold text-slate-400 uppercase tracking-[0.4em] pt-4">
+              SCAN TO REVIEW
+            </p>
+          </div>
+
+          {/* QR Focus Area */}
+          <div className="relative">
+            {/* Decorative Frame */}
+            <div className="absolute -inset-16 border-[12px] border-slate-100 rounded-[120px] -z-10" />
+            <div
+              className="p-12 bg-white rounded-[100px] shadow-[0_40px_80px_rgba(0,0,0,0.1)] border-8"
+              style={{ borderColor: `${campaign.qrDotColor}20` }}
+            >
+              <div className="relative w-[600px] h-[600px]">
+                {qrCodeDataUrl && (
+                  <img src={qrCodeDataUrl} className="w-full h-full" alt="" />
+                )}
+                {campaign.logo && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-[180px] h-[180px] bg-white rounded-[40px] flex items-center justify-center shadow-xl border-8 border-white overflow-hidden">
+                      <img src={campaign.logo} className="w-full h-full object-contain p-2" alt="" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Frame Label */}
+            {qrFrameLabel && (
+              <div
+                className="mt-16 inline-block px-12 py-6 rounded-full text-white text-4xl font-black uppercase tracking-widest"
+                style={{ backgroundColor: campaign.qrDotColor }}
+              >
+                {qrFrameLabel}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Area */}
+          <div className="w-full pb-20 space-y-8">
+            <div className="flex items-center justify-center gap-6">
+              <span className="w-24 h-2 bg-slate-200 rounded-full"></span>
+              <p className="text-4xl font-black text-slate-800">ReviewLoom</p>
+              <span className="w-24 h-2 bg-slate-200 rounded-full"></span>
+            </div>
+            <p className="text-3xl text-slate-400 font-medium tracking-wide">
+              Thank you for supporting our local business!
             </p>
           </div>
         </div>
