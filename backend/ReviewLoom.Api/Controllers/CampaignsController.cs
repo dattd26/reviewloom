@@ -26,9 +26,12 @@ public class CampaignsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetUserCampaigns()
     {
-        var campaigns = await _campaignService.GetAllCampaignsAsync();
+        var userId = await GetCurrentUserIdAsync();
+        if (userId == null) return Unauthorized();
+
+        var campaigns = await _campaignService.GetUserCampaignsAsync(userId.Value);
         return Ok(campaigns);
     }
 
@@ -37,13 +40,16 @@ public class CampaignsController : ControllerBase
     {
         var campaign = await _campaignService.GetCampaignByIdAsync(id);
         if (campaign == null) return NotFound();
+
+        var userId = await GetCurrentUserIdAsync();
+        if (userId == null) return Unauthorized();
+
         return Ok(campaign);
     }
 
     [HttpGet("{id}/stats")]
     public async Task<IActionResult> GetStats(Guid id)
     {
-        // Add check if campaign belongs to user later if needed
         var stats = await _statsService.GetCampaignStatsAsync(id);
         return Ok(stats);
     }
@@ -53,18 +59,39 @@ public class CampaignsController : ControllerBase
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
+        var userId = await GetCurrentUserIdAsync();
+        if (userId == null) return Unauthorized();
+
+        var campaign = await _campaignService.CreateCampaignAsync(dto, userId.Value);
+        return CreatedAtAction(nameof(GetById), new { id = campaign.Id }, campaign);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCampaignDto dto)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var campaign = await _campaignService.UpdateCampaignAsync(id, dto);
+        if (campaign == null) return NotFound();
+
+        return Ok(campaign);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var result = await _campaignService.DeleteCampaignAsync(id);
+        if (!result) return NotFound();
+
+        return NoContent();
+    }
+
+    private async Task<Guid?> GetCurrentUserIdAsync()
+    {
         var clerkId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(clerkId)) return Unauthorized();
+        if (string.IsNullOrEmpty(clerkId)) return null;
 
         var user = await _unitOfWork.Users.GetByClerkIdAsync(clerkId);
-        if (user == null)
-        {
-            return BadRequest("User not found in system");
-        }
-        
-        var userId = user.Id;
-        
-        var campaign = await _campaignService.CreateCampaignAsync(dto, userId);
-        return CreatedAtAction(nameof(GetById), new { id = campaign.Id }, campaign);
+        return user?.Id;
     }
 }
