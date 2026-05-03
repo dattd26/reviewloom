@@ -2,29 +2,46 @@
 
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { CampaignService } from '@/services/campaign-service';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 export default function CampaignList() {
   const { getToken } = useAuth();
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+
+  const fetchCampaigns = async () => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const data = await CampaignService.getMyCampaigns(token);
+      setCampaigns(data);
+    } catch (error) {
+      console.error("Failed to fetch campaigns:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        const token = await getToken();
-        if (!token) return;
-        const data = await CampaignService.getMyCampaigns(token);
-        setCampaigns(data);
-      } catch (error) {
-        console.error("Failed to fetch campaigns:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchCampaigns();
   }, [getToken]);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      const token = await getToken();
+      if (!token) return;
+      await CampaignService.deleteCampaign(deleteTarget.id, token);
+      setCampaigns(prev => prev.filter(c => c.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (error) {
+      console.error("Failed to delete campaign:", error);
+      alert("Failed to delete campaign. Please try again.");
+    }
+  };
 
   const totalScans = campaigns.reduce((acc, c) => acc + (c.totalScans || 0), 0);
   const activeCount = campaigns.filter(c => c.status === 'Active').length;
@@ -177,19 +194,39 @@ export default function CampaignList() {
                         <p className="font-bold text-on-surface text-lg">{c.totalScans || 0}</p>
                       </td>
                       <td className="px-8 py-6">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="Download QR">
-                            <span className="material-symbols-outlined text-xl">download</span>
-                          </button>
-                          <Link
-                            href={`/dashboard/campaigns/${c.id}`}
-                            className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all"
-                            title="Edit"
+                        <div className="flex items-center justify-end gap-1">
+                          {/* Main Actions Group */}
+                          <div className="flex items-center bg-surface-container-low p-1 rounded-xl border border-outline-variant/10">
+                            <button
+                              className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white hover:text-primary hover:shadow-sm transition-all text-outline"
+                              title="Download QR"
+                            >
+                              <span className="material-symbols-outlined text-lg">download</span>
+                            </button>
+
+                            <Link
+                              href={`/dashboard/campaigns/${c.id}`}
+                              className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white hover:text-primary hover:shadow-sm transition-all text-outline"
+                              title="Edit Campaign"
+                            >
+                              <span className="material-symbols-outlined text-lg">edit_note</span>
+                            </Link>
+
+                            <button
+                              className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white hover:text-primary hover:shadow-sm transition-all text-outline"
+                              title="View Statistics"
+                            >
+                              <span className="material-symbols-outlined text-lg">analytics</span>
+                            </button>
+                          </div>
+
+                          {/* Danger Action */}
+                          <button
+                            onClick={() => setDeleteTarget(c)}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-error/10 text-outline/40 hover:text-error transition-all"
+                            title="Delete"
                           >
-                            <span className="material-symbols-outlined text-xl">edit_note</span>
-                          </Link>
-                          <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="View Stats">
-                            <span className="material-symbols-outlined text-xl">analytics</span>
+                            <span className="material-symbols-outlined text-lg">delete</span>
                           </button>
                         </div>
                       </td>
@@ -238,6 +275,14 @@ export default function CampaignList() {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <DeleteConfirmationModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        campaignName={deleteTarget?.businessName || ''}
+      />
     </>
   );
 }
