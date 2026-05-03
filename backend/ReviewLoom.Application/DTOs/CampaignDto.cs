@@ -1,5 +1,3 @@
-using System;
-
 namespace ReviewLoom.Application.DTOs;
 
 public class CampaignDto
@@ -8,9 +6,10 @@ public class CampaignDto
     public string Slug { get; set; } = null!;
     public string BusinessName { get; set; } = null!;
     public string GoogleReviewUrl { get; set; } = null!;
+    public bool IsActive { get; set; }
     public string? LogoUrl { get; set; }
     public DateTime? CreatedAt { get; set; }
-
+    public CampaignStatsDto Stats { get; set; } = new();
     public CampaignStyleDto Style { get; set; } = new();
     public CampaignSettingsDto Settings { get; set; } = new();
     public CampaignStandeeConfigDto? StandeeConfig { get; set; }

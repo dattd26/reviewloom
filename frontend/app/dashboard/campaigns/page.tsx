@@ -17,6 +17,7 @@ export default function CampaignList() {
       const token = await getToken();
       if (!token) return;
       const data = await CampaignService.getMyCampaigns(token);
+      console.log(data);
       setCampaigns(data);
     } catch (error) {
       console.error("Failed to fetch campaigns:", error);
@@ -43,8 +44,8 @@ export default function CampaignList() {
     }
   };
 
-  const totalScans = campaigns.reduce((acc, c) => acc + (c.totalScans || 0), 0);
-  const activeCount = campaigns.filter(c => c.status === 'Active').length;
+  const totalScans = campaigns.reduce((acc, c) => acc + (c.stats.totalScans || 0), 0);
+  const activeCount = campaigns.filter(c => c.isActive).length;
   return (
     <>
       {/* Top Nav */}

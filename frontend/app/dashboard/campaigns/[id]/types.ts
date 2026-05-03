@@ -37,6 +37,12 @@ export interface CampaignConfig {
   incentiveEnabled: boolean;
   incentiveCoupon: string;
   ratingIconType: RatingIconType;
+  isActive: boolean;
+  stats: {
+    totalScans: number;
+    positiveScans: number;
+    negativeScans: number;
+  };
 
   // Standee Designer
   standeeConfig: StandeeUserConfig;
@@ -72,6 +78,12 @@ export const DEFAULT_CAMPAIGN: CampaignConfig = {
   incentiveCoupon: '',
   ratingIconType: 'stars',
   standeeConfig: { ...DEFAULT_STANDEE_CONFIG },
+  stats: {
+    totalScans: 0,
+    positiveScans: 0,
+    negativeScans: 0,
+  },
+  isActive: true,
 };
 
 export const FONT_OPTIONS: { value: FontOption; label: string; category: string }[] = [

@@ -7,7 +7,12 @@ export interface CampaignResponse {
   slug: string;
   businessName: string;
   createdAt: string;
-  // ... other fields if needed
+  isActive: boolean;
+  stats: {
+    totalScans: number;
+    positiveScans: number;
+    negativeScans: number;
+  };
 }
 
 export const CampaignService = {

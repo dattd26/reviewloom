@@ -15,6 +15,8 @@ public partial class Campaign
 
     public string BusinessName { get; set; } = null!;
 
+    public bool IsActive { get; set; } = true;
+
     public string? LogoUrl { get; set; }
 
     public string? ThankYouMessage { get; set; }

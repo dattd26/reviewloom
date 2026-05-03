@@ -11,34 +11,50 @@ namespace ReviewLoom.Application.Services;
 public class CampaignService : ICampaignService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IStatsRepository _statsRepository;
 
-    public CampaignService(IUnitOfWork unitOfWork)
+    public CampaignService(IUnitOfWork unitOfWork, IStatsRepository statsRepository)
     {
         _unitOfWork = unitOfWork;
+        _statsRepository = statsRepository;
     }
 
     public async Task<IEnumerable<CampaignDto>> GetUserCampaignsAsync(Guid userId)
     {
         var campaigns = await _unitOfWork.Campaigns.GetByUserIdAsync(userId);
-        return campaigns.Select(MapToDto);
+        var dtos = new List<CampaignDto>();
+
+        foreach (var c in campaigns)
+        {
+            var stats = await _statsRepository.GetCampaignStatsAsync(c.Id);
+            dtos.Add(MapToDto(c, stats));
+        }
+
+        return dtos;
     }
 
     public async Task<CampaignDto?> GetCampaignByIdAsync(Guid id)
     {
         var campaign = await _unitOfWork.Campaigns.GetFullByIdAsync(id);
-        return campaign == null ? null : MapToDto(campaign);
+        if (campaign == null) return null;
+
+        var stats = await _statsRepository.GetCampaignStatsAsync(id);
+        return MapToDto(campaign, stats);
     }
 
     public async Task<CampaignDto?> GetCampaignBySlugAsync(string slug)
     {
         var campaign = await _unitOfWork.Campaigns.GetFullBySlugAsync(slug);
-        return campaign == null ? null : MapToDto(campaign);
+        if (campaign == null) return null;
+
+        var stats = await _statsRepository.GetCampaignStatsAsync(campaign.Id);
+        return MapToDto(campaign, stats);
     }
 
     public async Task<CampaignDto> CreateCampaignAsync(CreateCampaignDto dto, Guid userId)
     {
         var slug = GenerateSlug(dto.BusinessName);
-        
+
         var campaign = new Campaign
         {
             Id = Guid.NewGuid(),
@@ -48,7 +64,7 @@ public class CampaignService : ICampaignService
             GoogleReviewUrl = dto.GoogleReviewUrl,
             LogoUrl = dto.LogoUrl,
             CreatedAt = DateTime.UtcNow,
-            
+
             // Initialize sub-components
             Style = new CampaignStyle
             {
@@ -68,8 +84,7 @@ public class CampaignService : ICampaignService
 
         await _unitOfWork.Campaigns.AddAsync(campaign);
         await _unitOfWork.CompleteAsync();
-
-        return MapToDto(campaign);
+        return MapToDto(campaign, (0, 0, 0));
     }
 
     public async Task<CampaignDto?> UpdateCampaignAsync(Guid id, UpdateCampaignDto dto)
@@ -123,7 +138,8 @@ public class CampaignService : ICampaignService
         _unitOfWork.Campaigns.Update(campaign);
         await _unitOfWork.CompleteAsync();
 
-        return MapToDto(campaign);
+        var stats = await _statsRepository.GetCampaignStatsAsync(id);
+        return MapToDto(campaign, stats);
     }
 
     public async Task<bool> DeleteCampaignAsync(Guid id)
@@ -139,7 +155,15 @@ public class CampaignService : ICampaignService
     public async Task<IEnumerable<CampaignDto>> GetAllCampaignsAsync()
     {
         var campaigns = await _unitOfWork.Campaigns.GetAllAsync();
-        return campaigns.Select(MapToDto);
+        var dtos = new List<CampaignDto>();
+
+        foreach (var c in campaigns)
+        {
+            var stats = await _statsRepository.GetCampaignStatsAsync(c.Id);
+            dtos.Add(MapToDto(c, stats));
+        }
+
+        return dtos;
     }
 
     private string GenerateSlug(string businessName)
@@ -149,7 +173,7 @@ public class CampaignService : ICampaignService
         return $"{slug}-{Guid.NewGuid().ToString("N").Substring(0, 6)}";
     }
 
-    private CampaignDto MapToDto(Campaign c)
+    private CampaignDto MapToDto(Campaign c, (long Total, long Positive, long Negative) stats)
     {
         return new CampaignDto
         {
@@ -157,8 +181,10 @@ public class CampaignService : ICampaignService
             Slug = c.Slug,
             BusinessName = c.BusinessName,
             GoogleReviewUrl = c.GoogleReviewUrl,
+            IsActive = c.IsActive,
             LogoUrl = c.LogoUrl,
             CreatedAt = c.CreatedAt,
+            Stats = new CampaignStatsDto(stats.Total, stats.Positive, stats.Negative),
             Style = c.Style == null ? new CampaignStyleDto() : new CampaignStyleDto
             {
                 PrimaryColor = c.Style.PrimaryColor,

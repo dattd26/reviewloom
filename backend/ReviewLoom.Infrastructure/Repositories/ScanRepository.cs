@@ -2,31 +2,29 @@ using System;
 using System.Data;
 using System.Threading.Tasks;
 using Dapper;
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using ReviewLoom.Domain.Interfaces;
+using ReviewLoom.Infrastructure.Data;
 
 namespace ReviewLoom.Infrastructure.Repositories;
 
 public class ScanRepository : IScanRepository
 {
-    private readonly string _connectionString;
+    private readonly ReviewLoomDbContext _context;
 
-    public ScanRepository(IConfiguration configuration)
+    public ScanRepository(ReviewLoomDbContext context)
     {
-        _connectionString = configuration.GetConnectionString("DefaultConnection") 
-                            ?? throw new InvalidOperationException("DefaultConnection not found");
+        _context = context;
     }
 
     public async Task LogScanAsync(Guid campaignId, string action, string? feedbackName, string? feedbackEmail, string? feedbackMessage)
     {
-        using var connection = new NpgsqlConnection(_connectionString);
-        await connection.OpenAsync();
 
         // Using the stored procedure defined in schema.sql
         var sql = "CALL sp_log_scan(@CampaignId, @Action, @FeedbackName, @FeedbackEmail, @FeedbackMessage)";
-        
-        await connection.ExecuteAsync(sql, new
+
+        await _context.Database.ExecuteSqlRawAsync(sql, new
         {
             CampaignId = campaignId,
             Action = action,
@@ -34,5 +32,7 @@ public class ScanRepository : IScanRepository
             FeedbackEmail = feedbackEmail,
             FeedbackMessage = feedbackMessage
         });
+
+        await _context.SaveChangesAsync();
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ReviewLoom.Infrastructure.Data;
@@ -11,9 +12,11 @@ using ReviewLoom.Infrastructure.Data;
 namespace ReviewLoom.Infrastructure.Migrations
 {
     [DbContext(typeof(ReviewLoomDbContext))]
-    partial class ReviewLoomDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260503135722_AddIsActiveToCampaign")]
+    partial class AddIsActiveToCampaign
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
