@@ -24,4 +24,9 @@ public partial class Campaign
     public virtual ICollection<Scan> Scans { get; set; } = new List<Scan>();
 
     public virtual User User { get; set; } = null!;
+
+    // Normalized Components
+    public virtual CampaignStyle Style { get; set; } = null!;
+    public virtual CampaignSettings Settings { get; set; } = null!;
+    public virtual CampaignStandeeConfig? StandeeConfig { get; set; }
 }
