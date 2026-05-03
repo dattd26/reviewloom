@@ -6,7 +6,7 @@ using ReviewLoom.Application.Services;
 namespace ReviewLoom.Api.Controllers;
 
 [ApiController]
-[Route("v1/r")]
+[Route("api/v1/r")]
 public class RController : ControllerBase
 {
     private readonly ICampaignService _campaignService;

@@ -15,6 +15,7 @@ interface Props {
   qrCodeDataUrl: string | null;
   isOpen: boolean;
   onClose: () => void;
+  onChange: (update: Partial<CampaignConfig['standeeConfig']>) => void;
 }
 
 /** Full-res export width in pixels (4 in × 300 DPI) */
@@ -22,11 +23,8 @@ const EXPORT_WIDTH = 1200;
 /** Preview width — scaled to fit the right panel */
 const PREVIEW_WIDTH = 340;
 
-export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, onClose }: Props) {
-  const [userConfig, setUserConfig] = useState<StandeeUserConfig>({
-    ...DEFAULT_STANDEE_CONFIG,
-    ctaText: campaign.heading || DEFAULT_STANDEE_CONFIG.ctaText,
-  });
+export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, onClose, onChange }: Props) {
+  const userConfig = campaign.standeeConfig;
   const [isDownloading, setIsDownloading] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -93,12 +91,11 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
                   return (
                     <button
                       key={tpl.id}
-                      onClick={() => setUserConfig((c) => ({ ...c, templateId: tpl.id }))}
-                      className={`relative rounded-2xl p-3.5 text-left transition-all border-2 group ${
-                        isActive
+                      onClick={() => onChange({ templateId: tpl.id })}
+                      className={`relative rounded-2xl p-3.5 text-left transition-all border-2 group ${isActive
                           ? 'border-primary bg-primary/5 shadow-sm'
                           : 'border-slate-100 hover:border-slate-200 bg-white'
-                      }`}
+                        }`}
                     >
                       {/* Swatch */}
                       <div
@@ -152,7 +149,7 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
                   type="text"
                   value={userConfig.ctaText}
                   maxLength={48}
-                  onChange={(e) => setUserConfig((c) => ({ ...c, ctaText: e.target.value }))}
+                  onChange={(e) => onChange({ ctaText: e.target.value })}
                   className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 focus:outline-none focus:border-primary transition-colors pr-12 bg-slate-50 placeholder:text-slate-400"
                   placeholder="Review Us on Google"
                 />
@@ -178,15 +175,13 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
                   </p>
                 </div>
                 <div
-                  onClick={() => setUserConfig((c) => ({ ...c, showLogo: !c.showLogo }))}
-                  className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
-                    userConfig.showLogo && campaign.logo ? 'bg-primary' : 'bg-slate-200'
-                  } ${!campaign.logo ? 'opacity-40 pointer-events-none' : 'cursor-pointer'}`}
+                  onClick={() => onChange({ showLogo: !userConfig.showLogo })}
+                  className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${userConfig.showLogo && campaign.logo ? 'bg-primary' : 'bg-slate-200'
+                    } ${!campaign.logo ? 'opacity-40 pointer-events-none' : 'cursor-pointer'}`}
                 >
                   <span
-                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                      userConfig.showLogo && campaign.logo ? 'translate-x-5' : 'translate-x-0'
-                    }`}
+                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${userConfig.showLogo && campaign.logo ? 'translate-x-5' : 'translate-x-0'
+                      }`}
                   />
                 </div>
               </label>

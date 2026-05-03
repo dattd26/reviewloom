@@ -3,6 +3,9 @@
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { CampaignConfig, DEFAULT_CAMPAIGN } from './types';
+import { useAuth } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { CampaignService } from '@/services/campaign-service';
 import BrandingSection from './BrandingSection';
 import ContentSection from './ContentSection';
 import QrSection from './QrSection';
@@ -19,12 +22,38 @@ const TABS: { id: ActiveTab; label: string; icon: string }[] = [
 ];
 
 export default function CampaignBuilder() {
+  const { getToken } = useAuth();
+  const router = useRouter();
   const [campaign, setCampaign] = useState<CampaignConfig>(DEFAULT_CAMPAIGN);
   const [activeTab, setActiveTab] = useState<ActiveTab>('branding');
+  const [isSaving, setIsSaving] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const patch = (update: Partial<CampaignConfig>) =>
     setCampaign((prev) => ({ ...prev, ...update }));
+
+  const handleSave = async () => {
+    if (!campaign.name || !campaign.googleReviewUrl) {
+      alert("Please fill in at least the Campaign Name and Google Review URL.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("Authentication session expired. Please log in again.");
+
+      await CampaignService.createCampaign(campaign, token);
+      
+      // Success feedback
+      router.push('/dashboard/campaigns');
+    } catch (error: any) {
+      console.error("Save failed:", error);
+      alert(error.message || "An unexpected error occurred while saving.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,12 +90,25 @@ export default function CampaignBuilder() {
               Save Draft
             </button>
             <button
-              className="px-6 py-2.5 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-xl hover:shadow-primary/20 active:scale-[0.98] transition-all"
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-xl transition-all flex items-center gap-2 ${
+                isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-primary/20 active:scale-[0.98]'
+              }`}
               style={{
-                background: `linear-gradient(135deg, ${campaign.primaryColor}, ${campaign.primaryColor}cc)`,
+                background: isSaving 
+                  ? '#94a3b8' 
+                  : `linear-gradient(135deg, ${campaign.primaryColor}, ${campaign.primaryColor}cc)`,
               }}
             >
-              Generate QR
+              {isSaving ? (
+                <>
+                  <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Generate QR'
+              )}
             </button>
           </div>
         </div>
@@ -80,10 +122,12 @@ export default function CampaignBuilder() {
             Draft
           </button>
           <button
-            className="flex-1 py-2.5 text-sm font-semibold text-on-primary rounded-xl shadow-md"
-            style={{ backgroundColor: campaign.primaryColor }}
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex-1 py-2.5 text-sm font-semibold text-on-primary rounded-xl shadow-md flex items-center justify-center gap-2"
+            style={{ backgroundColor: isSaving ? '#94a3b8' : campaign.primaryColor }}
           >
-            Generate
+            {isSaving ? 'Saving...' : 'Generate'}
           </button>
         </div>
 
@@ -243,7 +287,7 @@ export default function CampaignBuilder() {
           </div>
 
           {/* Right Column: Live Preview (2/5) */}
-          <LivePreview campaign={campaign} />
+          <LivePreview campaign={campaign} onChange={patch} />
         </div>
       </div>
     </>

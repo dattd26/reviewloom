@@ -10,7 +10,7 @@ using ReviewLoom.Domain.Interfaces;
 namespace ReviewLoom.Api.Controllers;
 
 [ApiController]
-[Route("v1/[controller]")]
+[Route("api/v1/[controller]")]
 [Authorize]
 public class CampaignsController : ControllerBase
 {
