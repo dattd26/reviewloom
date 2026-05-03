@@ -1,6 +1,33 @@
+'use client';
+
 import Link from 'next/link';
+import { useAuth } from '@clerk/nextjs';
+import { useEffect, useState } from 'react';
+import { CampaignService } from '@/services/campaign-service';
 
 export default function CampaignList() {
+  const { getToken } = useAuth();
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const data = await CampaignService.getMyCampaigns(token);
+        setCampaigns(data);
+      } catch (error) {
+        console.error("Failed to fetch campaigns:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCampaigns();
+  }, [getToken]);
+
+  const totalScans = campaigns.reduce((acc, c) => acc + (c.totalScans || 0), 0);
+  const activeCount = campaigns.filter(c => c.status === 'Active').length;
   return (
     <>
       {/* Top Nav */}
@@ -12,7 +39,7 @@ export default function CampaignList() {
                 QR Campaigns
               </h2>
               <p className="text-[11px] font-bold uppercase tracking-widest text-outline mt-1.5 opacity-70">
-                Active &bull; 24 Touchpoints
+                {activeCount} Active &bull; {campaigns.length} Total
               </p>
             </div>
 
@@ -56,7 +83,7 @@ export default function CampaignList() {
             <div className="relative z-10">
               <p className="font-label text-on-surface-variant font-semibold tracking-wider uppercase text-[10px] mb-2">Network Performance</p>
               <h3 className="font-display text-5xl font-bold tracking-tighter text-on-surface mb-4 flex items-end gap-3">
-                2,400
+                {totalScans.toLocaleString()}
                 <span className="text-sm font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-md flex items-center mb-1">
                   <span className="material-symbols-outlined text-sm mr-1">trending_up</span> 12%
                 </span>
@@ -94,128 +121,81 @@ export default function CampaignList() {
               <thead>
                 <tr className="text-on-surface-variant font-bold text-[10px] uppercase tracking-widest bg-surface/30 border-b border-outline-variant/10">
                   <th className="px-8 py-4">Campaign Name</th>
+                  <th className="px-8 py-4">Created Date</th>
                   <th className="px-8 py-4">Status</th>
                   <th className="px-8 py-4">Total Scans</th>
                   <th className="px-8 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10">
-                {/* Row 1 */}
-                <tr className="group hover:bg-surface-container-low/50 transition-colors">
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
-                        <span className="material-symbols-outlined text-xl">storefront</span>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={4} className="px-8 py-12 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                        <p className="text-xs font-bold text-outline uppercase tracking-widest">Loading Campaigns...</p>
                       </div>
-                      <div>
-                        <p className="font-bold text-on-surface text-sm">Downtown Branch - Main Entrance</p>
-                        <p className="text-xs text-outline mt-0.5">Created Oct 12, 2023</p>
+                    </td>
+                  </tr>
+                ) : campaigns.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-8 py-20 text-center">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="w-16 h-16 bg-surface-container-low rounded-2xl flex items-center justify-center text-outline/30">
+                          <span className="material-symbols-outlined text-4xl">qr_code_2</span>
+                        </div>
+                        <div>
+                          <p className="font-bold text-on-surface">No campaigns found</p>
+                          <p className="text-sm text-outline mt-1">Create your first QR campaign to start collecting reviews.</p>
+                        </div>
+                        <Link href="/dashboard/campaigns/new" className="mt-2 text-primary font-bold text-xs uppercase tracking-widest hover:underline">
+                          + Create Campaign
+                        </Link>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-secondary/10 text-secondary border border-secondary/20">
-                      Active
-                    </span>
-                  </td>
-                  <td className="px-8 py-6">
-                    <p className="font-bold text-on-surface text-lg">1,240</p>
-                    <p className="text-[10px] text-secondary font-bold flex items-center mt-0.5">
-                      <span className="material-symbols-outlined text-[12px] mr-1">arrow_upward</span> +5.2%
-                    </p>
-                  </td>
-                  <td className="px-8 py-6">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="Download QR">
-                        <span className="material-symbols-outlined text-xl">download</span>
-                      </button>
-                      <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="Edit">
-                        <span className="material-symbols-outlined text-xl">edit_note</span>
-                      </button>
-                      <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="View Stats">
-                        <span className="material-symbols-outlined text-xl">analytics</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                {/* Row 2 */}
-                <tr className="group hover:bg-surface-container-low/50 transition-colors">
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
-                        <span className="material-symbols-outlined text-xl">restaurant</span>
-                      </div>
-                      <div>
-                        <p className="font-bold text-on-surface text-sm">Uptown Branch - Table 4</p>
-                        <p className="text-xs text-outline mt-0.5">Created Nov 05, 2023</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-secondary/10 text-secondary border border-secondary/20">
-                      Active
-                    </span>
-                  </td>
-                  <td className="px-8 py-6">
-                    <p className="font-bold text-on-surface text-lg">850</p>
-                    <p className="text-[10px] text-secondary font-bold flex items-center mt-0.5">
-                      <span className="material-symbols-outlined text-[12px] mr-1">arrow_upward</span> +2.1%
-                    </p>
-                  </td>
-                  <td className="px-8 py-6">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="Download QR">
-                        <span className="material-symbols-outlined text-xl">download</span>
-                      </button>
-                      <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="Edit">
-                        <span className="material-symbols-outlined text-xl">edit_note</span>
-                      </button>
-                      <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="View Stats">
-                        <span className="material-symbols-outlined text-xl">analytics</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                {/* Row 3 */}
-                <tr className="group hover:bg-surface-container-low/50 transition-colors">
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-surface-container-high rounded-xl flex items-center justify-center text-outline flex-shrink-0">
-                        <span className="material-symbols-outlined text-xl">outdoor_grill</span>
-                      </div>
-                      <div>
-                        <p className="font-bold text-on-surface text-sm">Westside Cafe - Outdoor Seating</p>
-                        <p className="text-xs text-outline mt-0.5">Created Sep 18, 2023</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-surface-container-highest text-outline border border-outline-variant/30">
-                      Inactive
-                    </span>
-                  </td>
-                  <td className="px-8 py-6">
-                    <p className="font-bold text-on-surface text-lg">310</p>
-                    <p className="text-[10px] text-error font-bold flex items-center mt-0.5">
-                      <span className="material-symbols-outlined text-[12px] mr-1">arrow_downward</span> -0.4%
-                    </p>
-                  </td>
-                  <td className="px-8 py-6">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="Download QR">
-                        <span className="material-symbols-outlined text-xl">download</span>
-                      </button>
-                      <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="Edit">
-                        <span className="material-symbols-outlined text-xl">edit_note</span>
-                      </button>
-                      <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="View Stats">
-                        <span className="material-symbols-outlined text-xl">analytics</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                ) : (
+                  campaigns.map((c) => (
+                    <tr key={c.id} className="group hover:bg-surface-container-low/50 transition-colors">
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
+                            <img className="w-8 h-8 object-cover rounded-xl" src={c.logoUrl || 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg'} alt="logo" />
+                          </div>
+                          <p className="font-bold text-on-surface text-sm">{c.businessName}</p>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <p className="font-bold text-on-surface text-sm">{new Date(c.createdAt).toLocaleDateString()}</p>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-secondary/10 text-secondary border border-secondary/20">
+                          Active
+                        </span>
+                      </td>
+                      <td className="px-8 py-6">
+                        <p className="font-bold text-on-surface text-lg">{c.totalScans || 0}</p>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="Download QR">
+                            <span className="material-symbols-outlined text-xl">download</span>
+                          </button>
+                          <Link
+                            href={`/dashboard/campaigns/${c.id}`}
+                            className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all"
+                            title="Edit"
+                          >
+                            <span className="material-symbols-outlined text-xl">edit_note</span>
+                          </Link>
+                          <button className="w-10 h-10 flex items-center justify-center hover:bg-surface rounded-full text-outline hover:text-primary transition-all" title="View Stats">
+                            <span className="material-symbols-outlined text-xl">analytics</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
