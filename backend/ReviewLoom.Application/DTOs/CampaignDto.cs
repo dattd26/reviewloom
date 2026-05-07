@@ -1,3 +1,5 @@
+using ReviewLoom.Domain.Enums;
+
 namespace ReviewLoom.Application.DTOs;
 
 public class CampaignDto
@@ -8,6 +10,7 @@ public class CampaignDto
     public string GoogleReviewUrl { get; set; } = null!;
     public bool IsActive { get; set; }
     public string? LogoUrl { get; set; }
+    public CampaignStatus Status { get; set; }
     public DateTime? CreatedAt { get; set; }
     public CampaignStatsDto Stats { get; set; } = new();
     public CampaignStyleDto Style { get; set; } = new();

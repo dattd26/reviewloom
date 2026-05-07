@@ -1,6 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using ReviewLoom.Domain.Entities;
+using ReviewLoom.Domain.Enums;
 
 namespace ReviewLoom.Infrastructure.Data;
 
@@ -34,7 +35,7 @@ public partial class ReviewLoomDbContext : DbContext
             entity.Property(e => e.Slug).HasColumnName("slug");
             entity.Property(e => e.ThankYouMessage).HasDefaultValueSql("'Thank you for your review!'::text").HasColumnName("thank_you_message");
             entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(e => e.Status).HasColumnName("status").HasDefaultValue(CampaignStatus.Draft);
 
             entity.HasOne(d => d.User).WithMany(p => p.Campaigns)
                 .HasForeignKey(d => d.UserId)

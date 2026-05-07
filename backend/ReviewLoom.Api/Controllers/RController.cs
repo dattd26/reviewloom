@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ReviewLoom.Application.DTOs;
 using ReviewLoom.Application.Services;
+using ReviewLoom.Domain.Enums;
 
 namespace ReviewLoom.Api.Controllers;
 
@@ -22,7 +23,7 @@ public class RController : ControllerBase
     public async Task<IActionResult> GetBySlug(string slug)
     {
         var campaign = await _campaignService.GetCampaignBySlugAsync(slug);
-        if (campaign == null)
+        if (campaign == null || campaign.Status != CampaignStatus.Published)
             return NotFound();
 
         return Ok(new

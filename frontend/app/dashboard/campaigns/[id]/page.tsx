@@ -33,10 +33,12 @@ export default function CampaignBuilder() {
   const [campaign, setCampaign] = useState<CampaignConfig>(DEFAULT_CAMPAIGN);
   const [activeTab, setActiveTab] = useState<ActiveTab>('branding');
   const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isLoading, setIsLoading] = useState(isEditMode);
+  const [isDirty, setIsDirty] = useState(false);
+  const isInitialLoad = useRef(true);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch campaign data if in edit mode
   useEffect(() => {
     if (isEditMode) {
       const fetchData = async () => {
@@ -45,42 +47,78 @@ export default function CampaignBuilder() {
           if (!token) return;
           const data = await CampaignService.getCampaignById(id, token);
           setCampaign(mapDtoToConfig(data));
+          setTimeout(() => { isInitialLoad.current = false; }, 500);
         } catch (error) {
           console.error("Failed to fetch campaign:", error);
-          alert("Could not load campaign data.");
           router.push('/dashboard/campaigns');
         } finally {
           setIsLoading(false);
         }
       };
       fetchData();
+    } else {
+      isInitialLoad.current = false;
     }
   }, [id, isEditMode, getToken, router]);
 
-  const patch = (update: Partial<CampaignConfig>) =>
-    setCampaign((prev) => ({ ...prev, ...update }));
+  // Auto-save logic
+  useEffect(() => {
+    if (isInitialLoad.current || !isDirty || isLoading) return;
 
-  const handleSave = async () => {
-    if (!campaign.name || !campaign.googleReviewUrl) {
-      alert("Please fill in at least the Campaign Name and Google Review URL.");
+    const timer = setTimeout(async () => {
+      await handleSave(true); // silent auto-save as draft
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [campaign, isDirty, isLoading]);
+
+  const patch = (update: Partial<CampaignConfig>) => {
+    setCampaign((prev) => ({ ...prev, ...update }));
+    setIsDirty(true);
+  };
+
+  const handleSave = async (isAutoSave = false, forceStatus?: number) => {
+    // Only validate strictly if we are publishing (Status 1)
+    const targetStatus = forceStatus !== undefined ? forceStatus : (isAutoSave ? 0 : 1);
+
+    if (targetStatus === 1 && (!campaign.name || !campaign.googleReviewUrl)) {
+      alert("Please fill in at least the Campaign Name and Google Review URL to publish.");
       return;
     }
 
-    setIsSaving(true);
+    if (!isAutoSave) setIsSaving(true);
+    setSaveStatus('saving');
+
     try {
       const token = await getToken();
-      if (!token) throw new Error("Authentication session expired. Please log in again.");
+      if (!token) throw new Error("Session expired");
+
+      const campaignToSave = { ...campaign, status: targetStatus as any };
 
       if (isEditMode) {
-        await CampaignService.updateCampaign(id, campaign, token);
+        await CampaignService.updateCampaign(id, campaignToSave, token);
       } else {
-        await CampaignService.createCampaign(campaign, token);
+        const result = await CampaignService.createCampaign(campaignToSave, token);
+        // If it was a new campaign, we should redirect to the new ID if it was a manual save
+        if (!isAutoSave) {
+          router.push(`/dashboard/campaigns/${result.id}`);
+          return;
+        }
       }
+
+      setIsDirty(false);
+      setSaveStatus('saved');
       
-      router.push('/dashboard/campaigns');
+      // Reset status after 2 seconds to hide the "Saved" message
+      setTimeout(() => setSaveStatus('idle'), 2000);
+
+      if (!isAutoSave && targetStatus === 1) {
+        router.push('/dashboard/campaigns');
+      }
     } catch (error: any) {
       console.error("Save failed:", error);
-      alert(error.message || "An unexpected error occurred while saving.");
+      setSaveStatus('error');
+      if (!isAutoSave) alert(error.message || "Failed to save");
     } finally {
       setIsSaving(false);
     }
@@ -116,31 +154,57 @@ export default function CampaignBuilder() {
             </div>
           </div>
 
-          <div className="hidden sm:flex items-center gap-3">
-            <button className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-low rounded-xl border border-outline-variant/20 transition-all">
-              Save Draft
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-xl transition-all flex items-center gap-2 ${
-                isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-primary/20 active:scale-[0.98]'
-              }`}
-              style={{
-                background: isSaving 
-                  ? '#94a3b8' 
-                  : `linear-gradient(135deg, ${campaign.primaryColor}, ${campaign.primaryColor}cc)`,
-              }}
-            >
-              {isSaving ? (
-                <>
-                  <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                isEditMode ? 'Save Changes' : 'Generate QR'
-              )}
-            </button>
+          <div className="hidden sm:flex items-center gap-4">
+            {/* Transient Save Status */}
+            <div className={`flex items-center gap-2 px-3 py-1.5 transition-all duration-500 ${
+              saveStatus === 'idle' ? 'opacity-0 translate-x-2 pointer-events-none' : 'opacity-100 translate-x-0'
+            }`}>
+              <span className={`w-1 h-1 rounded-full ${
+                saveStatus === 'saving' ? 'bg-primary animate-pulse' : 
+                saveStatus === 'saved' ? 'bg-success' : 'bg-error'
+              }`} />
+              <span className="text-[9px] font-black uppercase tracking-widest text-outline">
+                {saveStatus === 'saving' ? 'Saving' : 
+                 saveStatus === 'saved' ? 'Saved' : 'Error'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 mr-2">
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter ${campaign.status === 1 ? 'bg-success/10 text-success' : 'bg-outline/10 text-outline'
+                  }`}>
+                  {campaign.status === 1 ? 'Published' : 'Draft'}
+                </span>
+              </div>
+
+              <button
+                onClick={() => handleSave(false, 0)}
+                disabled={isSaving || !isDirty}
+                className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-low rounded-xl border border-outline-variant/20 transition-all disabled:opacity-40"
+              >
+                Save Draft
+              </button>
+              <button
+                onClick={() => handleSave(false, 1)}
+                disabled={isSaving}
+                className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-xl transition-all flex items-center gap-2 ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-primary/20 active:scale-[0.98]'
+                  }`}
+                style={{
+                  background: isSaving
+                    ? '#94a3b8'
+                    : `linear-gradient(135deg, ${campaign.primaryColor}, ${campaign.primaryColor}cc)`,
+                }}
+              >
+                {isSaving ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  campaign.status === 1 ? 'Update Live' : 'Go Live'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -149,16 +213,20 @@ export default function CampaignBuilder() {
       <div className="p-5 sm:p-8 max-w-7xl mx-auto w-full">
         {/* Mobile CTAs */}
         <div className="flex sm:hidden gap-3 mb-6 w-full">
-          <button className="flex-1 py-2.5 text-sm font-semibold text-on-surface-variant bg-surface-container-low rounded-xl border border-outline-variant/20">
+          <button
+            onClick={() => handleSave(false, 0)}
+            disabled={isSaving || !isDirty}
+            className="flex-1 py-2.5 text-sm font-semibold text-on-surface-variant bg-surface-container-low rounded-xl border border-outline-variant/20 disabled:opacity-50"
+          >
             Draft
           </button>
           <button
-            onClick={handleSave}
+            onClick={() => handleSave(false, 1)}
             disabled={isSaving}
             className="flex-1 py-2.5 text-sm font-semibold text-on-primary rounded-xl shadow-md flex items-center justify-center gap-2"
             style={{ backgroundColor: isSaving ? '#94a3b8' : campaign.primaryColor }}
           >
-            {isSaving ? 'Saving...' : (isEditMode ? 'Save' : 'Generate')}
+            {isSaving ? 'Saving...' : (campaign.status === 1 ? 'Update' : 'Publish')}
           </button>
         </div>
 
@@ -169,162 +237,162 @@ export default function CampaignBuilder() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-          {/* Left Column: Settings (3/5) */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Core Settings Card */}
-            <section className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm border border-outline-variant/10">
-              <h3 className="text-base font-headline font-bold text-on-surface mb-6">Campaign Settings</h3>
-              <div className="space-y-5">
-                {/* Name */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
-                    Campaign Name
-                  </label>
-                  <input
-                    className="w-full bg-surface-container-low border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none text-on-surface placeholder:text-outline/50"
-                    placeholder="e.g. Downtown Cafe Summer Drive"
-                    type="text"
-                    value={campaign.name}
-                    onChange={(e) => patch({ name: e.target.value })}
-                  />
-                </div>
-
-                {/* Google Review URL */}
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
+            {/* Left Column: Settings (3/5) */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Core Settings Card */}
+              <section className="bg-surface-container-lowest p-8 rounded-2xl shadow-sm border border-outline-variant/10">
+                <h3 className="text-base font-headline font-bold text-on-surface mb-6">Campaign Settings</h3>
+                <div className="space-y-5">
+                  {/* Name */}
+                  <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
-                      Google Review URL
+                      Campaign Name
                     </label>
-                    <button className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
-                      How to find this{' '}
-                      <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">
-                      link
-                    </span>
                     <input
-                      className="w-full bg-surface-container-low border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl pl-10 pr-4 py-3 text-sm font-medium transition-all outline-none text-on-surface placeholder:text-outline/50"
-                      placeholder="https://g.page/r/your-business-id/review"
-                      type="url"
-                      value={campaign.googleReviewUrl}
-                      onChange={(e) => patch({ googleReviewUrl: e.target.value })}
+                      className="w-full bg-surface-container-low border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none text-on-surface placeholder:text-outline/50"
+                      placeholder="e.g. Downtown Cafe Summer Drive"
+                      type="text"
+                      value={campaign.name}
+                      onChange={(e) => patch({ name: e.target.value })}
                     />
                   </div>
-                  <p className="text-[11px] text-on-surface-variant/60 italic">
-                    Positive feedback routes here. Lower ratings go to a private form.
-                  </p>
-                </div>
 
-                {/* Logo Upload */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
-                    Business Logo
-                  </label>
-                  {campaign.logo ? (
-                    <div className="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/20">
-                      <div className="w-14 h-14 rounded-xl overflow-hidden border border-outline-variant/20 flex-shrink-0 bg-white">
-                        <img src={campaign.logo} alt="Logo" className="w-full h-full object-contain p-1" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-on-surface">Logo uploaded</p>
-                        <p className="text-xs text-on-surface-variant mt-0.5">Will appear in QR center and preview</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => logoInputRef.current?.click()}
-                          className="px-3 py-1.5 text-xs font-semibold text-on-surface-variant bg-surface-container rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors"
-                        >
-                          Change
-                        </button>
-                        <button
-                          onClick={() => patch({ logo: null })}
-                          className="px-3 py-1.5 text-xs font-semibold text-error bg-error/5 rounded-lg border border-error/20 hover:bg-error/10 transition-colors"
-                        >
-                          Remove
-                        </button>
-                      </div>
+                  {/* Google Review URL */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
+                        Google Review URL
+                      </label>
+                      <button className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                        How to find this{' '}
+                        <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                      </button>
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => logoInputRef.current?.click()}
-                      className="w-full border-2 border-dashed border-outline-variant/30 rounded-2xl p-8 flex flex-col items-center bg-surface-container-low/30 hover:bg-surface-container-low transition-colors cursor-pointer group"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-white shadow-sm border border-outline-variant/10 flex items-center justify-center text-primary mb-3 group-hover:scale-110 transition-transform">
-                        <span className="material-symbols-outlined">upload_file</span>
-                      </div>
-                      <p className="text-sm font-semibold text-on-surface">Click or drag to upload logo</p>
-                      <p className="text-xs text-on-surface-variant mt-1">PNG, JPG up to 5MB (400×400 recommended)</p>
-                    </button>
-                  )}
-                  <input
-                    ref={logoInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleLogoUpload}
-                  />
-                </div>
-
-                {/* Routing Threshold */}
-                <div className="p-4 bg-surface-container-low rounded-xl border border-outline-variant/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative overflow-hidden">
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-secondary rounded-l-xl" />
-                  <div className="pl-3">
-                    <p className="text-sm font-bold text-on-surface">Feedback Routing Threshold</p>
-                    <p className="text-xs text-on-surface-variant mt-0.5">
-                      Set the minimum star rating that triggers a Google Review
+                    <div className="relative">
+                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">
+                        link
+                      </span>
+                      <input
+                        className="w-full bg-surface-container-low border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl pl-10 pr-4 py-3 text-sm font-medium transition-all outline-none text-on-surface placeholder:text-outline/50"
+                        placeholder="https://g.page/r/your-business-id/review"
+                        type="url"
+                        value={campaign.googleReviewUrl}
+                        onChange={(e) => patch({ googleReviewUrl: e.target.value })}
+                      />
+                    </div>
+                    <p className="text-[11px] text-on-surface-variant/60 italic">
+                      Positive feedback routes here. Lower ratings go to a private form.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-outline-variant/20 self-start sm:self-auto">
-                    {([4, 5] as const).map((val) => (
+
+                  {/* Logo Upload */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
+                      Business Logo
+                    </label>
+                    {campaign.logo ? (
+                      <div className="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/20">
+                        <div className="w-14 h-14 rounded-xl overflow-hidden border border-outline-variant/20 flex-shrink-0 bg-white">
+                          <img src={campaign.logo} alt="Logo" className="w-full h-full object-contain p-1" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-on-surface">Logo uploaded</p>
+                          <p className="text-xs text-on-surface-variant mt-0.5">Will appear in QR center and preview</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => logoInputRef.current?.click()}
+                            className="px-3 py-1.5 text-xs font-semibold text-on-surface-variant bg-surface-container rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors"
+                          >
+                            Change
+                          </button>
+                          <button
+                            onClick={() => patch({ logo: null })}
+                            className="px-3 py-1.5 text-xs font-semibold text-error bg-error/5 rounded-lg border border-error/20 hover:bg-error/10 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
                       <button
-                        key={val}
-                        onClick={() => patch({ routingThreshold: val })}
-                        className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${campaign.routingThreshold === val
-                          ? 'bg-primary text-on-primary shadow-sm'
-                          : 'text-on-surface-variant hover:bg-surface-container-low'
-                          }`}
+                        onClick={() => logoInputRef.current?.click()}
+                        className="w-full border-2 border-dashed border-outline-variant/30 rounded-2xl p-8 flex flex-col items-center bg-surface-container-low/30 hover:bg-surface-container-low transition-colors cursor-pointer group"
                       >
-                        {val === 4 ? '4+ Stars' : '5 Stars Only'}
+                        <div className="w-12 h-12 rounded-full bg-white shadow-sm border border-outline-variant/10 flex items-center justify-center text-primary mb-3 group-hover:scale-110 transition-transform">
+                          <span className="material-symbols-outlined">upload_file</span>
+                        </div>
+                        <p className="text-sm font-semibold text-on-surface">Click or drag to upload logo</p>
+                        <p className="text-xs text-on-surface-variant mt-1">PNG, JPG up to 5MB (400×400 recommended)</p>
                       </button>
-                    ))}
+                    )}
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                    />
+                  </div>
+
+                  {/* Routing Threshold */}
+                  <div className="p-4 bg-surface-container-low rounded-xl border border-outline-variant/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 relative overflow-hidden">
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-secondary rounded-l-xl" />
+                    <div className="pl-3">
+                      <p className="text-sm font-bold text-on-surface">Feedback Routing Threshold</p>
+                      <p className="text-xs text-on-surface-variant mt-0.5">
+                        Set the minimum star rating that triggers a Google Review
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-outline-variant/20 self-start sm:self-auto">
+                      {([4, 5] as const).map((val) => (
+                        <button
+                          key={val}
+                          onClick={() => patch({ routingThreshold: val })}
+                          className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${campaign.routingThreshold === val
+                            ? 'bg-primary text-on-primary shadow-sm'
+                            : 'text-on-surface-variant hover:bg-surface-container-low'
+                            }`}
+                        >
+                          {val === 4 ? '4+ Stars' : '5 Stars Only'}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </section>
+              </section>
 
-            {/* Tabbed Customization Sections */}
-            <div className="space-y-0">
-              {/* Tab Bar */}
-              <div className="flex gap-1 p-1 bg-surface-container-low rounded-2xl border border-outline-variant/10 mb-4">
-                {TABS.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 ${activeTab === tab.id
-                      ? 'bg-surface-container-lowest text-on-surface shadow-sm'
-                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-                      }`}
-                  >
-                    <span className="material-symbols-outlined text-[15px]">{tab.icon}</span>
-                    <span className="hidden sm:inline">{tab.label}</span>
-                  </button>
-                ))}
-              </div>
+              {/* Tabbed Customization Sections */}
+              <div className="space-y-0">
+                {/* Tab Bar */}
+                <div className="flex gap-1 p-1 bg-surface-container-low rounded-2xl border border-outline-variant/10 mb-4">
+                  {TABS.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-bold rounded-xl transition-all duration-200 ${activeTab === tab.id
+                        ? 'bg-surface-container-lowest text-on-surface shadow-sm'
+                        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
+                        }`}
+                    >
+                      <span className="material-symbols-outlined text-[15px]">{tab.icon}</span>
+                      <span className="hidden sm:inline">{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
 
-              {/* Panel */}
-              <div className="transition-all duration-200">
-                {activeTab === 'branding' && <BrandingSection campaign={campaign} onChange={patch} />}
-                {activeTab === 'content' && <ContentSection campaign={campaign} onChange={patch} />}
-                {activeTab === 'qr' && <QrSection campaign={campaign} onChange={patch} />}
-                {activeTab === 'advanced' && <AdvancedSection campaign={campaign} onChange={patch} />}
+                {/* Panel */}
+                <div className="transition-all duration-200">
+                  {activeTab === 'branding' && <BrandingSection campaign={campaign} onChange={patch} />}
+                  {activeTab === 'content' && <ContentSection campaign={campaign} onChange={patch} />}
+                  {activeTab === 'qr' && <QrSection campaign={campaign} onChange={patch} />}
+                  {activeTab === 'advanced' && <AdvancedSection campaign={campaign} onChange={patch} />}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Right Column: Live Preview (2/5) */}
-          <LivePreview campaign={campaign} onChange={patch} />
+            {/* Right Column: Live Preview (2/5) */}
+            <LivePreview campaign={campaign} onChange={patch} />
           </div>
         )}
       </div>

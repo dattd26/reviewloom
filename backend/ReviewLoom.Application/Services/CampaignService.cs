@@ -63,6 +63,7 @@ public class CampaignService : ICampaignService
             BusinessName = dto.BusinessName,
             GoogleReviewUrl = dto.GoogleReviewUrl,
             LogoUrl = dto.LogoUrl,
+            Status = dto.Status,
             CreatedAt = DateTime.UtcNow,
 
             // Initialize sub-components
@@ -94,8 +95,9 @@ public class CampaignService : ICampaignService
 
         // Update core fields
         if (!string.IsNullOrEmpty(dto.BusinessName)) campaign.BusinessName = dto.BusinessName;
-        if (!string.IsNullOrEmpty(dto.GoogleReviewUrl)) campaign.GoogleReviewUrl = dto.GoogleReviewUrl;
+        if (dto.GoogleReviewUrl != null) campaign.GoogleReviewUrl = dto.GoogleReviewUrl;
         if (dto.LogoUrl != null) campaign.LogoUrl = dto.LogoUrl;
+        if (dto.Status.HasValue) campaign.Status = dto.Status.Value;
 
         // Update Style
         if (dto.Style != null)
@@ -181,7 +183,7 @@ public class CampaignService : ICampaignService
             Slug = c.Slug,
             BusinessName = c.BusinessName,
             GoogleReviewUrl = c.GoogleReviewUrl,
-            IsActive = c.IsActive,
+            Status = c.Status,
             LogoUrl = c.LogoUrl,
             CreatedAt = c.CreatedAt,
             Stats = new CampaignStatsDto(stats.Total, stats.Positive, stats.Negative),

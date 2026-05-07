@@ -45,7 +45,7 @@ export default function CampaignList() {
   };
 
   const totalScans = campaigns.reduce((acc, c) => acc + (c.stats.totalScans || 0), 0);
-  const activeCount = campaigns.filter(c => c.isActive).length;
+  const activeCount = campaigns.filter(c => c.status === 1).length;
   return (
     <>
       {/* Top Nav */}
@@ -187,9 +187,15 @@ export default function CampaignList() {
                         <p className="font-bold text-on-surface text-sm">{new Date(c.createdAt).toLocaleDateString()}</p>
                       </td>
                       <td className="px-8 py-6">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-secondary/10 text-secondary border border-secondary/20">
-                          Active
-                        </span>
+                        {c.status === 1 ? (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-success/10 text-success border border-success/20">
+                            Published
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-outline/10 text-outline border border-outline/20">
+                            Draft
+                          </span>
+                        )}
                       </td>
                       <td className="px-8 py-6">
                         <p className="font-bold text-on-surface text-lg">{c.totalScans || 0}</p>

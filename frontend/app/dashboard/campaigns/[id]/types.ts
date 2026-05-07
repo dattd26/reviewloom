@@ -5,11 +5,14 @@ export type QrFrameType = 'none' | 'scan_to_rate' | 'review_discount';
 export type FontOption = 'Manrope' | 'Playfair Display' | 'Lora' | 'Dancing Script' | 'Poppins' | 'Roboto Slab';
 export type BackgroundStyle = 'none' | 'image' | 'gradient';
 
+export type CampaignStatus = 0 | 1 | 2; // Draft, Published, Archived
+
 export interface CampaignConfig {
   // Basic
   name: string;
   googleReviewUrl: string;
   routingThreshold: 4 | 5;
+  status: CampaignStatus;
 
   // Visual Branding
   logo: string | null;
@@ -58,6 +61,7 @@ export const DEFAULT_CAMPAIGN: CampaignConfig = {
   name: '',
   googleReviewUrl: '',
   routingThreshold: 4,
+  status: 0, // Draft
   logo: null,
   logoStyle: 'soft',
   primaryColor: '#0037b0',

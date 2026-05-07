@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ReviewLoom.Infrastructure.Data;
@@ -11,9 +12,11 @@ using ReviewLoom.Infrastructure.Data;
 namespace ReviewLoom.Infrastructure.Migrations
 {
     [DbContext(typeof(ReviewLoomDbContext))]
-    partial class ReviewLoomDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507033932_AddCampaignStatus")]
+    partial class AddCampaignStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,6 +47,12 @@ namespace ReviewLoom.Infrastructure.Migrations
                     b.Property<string>("GoogleReviewUrl")
                         .HasColumnType("text")
                         .HasColumnName("google_review_url");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
 
                     b.Property<string>("LogoUrl")
                         .HasColumnType("text")

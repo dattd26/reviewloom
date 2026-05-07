@@ -8,6 +8,7 @@ export const mapConfigToDto = (config: CampaignConfig) => {
     businessName: config.name,
     googleReviewUrl: config.googleReviewUrl,
     logoUrl: config.logo,
+    status: config.status,
     style: {
       primaryColor: config.primaryColor,
       fontFamily: config.fontFamily,
@@ -58,6 +59,17 @@ export const mapDtoToConfig = (dto: any): CampaignConfig => {
     incentiveEnabled: dto.settings?.incentiveEnabled ?? false,
     incentiveCoupon: dto.settings?.incentiveCoupon ?? '',
     ratingIconType: (dto.style?.ratingIconType as any) ?? 'stars',
-    standeeConfig: dto.standeeConfig
+    status: dto.status ?? 0,
+    isActive: dto.isActive ?? true,
+    stats: {
+      totalScans: dto.stats?.totalScans ?? 0,
+      positiveScans: dto.stats?.positiveScans ?? 0,
+      negativeScans: dto.stats?.negativeScans ?? 0,
+    },
+    standeeConfig: dto.standeeConfig ?? {
+      templateId: 'minimal_white',
+      ctaText: 'Review Us on Google',
+      showLogo: true,
+    }
   };
 };
