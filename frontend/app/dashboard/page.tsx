@@ -14,23 +14,30 @@ export default function DashboardOverview() {
   return (
     <>
       {/* TopAppBar */}
-      <header className="sticky top-0 w-full z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex flex-col sm:flex-row sm:justify-between items-start sm:items-center px-8 h-auto sm:h-20 py-4 sm:py-0 gap-4 sm:gap-0 border-b border-outline-variant/10">
-        <div>
-          <h2 className="font-headline font-extrabold text-xl text-on-surface leading-tight">Welcome back, {user?.firstName || 'Owner'}</h2>
-          <p className="font-label text-xs text-outline">Here is your reputation status for the last 30 days.</p>
-        </div>
-
-        <div className="flex items-center gap-6 self-end sm:self-auto">
-          <div className="flex items-center bg-surface-container-low px-4 py-2 rounded-lg gap-3 focus-within:ring-2 focus-within:ring-primary/20 transition-all cursor-pointer hover:bg-surface-container-high">
-            <span className="material-symbols-outlined text-outline text-sm">calendar_today</span>
-            <span className="font-label text-sm font-semibold text-on-surface">Last 30 Days</span>
-            <span className="material-symbols-outlined text-outline text-sm">expand_more</span>
+      <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-xl border-b border-outline-variant/5">
+        <div className="px-8 h-20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
+          <div>
+            <h2 className="text-xl font-headline font-black text-on-surface tracking-tight leading-none">
+              Welcome back, {user?.firstName || 'Owner'}
+            </h2>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-outline mt-1.5 opacity-70">
+              Reputation Overview &bull; Last 30 Days
+            </p>
           </div>
-          <button className="p-2 text-outline hover:text-primary transition-all rounded-full hover:bg-primary/5">
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
+
+          <div className="flex items-center gap-4 self-end sm:self-auto">
+            <div className="flex items-center bg-surface-container-low/50 px-4 py-2 rounded-xl gap-3 border border-outline-variant/10 hover:bg-surface-container-high transition-all cursor-pointer group">
+              <span className="material-symbols-outlined text-outline text-sm group-hover:text-primary transition-colors">calendar_today</span>
+              <span className="text-xs font-black uppercase tracking-widest text-on-surface-variant">Last 30 Days</span>
+              <span className="material-symbols-outlined text-outline text-sm">expand_more</span>
+            </div>
+            <button className="w-10 h-10 flex items-center justify-center text-outline hover:text-primary transition-all rounded-xl hover:bg-primary/5 border border-outline-variant/10 sm:border-none">
+              <span className="material-symbols-outlined">notifications</span>
+            </button>
+          </div>
         </div>
       </header>
+
 
       {/* Content Canvas */}
       <div className="p-8 space-y-8 flex-1">

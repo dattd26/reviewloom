@@ -10,8 +10,11 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.2.7",
+    "@types/qrcode": "^1.5.6",
+    "html-to-image": "^1.11.13",
     "material-symbols": "^0.44.4",
     "next": "16.2.4",
+    "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
