@@ -3,6 +3,11 @@
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { CampaignConfig, DEFAULT_CAMPAIGN } from './types';
+import { useAuth } from '@clerk/nextjs';
+import { useRouter, useParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { CampaignService } from '@/services/campaign-service';
+import { mapDtoToConfig } from './mappers';
 import BrandingSection from './BrandingSection';
 import ContentSection from './ContentSection';
 import QrSection from './QrSection';
@@ -19,12 +24,67 @@ const TABS: { id: ActiveTab; label: string; icon: string }[] = [
 ];
 
 export default function CampaignBuilder() {
+  const { getToken } = useAuth();
+  const router = useRouter();
+  const params = useParams();
+  const id = params?.id as string;
+  const isEditMode = id && id !== 'new';
+
   const [campaign, setCampaign] = useState<CampaignConfig>(DEFAULT_CAMPAIGN);
   const [activeTab, setActiveTab] = useState<ActiveTab>('branding');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(isEditMode);
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch campaign data if in edit mode
+  useEffect(() => {
+    if (isEditMode) {
+      const fetchData = async () => {
+        try {
+          const token = await getToken();
+          if (!token) return;
+          const data = await CampaignService.getCampaignById(id, token);
+          setCampaign(mapDtoToConfig(data));
+        } catch (error) {
+          console.error("Failed to fetch campaign:", error);
+          alert("Could not load campaign data.");
+          router.push('/dashboard/campaigns');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchData();
+    }
+  }, [id, isEditMode, getToken, router]);
 
   const patch = (update: Partial<CampaignConfig>) =>
     setCampaign((prev) => ({ ...prev, ...update }));
+
+  const handleSave = async () => {
+    if (!campaign.name || !campaign.googleReviewUrl) {
+      alert("Please fill in at least the Campaign Name and Google Review URL.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("Authentication session expired. Please log in again.");
+
+      if (isEditMode) {
+        await CampaignService.updateCampaign(id, campaign, token);
+      } else {
+        await CampaignService.createCampaign(campaign, token);
+      }
+      
+      router.push('/dashboard/campaigns');
+    } catch (error: any) {
+      console.error("Save failed:", error);
+      alert(error.message || "An unexpected error occurred while saving.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -48,7 +108,7 @@ export default function CampaignBuilder() {
             </Link>
             <div>
               <h2 className="text-xl sm:text-2xl font-headline font-black text-on-surface tracking-tight leading-none">
-                Create Campaign
+                {isEditMode ? 'Edit Campaign' : 'Create Campaign'}
               </h2>
               <p className="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-outline mt-1.5 opacity-70">
                 Builder &bull; v1.0
@@ -61,12 +121,25 @@ export default function CampaignBuilder() {
               Save Draft
             </button>
             <button
-              className="px-6 py-2.5 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-xl hover:shadow-primary/20 active:scale-[0.98] transition-all"
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-xl transition-all flex items-center gap-2 ${
+                isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-primary/20 active:scale-[0.98]'
+              }`}
               style={{
-                background: `linear-gradient(135deg, ${campaign.primaryColor}, ${campaign.primaryColor}cc)`,
+                background: isSaving 
+                  ? '#94a3b8' 
+                  : `linear-gradient(135deg, ${campaign.primaryColor}, ${campaign.primaryColor}cc)`,
               }}
             >
-              Generate QR
+              {isSaving ? (
+                <>
+                  <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                isEditMode ? 'Save Changes' : 'Generate QR'
+              )}
             </button>
           </div>
         </div>
@@ -80,14 +153,22 @@ export default function CampaignBuilder() {
             Draft
           </button>
           <button
-            className="flex-1 py-2.5 text-sm font-semibold text-on-primary rounded-xl shadow-md"
-            style={{ backgroundColor: campaign.primaryColor }}
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex-1 py-2.5 text-sm font-semibold text-on-primary rounded-xl shadow-md flex items-center justify-center gap-2"
+            style={{ backgroundColor: isSaving ? '#94a3b8' : campaign.primaryColor }}
           >
-            Generate
+            {isSaving ? 'Saving...' : (isEditMode ? 'Save' : 'Generate')}
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-32 space-y-4">
+            <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            <p className="text-sm font-bold text-outline animate-pulse uppercase tracking-widest">Loading Campaign...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
           {/* Left Column: Settings (3/5) */}
           <div className="lg:col-span-3 space-y-6">
             {/* Core Settings Card */}
@@ -243,8 +324,9 @@ export default function CampaignBuilder() {
           </div>
 
           {/* Right Column: Live Preview (2/5) */}
-          <LivePreview campaign={campaign} />
-        </div>
+          <LivePreview campaign={campaign} onChange={patch} />
+          </div>
+        )}
       </div>
     </>
   );

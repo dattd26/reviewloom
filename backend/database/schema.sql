@@ -87,8 +87,8 @@ BEGIN
     RETURN QUERY
     SELECT 
         COUNT(*) AS total_scans,
-        SUM(CASE WHEN action = 'positive' THEN 1 ELSE 0 END) AS positive_scans,
-        SUM(CASE WHEN action = 'negative' THEN 1 ELSE 0 END) AS negative_scans
+        COALESCE(SUM(CASE WHEN action = 'positive' THEN 1 ELSE 0 END), 0) AS positive_scans,
+        COALESCE(SUM(CASE WHEN action = 'negative' THEN 1 ELSE 0 END), 0) AS negative_scans
     FROM scans
     WHERE campaign_id = p_campaign_id;
 END;

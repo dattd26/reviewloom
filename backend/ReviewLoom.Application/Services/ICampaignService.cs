@@ -8,7 +8,9 @@ namespace ReviewLoom.Application.Services;
 public interface ICampaignService
 {
     Task<CampaignDto?> GetCampaignByIdAsync(Guid id);
-    Task<IEnumerable<CampaignDto>> GetAllCampaignsAsync();
-    Task<CampaignDto> CreateCampaignAsync(CreateCampaignDto dto, Guid userId);
     Task<CampaignDto?> GetCampaignBySlugAsync(string slug);
+    Task<IEnumerable<CampaignDto>> GetUserCampaignsAsync(Guid userId);
+    Task<CampaignDto> CreateCampaignAsync(CreateCampaignDto dto, Guid userId);
+    Task<CampaignDto?> UpdateCampaignAsync(Guid id, UpdateCampaignDto dto);
+    Task<bool> DeleteCampaignAsync(Guid id);
 }

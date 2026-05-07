@@ -7,6 +7,7 @@ public partial class Scan
 
     public Guid CampaignId { get; set; }
 
+    // negative or positive
     public string Action { get; set; } = null!;
 
     public string? FeedbackName { get; set; }

@@ -8,7 +8,7 @@ using ReviewLoom.Application.Services;
 namespace ReviewLoom.Api.Controllers;
 
 [ApiController]
-[Route("v1/[controller]")]
+[Route("api/v1/[controller]")]
 public class BillingController : ControllerBase
 {
     private readonly IStripeService _stripeService;

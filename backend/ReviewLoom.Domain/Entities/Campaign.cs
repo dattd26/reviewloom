@@ -15,6 +15,8 @@ public partial class Campaign
 
     public string BusinessName { get; set; } = null!;
 
+    public bool IsActive { get; set; } = true;
+
     public string? LogoUrl { get; set; }
 
     public string? ThankYouMessage { get; set; }
@@ -24,4 +26,9 @@ public partial class Campaign
     public virtual ICollection<Scan> Scans { get; set; } = new List<Scan>();
 
     public virtual User User { get; set; } = null!;
+
+    // Normalized Components
+    public virtual CampaignStyle Style { get; set; } = null!;
+    public virtual CampaignSettings Settings { get; set; } = null!;
+    public virtual CampaignStandeeConfig? StandeeConfig { get; set; }
 }

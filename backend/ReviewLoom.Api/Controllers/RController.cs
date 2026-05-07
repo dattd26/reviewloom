@@ -6,7 +6,7 @@ using ReviewLoom.Application.Services;
 namespace ReviewLoom.Api.Controllers;
 
 [ApiController]
-[Route("v1/r")]
+[Route("api/v1/r")]
 public class RController : ControllerBase
 {
     private readonly ICampaignService _campaignService;
@@ -25,14 +25,13 @@ public class RController : ControllerBase
         if (campaign == null)
             return NotFound();
 
-        // Map to a public DTO that doesn't expose sensitive info if needed, 
-        // for now returning the basic info required by landing page.
         return Ok(new
         {
             campaign.BusinessName,
             campaign.LogoUrl,
             campaign.GoogleReviewUrl,
-            campaign.ThankYouMessage
+            campaign.Style,
+            campaign.Settings
         });
     }
 

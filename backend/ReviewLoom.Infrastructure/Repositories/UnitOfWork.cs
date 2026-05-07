@@ -13,10 +13,12 @@ public class UnitOfWork : IUnitOfWork
         _context = context;
         Campaigns = new CampaignRepository(_context);
         Users = new UserRepository(_context);
+        Scans = new ScanRepository(_context);
     }
 
     public ICampaignRepository Campaigns { get; private set; }
     public IUserRepository Users { get; private set; }
+    public IScanRepository Scans { get; private set; }
 
     public async Task<int> CompleteAsync()
     {

@@ -1,3 +1,5 @@
+import { StandeeUserConfig } from "./StandeeTemplate";
+
 export type RatingIconType = 'stars' | 'emoji' | 'thumbs';
 export type QrFrameType = 'none' | 'scan_to_rate' | 'review_discount';
 export type FontOption = 'Manrope' | 'Playfair Display' | 'Lora' | 'Dancing Script' | 'Poppins' | 'Roboto Slab';
@@ -35,7 +37,22 @@ export interface CampaignConfig {
   incentiveEnabled: boolean;
   incentiveCoupon: string;
   ratingIconType: RatingIconType;
+  isActive: boolean;
+  stats: {
+    totalScans: number;
+    positiveScans: number;
+    negativeScans: number;
+  };
+
+  // Standee Designer
+  standeeConfig: StandeeUserConfig;
 }
+
+export const DEFAULT_STANDEE_CONFIG: StandeeUserConfig = {
+  templateId: 'minimal_white',
+  ctaText: 'Review Us on Google',
+  showLogo: true,
+};
 
 export const DEFAULT_CAMPAIGN: CampaignConfig = {
   name: '',
@@ -60,6 +77,13 @@ export const DEFAULT_CAMPAIGN: CampaignConfig = {
   incentiveEnabled: false,
   incentiveCoupon: '',
   ratingIconType: 'stars',
+  standeeConfig: { ...DEFAULT_STANDEE_CONFIG },
+  stats: {
+    totalScans: 0,
+    positiveScans: 0,
+    negativeScans: 0,
+  },
+  isActive: true,
 };
 
 export const FONT_OPTIONS: { value: FontOption; label: string; category: string }[] = [

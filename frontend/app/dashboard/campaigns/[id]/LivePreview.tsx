@@ -9,6 +9,7 @@ import StandeeDesignerModal from './StandeeDesignerModal';
 
 interface Props {
   campaign: CampaignConfig;
+  onChange: (update: Partial<CampaignConfig>) => void;
 }
 
 const EMOJI_MAP = ['😞', '😕', '😐', '😊', '😍'];
@@ -59,7 +60,7 @@ function RatingPreview({ campaign }: { campaign: CampaignConfig }) {
   );
 }
 
-export default function LivePreview({ campaign }: Props) {
+export default function LivePreview({ campaign, onChange }: Props) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -627,6 +628,7 @@ export default function LivePreview({ campaign }: Props) {
           qrCodeDataUrl={qrCodeDataUrl}
           isOpen={isStandeeDesignerOpen}
           onClose={() => setIsStandeeDesignerOpen(false)}
+          onChange={(update) => onChange({ standeeConfig: { ...campaign.standeeConfig, ...update } })}
         />
       )}
     </div>

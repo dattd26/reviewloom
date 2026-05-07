@@ -7,5 +7,6 @@ public interface IUnitOfWork : IDisposable
 {
     ICampaignRepository Campaigns { get; }
     IUserRepository Users { get; }
+    IScanRepository Scans { get; }
     Task<int> CompleteAsync();
 }
