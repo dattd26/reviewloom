@@ -188,11 +188,16 @@ export default function CampaignList() {
                       </td>
                       <td className="px-8 py-6">
                         {c.status === 1 ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-success/10 text-success border border-success/20">
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.1em] bg-success/10 text-success border border-success/20 backdrop-blur-sm transition-all hover:bg-success/20">
+                            <span className="relative flex h-1.5 w-1.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success"></span>
+                            </span>
                             Published
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-outline/10 text-outline border border-outline/20">
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.1em] bg-outline/5 text-outline border border-outline/10 grayscale-[0.5] transition-all hover:bg-outline/10">
+                            <span className="h-1.5 w-1.5 rounded-full bg-outline/30"></span>
                             Draft
                           </span>
                         )}

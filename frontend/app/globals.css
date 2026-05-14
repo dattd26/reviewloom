@@ -48,6 +48,8 @@
   --color-secondary-container: #6cf8bb;
   --color-background: #f7f9fb;
   --color-primary-fixed: #dce1ff;
+  --color-success: #10b981;
+  --color-on-success: #ffffff;
   
   --font-headline: var(--font-manrope);
   --font-display: var(--font-manrope);

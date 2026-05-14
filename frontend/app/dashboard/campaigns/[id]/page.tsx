@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRef, useState } from 'react';
-import { CampaignConfig, DEFAULT_CAMPAIGN } from './types';
+import { CampaignConfig, DEFAULT_CAMPAIGN, CampaignStatus } from './types';
 import { useAuth } from '@clerk/nextjs';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect } from 'react';
@@ -77,12 +77,22 @@ export default function CampaignBuilder() {
     setIsDirty(true);
   };
 
-  const handleSave = async (isAutoSave = false, forceStatus?: number) => {
-    // Only validate strictly if we are publishing (Status 1)
-    const targetStatus = forceStatus !== undefined ? forceStatus : (isAutoSave ? 0 : 1);
+  const handleSave = async (isAutoSave = false, forceStatus?: CampaignStatus) => {
+    // Determine the target status:
+    // 1. Use forceStatus if provided (manual button click)
+    // 2. If auto-saving, maintain the current campaign status to avoid regressions
+    // 3. Default to 1 (Published) for manual "Go Live" actions
+    const targetStatus: CampaignStatus = forceStatus !== undefined ? forceStatus : (isAutoSave ? campaign.status : 1);
 
-    if (targetStatus === 1 && (!campaign.name || !campaign.googleReviewUrl)) {
-      alert("Please fill in at least the Campaign Name and Google Review URL to publish.");
+    // Guard: Don't auto-save if name is empty (backend requirement) or if already saving
+    if (isAutoSave && !campaign.name?.trim()) return;
+    if (isSaving && isAutoSave) return;
+
+    // Strict validation for Publishing actions
+    if (targetStatus === 1 && (!campaign.name?.trim() || !campaign.googleReviewUrl?.trim())) {
+      if (!isAutoSave) {
+        alert("Please provide a Campaign Name and Google Review URL to publish your campaign.");
+      }
       return;
     }
 
@@ -91,7 +101,7 @@ export default function CampaignBuilder() {
 
     try {
       const token = await getToken();
-      if (!token) throw new Error("Session expired");
+      if (!token) throw new Error("Authentication session expired. Please sign in again.");
 
       const campaignToSave = { ...campaign, status: targetStatus as any };
 
@@ -99,28 +109,41 @@ export default function CampaignBuilder() {
         await CampaignService.updateCampaign(id, campaignToSave, token);
       } else {
         const result = await CampaignService.createCampaign(campaignToSave, token);
-        // If it was a new campaign, we should redirect to the new ID if it was a manual save
-        if (!isAutoSave) {
-          router.push(`/dashboard/campaigns/${result.id}`);
-          return;
+        
+        // Transition to edit mode immediately after creation to prevent duplicate POSTs
+        if (result && result.id) {
+          router.replace(`/dashboard/campaigns/${result.id}`, { scroll: false });
+          
+          if (isAutoSave) {
+            // Stop here; the router change will trigger a re-render/fetch which syncs state
+            setIsDirty(false);
+            setSaveStatus('saved');
+            setTimeout(() => setSaveStatus('idle'), 2000);
+            return;
+          }
         }
       }
 
+      // Sync local state immediately for a smooth UI experience
+      setCampaign(prev => ({ ...prev, status: targetStatus }));
       setIsDirty(false);
       setSaveStatus('saved');
       
-      // Reset status after 2 seconds to hide the "Saved" message
+      // Reset indicator after success
       setTimeout(() => setSaveStatus('idle'), 2000);
 
+      // Navigate back on manual publish success
       if (!isAutoSave && targetStatus === 1) {
         router.push('/dashboard/campaigns');
       }
     } catch (error: any) {
-      console.error("Save failed:", error);
+      console.error("[CampaignSave] Failed:", error);
       setSaveStatus('error');
-      if (!isAutoSave) alert(error.message || "Failed to save");
+      if (!isAutoSave) {
+        alert(error.message || "Failed to save changes. Please check your connection and try again.");
+      }
     } finally {
-      setIsSaving(false);
+      if (!isAutoSave) setIsSaving(false);
     }
   };
 
@@ -171,10 +194,17 @@ export default function CampaignBuilder() {
 
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1 mr-2">
-                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter ${campaign.status === 1 ? 'bg-success/10 text-success' : 'bg-outline/10 text-outline'
-                  }`}>
-                  {campaign.status === 1 ? 'Published' : 'Draft'}
-                </span>
+                {campaign.status === 1 ? (
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter bg-success/10 text-success border border-success/20">
+                    <span className="w-1 h-1 rounded-full bg-success animate-pulse"></span>
+                    Published
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter bg-outline/10 text-outline border border-outline/20">
+                    <span className="w-1 h-1 rounded-full bg-outline/40"></span>
+                    Draft
+                  </span>
+                )}
               </div>
 
               <button
