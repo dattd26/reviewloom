@@ -203,7 +203,7 @@ export default function CampaignList() {
                         )}
                       </td>
                       <td className="px-8 py-6">
-                        <p className="font-bold text-on-surface text-lg">{c.totalScans || 0}</p>
+                        <p className="font-bold text-on-surface text-lg">{c.stats?.totalScans || 0}</p>
                       </td>
                       <td className="px-8 py-6">
                         <div className="flex items-center justify-end gap-1">

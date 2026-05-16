@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ReviewLoom.Application.Services;
 using ReviewLoom.Domain.Interfaces;
+using ReviewLoom.Application.Interfaces;
 using ReviewLoom.Infrastructure.Data;
 using ReviewLoom.Infrastructure.Repositories;
 using ReviewLoom.Infrastructure.Services;
@@ -20,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IScanRepository, ScanRepository>();
         services.AddScoped<IStatsRepository, StatsRepository>();
         services.AddScoped<IStripeService, StripeService>();
+        services.AddScoped<IMediaService, CloudinaryMediaService>();
 
         return services;
     }

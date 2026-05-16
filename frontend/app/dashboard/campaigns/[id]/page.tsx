@@ -7,6 +7,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { CampaignService } from '@/services/campaign-service';
+import { MediaService } from '@/services/media-service';
 import { mapDtoToConfig } from './mappers';
 import BrandingSection from './BrandingSection';
 import ContentSection from './ContentSection';
@@ -33,6 +34,7 @@ export default function CampaignBuilder() {
   const [campaign, setCampaign] = useState<CampaignConfig>(DEFAULT_CAMPAIGN);
   const [activeTab, setActiveTab] = useState<ActiveTab>('branding');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [pendingAction, setPendingAction] = useState<'draft' | 'publish' | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isLoading, setIsLoading] = useState(isEditMode);
@@ -113,11 +115,11 @@ export default function CampaignBuilder() {
         await CampaignService.updateCampaign(id, campaignToSave, token);
       } else {
         const result = await CampaignService.createCampaign(campaignToSave, token);
-        
+
         // Transition to edit mode immediately after creation to prevent duplicate POSTs
         if (result && result.id) {
           router.replace(`/dashboard/campaigns/${result.id}`, { scroll: false });
-          
+
           if (isAutoSave) {
             // Stop here; the router change will trigger a re-render/fetch which syncs state
             setIsDirty(false);
@@ -132,7 +134,7 @@ export default function CampaignBuilder() {
       setCampaign(prev => ({ ...prev, status: targetStatus }));
       setIsDirty(false);
       setSaveStatus('saved');
-      
+
       // Reset indicator after success
       setTimeout(() => setSaveStatus('idle'), 2000);
 
@@ -154,12 +156,21 @@ export default function CampaignBuilder() {
     }
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    console.log(file);
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => patch({ logoUrl: ev.target?.result as string });
-    reader.readAsDataURL(file);
+
+    try {
+      setIsUploadingLogo(true);
+      const { url } = await MediaService.uploadImage(file);
+      patch({ logoUrl: url });
+    } catch (error) {
+      console.error('Failed to upload logo:', error);
+      // Optional: Add toast notification here
+    } finally {
+      setIsUploadingLogo(false);
+    }
   };
 
   return (
@@ -186,16 +197,14 @@ export default function CampaignBuilder() {
 
           <div className="hidden sm:flex items-center gap-4">
             {/* Transient Save Status */}
-            <div className={`flex items-center gap-2 px-3 py-1.5 transition-all duration-500 ${
-              saveStatus === 'idle' ? 'opacity-0 translate-x-2 pointer-events-none' : 'opacity-100 translate-x-0'
-            }`}>
-              <span className={`w-1 h-1 rounded-full ${
-                saveStatus === 'saving' ? 'bg-primary animate-pulse' : 
+            <div className={`flex items-center gap-2 px-3 py-1.5 transition-all duration-500 ${saveStatus === 'idle' ? 'opacity-0 translate-x-2 pointer-events-none' : 'opacity-100 translate-x-0'
+              }`}>
+              <span className={`w-1 h-1 rounded-full ${saveStatus === 'saving' ? 'bg-primary animate-pulse' :
                 saveStatus === 'saved' ? 'bg-success' : 'bg-error'
-              }`} />
+                }`} />
               <span className="text-[9px] font-black uppercase tracking-widest text-outline">
-                {saveStatus === 'saving' ? 'Saving' : 
-                 saveStatus === 'saved' ? 'Saved' : 'Error'}
+                {saveStatus === 'saving' ? 'Saving' :
+                  saveStatus === 'saved' ? 'Saved' : 'Error'}
               </span>
             </div>
 
@@ -347,7 +356,15 @@ export default function CampaignBuilder() {
                     <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
                       Business Logo
                     </label>
-                    {campaign.logoUrl ? (
+                    {isUploadingLogo ? (
+                      <div className="w-full border-2 border-dashed border-primary/30 rounded-2xl p-8 flex flex-col items-center bg-primary/5 animate-pulse">
+                        <div className="w-12 h-12 rounded-full bg-white shadow-sm border border-outline-variant/10 flex items-center justify-center text-primary mb-3">
+                          <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                        </div>
+                        <p className="text-sm font-semibold text-primary">Uploading Logo...</p>
+                        <p className="text-xs text-on-surface-variant mt-1">Please wait a moment</p>
+                      </div>
+                    ) : campaign.logoUrl ? (
                       <div className="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/20">
                         <div className="w-14 h-14 rounded-xl overflow-hidden border border-outline-variant/20 flex-shrink-0 bg-white">
                           <img src={campaign.logoUrl} alt="Logo" className="w-full h-full object-contain p-1" />
@@ -358,14 +375,16 @@ export default function CampaignBuilder() {
                         </div>
                         <div className="flex gap-2">
                           <button
+                            disabled={isUploadingLogo}
                             onClick={() => logoInputRef.current?.click()}
-                            className="px-3 py-1.5 text-xs font-semibold text-on-surface-variant bg-surface-container rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors"
+                            className="px-3 py-1.5 text-xs font-semibold text-on-surface-variant bg-surface-container rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors disabled:opacity-50"
                           >
                             Change
                           </button>
                           <button
+                            disabled={isUploadingLogo}
                             onClick={() => patch({ logoUrl: null })}
-                            className="px-3 py-1.5 text-xs font-semibold text-error bg-error/5 rounded-lg border border-error/20 hover:bg-error/10 transition-colors"
+                            className="px-3 py-1.5 text-xs font-semibold text-error bg-error/5 rounded-lg border border-error/20 hover:bg-error/10 transition-colors disabled:opacity-50"
                           >
                             Remove
                           </button>
@@ -373,8 +392,9 @@ export default function CampaignBuilder() {
                       </div>
                     ) : (
                       <button
+                        disabled={isUploadingLogo}
                         onClick={() => logoInputRef.current?.click()}
-                        className="w-full border-2 border-dashed border-outline-variant/30 rounded-2xl p-8 flex flex-col items-center bg-surface-container-low/30 hover:bg-surface-container-low transition-colors cursor-pointer group"
+                        className="w-full border-2 border-dashed border-outline-variant/30 rounded-2xl p-8 flex flex-col items-center bg-surface-container-low/30 hover:bg-surface-container-low transition-colors cursor-pointer group disabled:cursor-not-allowed"
                       >
                         <div className="w-12 h-12 rounded-full bg-white shadow-sm border border-outline-variant/10 flex items-center justify-center text-primary mb-3 group-hover:scale-110 transition-transform">
                           <span className="material-symbols-outlined">upload_file</span>
