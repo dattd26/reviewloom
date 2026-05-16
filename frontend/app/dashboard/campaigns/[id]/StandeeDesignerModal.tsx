@@ -87,7 +87,7 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
               <div className="grid grid-cols-2 gap-2.5">
                 {STANDEE_TEMPLATES.map((tpl) => {
                   const isActive = userConfig.templateId === tpl.id;
-                  const accent = tpl.accentColor ?? campaign.primaryColor;
+                  const accent = tpl.accentColor ?? campaign.style.primaryColor;
                   return (
                     <button
                       key={tpl.id}
@@ -171,16 +171,16 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
                 <div>
                   <p className="text-sm font-bold text-slate-800">Show Logo</p>
                   <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                    {campaign.logo ? 'Your uploaded logo will appear on the standee.' : 'Upload a logo in the Branding section first.'}
+                    {campaign.logoUrl ? 'Your uploaded logo will appear on the standee.' : 'Upload a logo in the Branding section first.'}
                   </p>
                 </div>
                 <div
                   onClick={() => onChange({ showLogo: !userConfig.showLogo })}
-                  className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${userConfig.showLogo && campaign.logo ? 'bg-primary' : 'bg-slate-200'
-                    } ${!campaign.logo ? 'opacity-40 pointer-events-none' : 'cursor-pointer'}`}
+                  className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${userConfig.showLogo && campaign.logoUrl ? 'bg-primary' : 'bg-slate-200'
+                    } ${!campaign.logoUrl ? 'opacity-40 pointer-events-none' : 'cursor-pointer'}`}
                 >
                   <span
-                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${userConfig.showLogo && campaign.logo ? 'translate-x-5' : 'translate-x-0'
+                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${userConfig.showLogo && campaign.logoUrl ? 'translate-x-5' : 'translate-x-0'
                       }`}
                   />
                 </div>

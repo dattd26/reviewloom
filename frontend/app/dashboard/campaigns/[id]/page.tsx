@@ -86,11 +86,11 @@ export default function CampaignBuilder() {
     const targetStatus: CampaignStatus = forceStatus !== undefined ? forceStatus : (isAutoSave ? campaign.status : 1);
 
     // Guard: Don't auto-save if name is empty (backend requirement) or if already saving
-    if (isAutoSave && !campaign.name?.trim()) return;
+    if (isAutoSave && !campaign.businessName?.trim()) return;
     if (isSaving && isAutoSave) return;
 
     // Strict validation for Publishing actions
-    if (targetStatus === 1 && (!campaign.name?.trim() || !campaign.googleReviewUrl?.trim())) {
+    if (targetStatus === 1 && (!campaign.businessName?.trim() || !campaign.googleReviewUrl?.trim())) {
       if (!isAutoSave) {
         alert("Please provide a Campaign Name and Google Review URL to publish your campaign.");
       }
@@ -158,7 +158,7 @@ export default function CampaignBuilder() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => patch({ logo: ev.target?.result as string });
+    reader.onload = (ev) => patch({ logoUrl: ev.target?.result as string });
     reader.readAsDataURL(file);
   };
 
@@ -240,7 +240,7 @@ export default function CampaignBuilder() {
                 style={{
                   background: isSaving
                     ? '#94a3b8'
-                    : `linear-gradient(135deg, ${campaign.primaryColor}, ${campaign.primaryColor}cc)`,
+                    : `linear-gradient(135deg, ${campaign.style.primaryColor}, ${campaign.style.primaryColor}cc)`,
                 }}
               >
                 {pendingAction === 'publish' ? (
@@ -279,7 +279,7 @@ export default function CampaignBuilder() {
             onClick={() => handleSave(false, 1)}
             disabled={isSaving}
             className="flex-1 py-3 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-md flex items-center justify-center gap-2 transition-all active:scale-95"
-            style={{ backgroundColor: isSaving ? '#94a3b8' : campaign.primaryColor }}
+            style={{ backgroundColor: isSaving ? '#94a3b8' : campaign.style.primaryColor }}
           >
             {pendingAction === 'publish' ? (
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -309,8 +309,8 @@ export default function CampaignBuilder() {
                       className="w-full bg-surface-container-low border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none text-on-surface placeholder:text-outline/50"
                       placeholder="e.g. Downtown Cafe Summer Drive"
                       type="text"
-                      value={campaign.name}
-                      onChange={(e) => patch({ name: e.target.value })}
+                      value={campaign.businessName}
+                      onChange={(e) => patch({ businessName: e.target.value })}
                     />
                   </div>
 
@@ -347,10 +347,10 @@ export default function CampaignBuilder() {
                     <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
                       Business Logo
                     </label>
-                    {campaign.logo ? (
+                    {campaign.logoUrl ? (
                       <div className="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/20">
                         <div className="w-14 h-14 rounded-xl overflow-hidden border border-outline-variant/20 flex-shrink-0 bg-white">
-                          <img src={campaign.logo} alt="Logo" className="w-full h-full object-contain p-1" />
+                          <img src={campaign.logoUrl} alt="Logo" className="w-full h-full object-contain p-1" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-on-surface">Logo uploaded</p>
@@ -364,7 +364,7 @@ export default function CampaignBuilder() {
                             Change
                           </button>
                           <button
-                            onClick={() => patch({ logo: null })}
+                            onClick={() => patch({ logoUrl: null })}
                             className="px-3 py-1.5 text-xs font-semibold text-error bg-error/5 rounded-lg border border-error/20 hover:bg-error/10 transition-colors"
                           >
                             Remove
@@ -405,8 +405,8 @@ export default function CampaignBuilder() {
                       {([4, 5] as const).map((val) => (
                         <button
                           key={val}
-                          onClick={() => patch({ routingThreshold: val })}
-                          className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${campaign.routingThreshold === val
+                          onClick={() => patch({ settings: { ...campaign.settings, routingThreshold: val } })}
+                          className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${campaign.settings.routingThreshold === val
                             ? 'bg-primary text-on-primary shadow-sm'
                             : 'text-on-surface-variant hover:bg-surface-container-low'
                             }`}
