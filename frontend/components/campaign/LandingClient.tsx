@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import RatingSystem from './RatingSystem';
 import { CampaignConfig, GRADIENT_PRESETS } from '@/app/dashboard/campaigns/[id]/types';
+import { ScanService } from '@/services/scan-service';
 
 interface Props {
   slug: string;
@@ -51,27 +52,18 @@ export default function LandingClient({ slug, campaign }: Props) {
     const action = rating >= routingThreshold ? 'positive' : 'negative';
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/r/${slug}/scan`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rating: rating,
-          action: action,
-          feedbackName: feedback.name,
-          feedbackEmail: feedback.email,
-          feedbackMessage: feedback.message
-        })
+      await ScanService.logScan(slug, {
+        rating: rating,
+        action: action,
+        feedbackName: feedback.name,
+        feedbackEmail: feedback.email,
+        feedbackMessage: feedback.message
       });
 
-      if (response.ok) {
-        const res = await response.json();
-        console.log(res);
-        if (action === 'positive' && campaign.googleReviewUrl) {
-          console.log("redirecting to ", campaign.googleReviewUrl);
-          window.location.href = campaign.googleReviewUrl;
-        } else {
-          setStep('thank-you');
-        }
+      if (action === 'positive' && campaign.googleReviewUrl) {
+        window.location.href = campaign.googleReviewUrl;
+      } else {
+        setStep('thank-you');
       }
     } catch (error) {
       console.error('Failed to log scan:', error);
