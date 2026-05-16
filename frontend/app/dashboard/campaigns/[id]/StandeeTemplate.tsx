@@ -109,7 +109,7 @@ interface Props {
 
 export default function StandeeTemplate({ campaign, userConfig, qrCodeDataUrl, width = 1200 }: Props) {
   const tpl = STANDEE_TEMPLATES.find((t) => t.id === userConfig.templateId) ?? STANDEE_TEMPLATES[0];
-  const accent = tpl.accentColor ?? campaign.primaryColor;
+  const accent = tpl.accentColor ?? campaign.style.primaryColor;
   const H = Math.round(width * 1.5); // 2:3 ratio → 4×6 inch
   const s = width / 1200; // scale factor for all absolute sizes
 
@@ -123,7 +123,7 @@ export default function StandeeTemplate({ campaign, userConfig, qrCodeDataUrl, w
         position: 'relative',
         overflow: 'hidden',
         background: tpl.bgGradient ?? tpl.bgColor,
-        fontFamily: `'${campaign.fontFamily}', 'Manrope', 'Inter', sans-serif`,
+        fontFamily: `'${campaign.style.fontFamily}', 'Manrope', 'Inter', sans-serif`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -197,10 +197,10 @@ export default function StandeeTemplate({ campaign, userConfig, qrCodeDataUrl, w
         }}
       >
         {/* Logo */}
-        {userConfig.showLogo && campaign.logo && (
+        {userConfig.showLogo && campaign.logoUrl && (
           <div style={{ marginBottom: px(28), display: 'flex', justifyContent: 'center' }}>
             <img
-              src={campaign.logo}
+              src={campaign.logoUrl}
               alt="Logo"
               style={{ height: px(100), maxWidth: px(360), objectFit: 'contain' }}
             />
@@ -219,7 +219,7 @@ export default function StandeeTemplate({ campaign, userConfig, qrCodeDataUrl, w
             textAlign: 'center',
           }}
         >
-          {campaign.name || 'Your Business'}
+          {campaign.businessName || 'Your Business'}
         </p>
 
         {/* Accent divider */}
@@ -262,7 +262,7 @@ export default function StandeeTemplate({ campaign, userConfig, qrCodeDataUrl, w
             {qrCodeDataUrl ? (
               <>
                 <img src={qrCodeDataUrl} alt="QR Code" style={{ width: '100%', height: '100%', display: 'block' }} />
-                {campaign.logo && userConfig.showLogo && (
+                {campaign.logoUrl && userConfig.showLogo && (
                   <div
                     style={{
                       position: 'absolute',
@@ -285,7 +285,7 @@ export default function StandeeTemplate({ campaign, userConfig, qrCodeDataUrl, w
                         boxShadow: `0 ${px(4)} ${px(16)} rgba(0,0,0,0.15)`,
                       }}
                     >
-                      <img src={campaign.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      <img src={campaign.logoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
                   </div>
                 )}
