@@ -33,6 +33,7 @@ export default function CampaignBuilder() {
   const [campaign, setCampaign] = useState<CampaignConfig>(DEFAULT_CAMPAIGN);
   const [activeTab, setActiveTab] = useState<ActiveTab>('branding');
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'draft' | 'publish' | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isLoading, setIsLoading] = useState(isEditMode);
   const [isDirty, setIsDirty] = useState(false);
@@ -96,7 +97,10 @@ export default function CampaignBuilder() {
       return;
     }
 
-    if (!isAutoSave) setIsSaving(true);
+    if (!isAutoSave) {
+      setIsSaving(true);
+      setPendingAction(targetStatus === 1 ? 'publish' : 'draft');
+    }
     setSaveStatus('saving');
 
     try {
@@ -143,7 +147,10 @@ export default function CampaignBuilder() {
         alert(error.message || "Failed to save changes. Please check your connection and try again.");
       }
     } finally {
-      if (!isAutoSave) setIsSaving(false);
+      if (!isAutoSave) {
+        setIsSaving(false);
+        setPendingAction(null);
+      }
     }
   };
 
@@ -210,14 +217,25 @@ export default function CampaignBuilder() {
               <button
                 onClick={() => handleSave(false, 0)}
                 disabled={isSaving || !isDirty}
-                className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-low rounded-xl border border-outline-variant/20 transition-all disabled:opacity-40"
+                className="relative px-5 py-2.5 min-w-[140px] text-xs font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-low rounded-xl border border-outline-variant/20 transition-all disabled:opacity-40 flex items-center justify-center gap-2 group"
               >
-                Save Draft
+                {pendingAction === 'draft' ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-on-surface-variant/30 border-t-on-surface-variant rounded-full animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[16px] opacity-50 group-hover:opacity-100 transition-opacity">draft</span>
+                    Save Draft
+                  </>
+                )}
               </button>
+
               <button
                 onClick={() => handleSave(false, 1)}
                 disabled={isSaving}
-                className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-xl transition-all flex items-center gap-2 ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-primary/20 active:scale-[0.98]'
+                className={`relative px-6 py-2.5 min-w-[160px] text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-xl transition-all flex items-center justify-center gap-2 ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-primary/20 active:scale-[0.98]'
                   }`}
                 style={{
                   background: isSaving
@@ -225,13 +243,18 @@ export default function CampaignBuilder() {
                     : `linear-gradient(135deg, ${campaign.primaryColor}, ${campaign.primaryColor}cc)`,
                 }}
               >
-                {isSaving ? (
+                {pendingAction === 'publish' ? (
                   <>
                     <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Processing...
+                    <span>Publishing...</span>
                   </>
                 ) : (
-                  campaign.status === 1 ? 'Update Live' : 'Go Live'
+                  <>
+                    <span className="material-symbols-outlined text-[16px]">
+                      {campaign.status === 1 ? 'sync' : 'rocket_launch'}
+                    </span>
+                    {campaign.status === 1 ? 'Update Live' : 'Go Live'}
+                  </>
                 )}
               </button>
             </div>
@@ -246,17 +269,21 @@ export default function CampaignBuilder() {
           <button
             onClick={() => handleSave(false, 0)}
             disabled={isSaving || !isDirty}
-            className="flex-1 py-2.5 text-sm font-semibold text-on-surface-variant bg-surface-container-low rounded-xl border border-outline-variant/20 disabled:opacity-50"
+            className="flex-1 py-3 text-xs font-black uppercase tracking-widest text-on-surface-variant bg-surface-container-low rounded-xl border border-outline-variant/20 disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            Draft
+            {pendingAction === 'draft' ? (
+              <span className="w-4 h-4 border-2 border-on-surface-variant/30 border-t-on-surface-variant rounded-full animate-spin" />
+            ) : 'Draft'}
           </button>
           <button
             onClick={() => handleSave(false, 1)}
             disabled={isSaving}
-            className="flex-1 py-2.5 text-sm font-semibold text-on-primary rounded-xl shadow-md flex items-center justify-center gap-2"
+            className="flex-1 py-3 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-md flex items-center justify-center gap-2 transition-all active:scale-95"
             style={{ backgroundColor: isSaving ? '#94a3b8' : campaign.primaryColor }}
           >
-            {isSaving ? 'Saving...' : (campaign.status === 1 ? 'Update' : 'Publish')}
+            {pendingAction === 'publish' ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (campaign.status === 1 ? 'Update' : 'Publish')}
           </button>
         </div>
 
