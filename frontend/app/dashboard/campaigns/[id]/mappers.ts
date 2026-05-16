@@ -1,75 +1,83 @@
-import { CampaignConfig } from "./types";
+import { CampaignConfig, DEFAULT_CAMPAIGN } from "./types";
 
 /**
- * Maps the flat UI state (CampaignConfig) to the nested DTO structure expected by the Backend API.
+ * Maps the UI state (CampaignConfig) to the nested DTO structure expected by the Backend API.
  */
 export const mapConfigToDto = (config: CampaignConfig) => {
   return {
-    businessName: config.name,
+    businessName: config.businessName,
     googleReviewUrl: config.googleReviewUrl,
-    logoUrl: config.logo,
+    logoUrl: config.logoUrl,
     status: config.status,
+    isActive: config.isActive,
     style: {
-      primaryColor: config.primaryColor,
-      fontFamily: config.fontFamily,
-      logoStyle: config.logoStyle,
-      ratingIconType: config.ratingIconType,
-      backgroundStyle: config.backgroundStyle,
-      backgroundImage: config.backgroundImage,
-      backgroundGradient: config.backgroundGradient,
-      qrDotColor: config.qrDotColor,
-      qrFrame: config.qrFrame
+      primaryColor: config.style.primaryColor,
+      fontFamily: config.style.fontFamily,
+      logoStyle: config.style.logoStyle,
+      ratingIconType: config.style.ratingIconType,
+      backgroundStyle: config.style.backgroundStyle,
+      backgroundImage: config.style.backgroundImage,
+      backgroundGradient: config.style.backgroundGradient,
+      customGradientStart: config.style.customGradientStart,
+      customGradientEnd: config.style.customGradientEnd,
+      customGradientDirection: config.style.customGradientDirection,
+      qrDotColor: config.style.qrDotColor,
+      qrFrame: config.style.qrFrame
     },
     settings: {
-      routingThreshold: config.routingThreshold,
-      heading: config.heading,
-      ctaLabel: config.ctaLabel,
-      thankYouMessage: config.thankYouMessage,
-      collectContact: config.collectContact,
-      incentiveEnabled: config.incentiveEnabled,
-      incentiveCoupon: config.incentiveCoupon
-    }
+      routingThreshold: config.settings.routingThreshold,
+      heading: config.settings.heading,
+      ctaLabel: config.settings.ctaLabel,
+      thankYouMessage: config.settings.thankYouMessage,
+      collectContact: config.settings.collectContact,
+      incentiveEnabled: config.settings.incentiveEnabled,
+      incentiveCoupon: config.settings.incentiveCoupon
+    },
+    standeeConfig: config.standeeConfig
   };
 };
 
 /**
- * Maps the nested DTO from the Backend API back to the flat UI state (CampaignConfig).
+ * Maps the nested DTO from the Backend API back to the UI state (CampaignConfig).
  */
 export const mapDtoToConfig = (dto: any): CampaignConfig => {
   return {
-    name: dto.businessName || '',
+    ...DEFAULT_CAMPAIGN,
+    businessName: dto.businessName || '',
     googleReviewUrl: dto.googleReviewUrl || '',
-    logo: dto.logoUrl,
-    routingThreshold: dto.settings?.routingThreshold ?? 4,
-    logoStyle: (dto.style?.logoStyle as any) ?? 'soft',
-    primaryColor: dto.style?.primaryColor ?? '#0037b0',
-    fontFamily: (dto.style?.fontFamily as any) ?? 'Manrope',
-    backgroundStyle: (dto.style?.backgroundStyle as any) ?? 'none',
-    backgroundImage: dto.style?.backgroundImage,
-    backgroundGradient: dto.style?.backgroundGradient ?? '',
-    customGradientStart: '#e0f2fe',
-    customGradientEnd: '#ffffff',
-    customGradientDirection: '180deg',
-    heading: dto.settings?.heading ?? 'How was your experience?',
-    thankYouMessage: dto.settings?.thankYouMessage ?? 'Thank you for your feedback! See you next time.',
-    ctaLabel: dto.settings?.ctaLabel ?? 'Submit Feedback',
-    qrDotColor: dto.style?.qrDotColor ?? '#000000',
-    qrFrame: (dto.style?.qrFrame as any) ?? 'none',
-    collectContact: dto.settings?.collectContact ?? false,
-    incentiveEnabled: dto.settings?.incentiveEnabled ?? false,
-    incentiveCoupon: dto.settings?.incentiveCoupon ?? '',
-    ratingIconType: (dto.style?.ratingIconType as any) ?? 'stars',
+    logoUrl: dto.logoUrl,
     status: dto.status ?? 0,
     isActive: dto.isActive ?? true,
+    style: {
+      ...DEFAULT_CAMPAIGN.style,
+      primaryColor: dto.style?.primaryColor ?? DEFAULT_CAMPAIGN.style.primaryColor,
+      fontFamily: dto.style?.fontFamily ?? DEFAULT_CAMPAIGN.style.fontFamily,
+      logoStyle: dto.style?.logoStyle ?? DEFAULT_CAMPAIGN.style.logoStyle,
+      ratingIconType: dto.style?.ratingIconType ?? DEFAULT_CAMPAIGN.style.ratingIconType,
+      backgroundStyle: dto.style?.backgroundStyle ?? DEFAULT_CAMPAIGN.style.backgroundStyle,
+      backgroundImage: dto.style?.backgroundImage,
+      backgroundGradient: dto.style?.backgroundGradient ?? DEFAULT_CAMPAIGN.style.backgroundGradient,
+      customGradientStart: dto.style?.customGradientStart ?? DEFAULT_CAMPAIGN.style.customGradientStart,
+      customGradientEnd: dto.style?.customGradientEnd ?? DEFAULT_CAMPAIGN.style.customGradientEnd,
+      customGradientDirection: dto.style?.customGradientDirection ?? DEFAULT_CAMPAIGN.style.customGradientDirection,
+      qrDotColor: dto.style?.qrDotColor ?? DEFAULT_CAMPAIGN.style.qrDotColor,
+      qrFrame: dto.style?.qrFrame ?? DEFAULT_CAMPAIGN.style.qrFrame,
+    },
+    settings: {
+      ...DEFAULT_CAMPAIGN.settings,
+      routingThreshold: dto.settings?.routingThreshold ?? DEFAULT_CAMPAIGN.settings.routingThreshold,
+      heading: dto.settings?.heading ?? DEFAULT_CAMPAIGN.settings.heading,
+      ctaLabel: dto.settings?.ctaLabel ?? DEFAULT_CAMPAIGN.settings.ctaLabel,
+      thankYouMessage: dto.settings?.thankYouMessage ?? DEFAULT_CAMPAIGN.settings.thankYouMessage,
+      collectContact: dto.settings?.collectContact ?? DEFAULT_CAMPAIGN.settings.collectContact,
+      incentiveEnabled: dto.settings?.incentiveEnabled ?? DEFAULT_CAMPAIGN.settings.incentiveEnabled,
+      incentiveCoupon: dto.settings?.incentiveCoupon ?? DEFAULT_CAMPAIGN.settings.incentiveCoupon,
+    },
     stats: {
       totalScans: dto.stats?.totalScans ?? 0,
       positiveScans: dto.stats?.positiveScans ?? 0,
       negativeScans: dto.stats?.negativeScans ?? 0,
     },
-    standeeConfig: dto.standeeConfig ?? {
-      templateId: 'minimal_white',
-      ctaText: 'Review Us on Google',
-      showLogo: true,
-    }
+    standeeConfig: dto.standeeConfig ?? DEFAULT_CAMPAIGN.standeeConfig
   };
 };

@@ -7,40 +7,43 @@ export type BackgroundStyle = 'none' | 'image' | 'gradient';
 
 export type CampaignStatus = 0 | 1 | 2; // Draft, Published, Archived
 
-export interface CampaignConfig {
-  // Basic
-  name: string;
-  googleReviewUrl: string;
+interface CampaignSettings {
   routingThreshold: 4 | 5;
-  status: CampaignStatus;
-
-  // Visual Branding
-  logo: string | null;
-  logoStyle: 'circle' | 'square' | 'soft' | 'none';
-  primaryColor: string;
-  fontFamily: FontOption;
-  backgroundStyle: BackgroundStyle;
-  backgroundImage: string | null;
-  backgroundGradient: string;
-  customGradientStart: string;
-  customGradientEnd: string;
-  customGradientDirection: string; // e.g., '135deg'
-
-  // Content
   heading: string;
-  thankYouMessage: string;
   ctaLabel: string;
-
-  // QR Styling
-  qrDotColor: string;
-  qrFrame: QrFrameType;
-
-  // Advanced
+  thankYouMessage: string;
   collectContact: boolean;
   incentiveEnabled: boolean;
   incentiveCoupon: string;
+}
+
+interface CampaignStyle {
+  primaryColor: string;
+  fontFamily: FontOption;
+  logoStyle: 'circle' | 'square' | 'soft' | 'none';
   ratingIconType: RatingIconType;
+  backgroundStyle: BackgroundStyle;
+  backgroundImage?: string | null;
+  backgroundGradient?: string;
+  customGradientStart?: string;
+  customGradientEnd?: string;
+  customGradientDirection?: string; // e.g., '135deg'
+  qrDotColor?: string;
+  qrFrame?: QrFrameType;
+}
+
+export interface CampaignConfig {
+  // Basic
+  businessName: string;
+  googleReviewUrl: string;
+  status: CampaignStatus;
   isActive: boolean;
+  // Visual Branding
+  logoUrl: string | null;
+  style: CampaignStyle;
+  settings: CampaignSettings;
+
+  // Stats
   stats: {
     totalScans: number;
     positiveScans: number;
@@ -58,36 +61,41 @@ export const DEFAULT_STANDEE_CONFIG: StandeeUserConfig = {
 };
 
 export const DEFAULT_CAMPAIGN: CampaignConfig = {
-  name: '',
+  businessName: '',
   googleReviewUrl: '',
-  routingThreshold: 4,
   status: 0, // Draft
-  logo: null,
-  logoStyle: 'soft',
-  primaryColor: '#0037b0',
-  fontFamily: 'Manrope',
-  backgroundStyle: 'none',
-  backgroundImage: null,
-  backgroundGradient: '',
-  customGradientStart: '#e0f2fe',
-  customGradientEnd: '#ffffff',
-  customGradientDirection: '180deg',
-  heading: 'How was your experience?',
-  thankYouMessage: 'Thank you for your feedback! See you next time.',
-  ctaLabel: 'Submit Feedback',
-  qrDotColor: '#000000',
-  qrFrame: 'none',
-  collectContact: false,
-  incentiveEnabled: false,
-  incentiveCoupon: '',
-  ratingIconType: 'stars',
+  logoUrl: null,
+  isActive: true,
+  style: {
+    logoStyle: 'soft',
+    ratingIconType: 'stars',
+    primaryColor: '#0037b0',
+    fontFamily: 'Manrope',
+    backgroundStyle: 'none',
+    backgroundImage: null,
+    backgroundGradient: '',
+    customGradientStart: '#e0f2fe',
+    customGradientEnd: '#ffffff',
+    customGradientDirection: '180deg',
+    qrDotColor: '#000000',
+    qrFrame: 'none',
+  },
+  settings: {
+    routingThreshold: 4,
+    heading: 'How was your experience?',
+    thankYouMessage: 'Thank you for your feedback! See you next time.',
+    ctaLabel: 'Submit Feedback',
+    collectContact: false,
+    incentiveEnabled: false,
+    incentiveCoupon: '',
+
+  },
   standeeConfig: { ...DEFAULT_STANDEE_CONFIG },
   stats: {
     totalScans: 0,
     positiveScans: 0,
     negativeScans: 0,
   },
-  isActive: true,
 };
 
 export const FONT_OPTIONS: { value: FontOption; label: string; category: string }[] = [
