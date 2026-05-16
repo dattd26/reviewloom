@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReviewLoom.Application.DTOs;
-using ReviewLoom.Application.Services;
+using ReviewLoom.Application.Interfaces;
 using ReviewLoom.Domain.Interfaces;
 
 namespace ReviewLoom.Api.Controllers;

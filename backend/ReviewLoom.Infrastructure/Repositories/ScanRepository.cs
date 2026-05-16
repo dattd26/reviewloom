@@ -20,11 +20,11 @@ public class ScanRepository : IScanRepository
 
     public async Task LogScanAsync(Guid campaignId, string action, string? feedbackName, string? feedbackEmail, string? feedbackMessage)
     {
-
-        // Using the stored procedure defined in schema.sql
+        // Using Dapper for stored procedure execution for better performance and parameter handling
         var sql = "CALL sp_log_scan(@CampaignId, @Action, @FeedbackName, @FeedbackEmail, @FeedbackMessage)";
-
-        await _context.Database.ExecuteSqlRawAsync(sql, new
+        
+        using var connection = _context.Database.GetDbConnection();
+        await connection.ExecuteAsync(sql, new
         {
             CampaignId = campaignId,
             Action = action,
@@ -32,7 +32,5 @@ public class ScanRepository : IScanRepository
             FeedbackEmail = feedbackEmail,
             FeedbackMessage = feedbackMessage
         });
-
-        await _context.SaveChangesAsync();
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using ReviewLoom.Application.DTOs;
 using ReviewLoom.Domain.Interfaces;
+using ReviewLoom.Application.Interfaces;
 
 namespace ReviewLoom.Application.Services;
 
