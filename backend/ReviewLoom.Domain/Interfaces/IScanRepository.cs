@@ -5,5 +5,5 @@ namespace ReviewLoom.Domain.Interfaces;
 
 public interface IScanRepository
 {
-    Task LogScanAsync(Guid campaignId, string action, string? feedbackName, string? feedbackEmail, string? feedbackMessage);
+    Task LogScanAsync(Guid campaignId, string action, int rating, string? feedbackName, string? feedbackEmail, string? feedbackMessage);
 }

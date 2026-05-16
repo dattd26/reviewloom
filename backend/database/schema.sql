@@ -62,6 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_provider ON subscriptions(payment_p
 CREATE OR REPLACE PROCEDURE sp_log_scan(
     p_campaign_id UUID,
     p_action VARCHAR,
+    p_rating INT,
     p_feedback_name TEXT,
     p_feedback_email TEXT,
     p_feedback_message TEXT
@@ -69,8 +70,8 @@ CREATE OR REPLACE PROCEDURE sp_log_scan(
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    INSERT INTO scans (campaign_id, action, feedback_name, feedback_email, feedback_message)
-    VALUES (p_campaign_id, p_action, p_feedback_name, p_feedback_email, p_feedback_message);
+    INSERT INTO scans (campaign_id, action, "Rating", feedback_name, feedback_email, feedback_message)
+    VALUES (p_campaign_id, p_action, p_rating, p_feedback_name, p_feedback_email, p_feedback_message);
 END;
 $$;
 

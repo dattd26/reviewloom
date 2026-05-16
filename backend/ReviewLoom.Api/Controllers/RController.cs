@@ -37,14 +37,14 @@ public class RController : ControllerBase
     }
 
     [HttpPost("{slug}/scan")]
-    public async Task<IActionResult> LogScan(string slug, [FromBody] LogScanDto dto)
+    public async Task<IActionResult> LogScan(string slug, [FromBody] LogScanDto request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
         try
         {
-            await _scanService.LogScanAsync(slug, dto);
+            await _scanService.LogScanAsync(slug, request);
             return Ok(new { Message = "Scan logged successfully" });
         }
         catch (System.ArgumentException)

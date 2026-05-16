@@ -10,6 +10,8 @@ public partial class Scan
     // negative or positive
     public string Action { get; set; } = null!;
 
+    public int Rating { get; set; }
+
     public string? FeedbackName { get; set; }
 
     public string? FeedbackEmail { get; set; }
