@@ -17,14 +17,15 @@ public class ScanService : IScanService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task LogScanAsync(string slug, LogScanDto dto)
+    public async Task LogScanAsync(string slug, LogScanDto request)
     {
-        // Get the campaign by slug to find the ID
         var campaign = await _unitOfWork.Campaigns.GetBySlugAsync(slug);
-        
+
         if (campaign == null)
             throw new ArgumentException("Campaign not found");
 
-        await _scanRepository.LogScanAsync(campaign.Id, dto.Action, dto.FeedbackName, dto.FeedbackEmail, dto.FeedbackMessage);
+        request.Action = (request.Action ?? (request.Rating >= 4 ? "positive" : "negative"))!;
+
+        await _scanRepository.LogScanAsync(campaign.Id, request.Action, request.Rating, request.FeedbackName, request.FeedbackEmail, request.FeedbackMessage);
     }
 }

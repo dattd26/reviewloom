@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import RatingSystem from './RatingSystem';
 import { CampaignConfig, GRADIENT_PRESETS } from '@/app/dashboard/campaigns/[id]/types';
+import { ScanService } from '@/services/scan-service';
 
 interface Props {
   slug: string;
@@ -14,6 +15,7 @@ type Step = 'rating' | 'feedback' | 'thank-you';
 export default function LandingClient({ slug, campaign }: Props) {
   const [step, setStep] = useState<Step>('rating');
   const [rating, setRating] = useState(0);
+  const [isPending, setIsPending] = useState(false); // Trạng thái chờ chuyển step
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({
     name: '',
@@ -33,10 +35,15 @@ export default function LandingClient({ slug, campaign }: Props) {
   const textMuted = isDarkBg ? 'rgba(255,255,255,0.7)' : 'rgba(67,70,85,0.7)';
 
   const handleRatingChange = (val: number) => {
+    if (isPending) return; // Chặn click 
+
     setRating(val);
-    // Add a slight delay for better UX feel
+    setIsPending(true); // Khóa tương tác
+
+    // Delay 
     setTimeout(() => {
       setStep('feedback');
+      setIsPending(false); // Reset lại trạng thái 
     }, 400);
   };
 
@@ -45,23 +52,18 @@ export default function LandingClient({ slug, campaign }: Props) {
     const action = rating >= routingThreshold ? 'positive' : 'negative';
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/r/${slug}/scan`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          feedbackName: feedback.name,
-          feedbackEmail: feedback.email,
-          feedbackMessage: feedback.message
-        })
+      await ScanService.logScan(slug, {
+        rating: rating,
+        action: action,
+        feedbackName: feedback.name,
+        feedbackEmail: feedback.email,
+        feedbackMessage: feedback.message
       });
 
-      if (response.ok) {
-        if (action === 'positive' && campaign.googleReviewUrl) {
-          window.location.href = campaign.googleReviewUrl;
-        } else {
-          setStep('thank-you');
-        }
+      if (action === 'positive' && campaign.googleReviewUrl) {
+        window.location.href = campaign.googleReviewUrl;
+      } else {
+        setStep('thank-you');
       }
     } catch (error) {
       console.error('Failed to log scan:', error);
@@ -103,9 +105,9 @@ export default function LandingClient({ slug, campaign }: Props) {
         <div className="flex flex-col items-center mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
           <div
             className={`w-24 h-24 flex items-center justify-center mb-6 transition-all duration-500 shadow-2xl border ${campaign.style?.logoStyle === 'circle' ? 'rounded-full' :
-                campaign.style?.logoStyle === 'soft' ? 'rounded-3xl' :
-                  campaign.style?.logoStyle === 'square' ? 'rounded-lg' :
-                    'rounded-none border-none shadow-none'
+              campaign.style?.logoStyle === 'soft' ? 'rounded-3xl' :
+                campaign.style?.logoStyle === 'square' ? 'rounded-lg' :
+                  'rounded-none border-none shadow-none'
               }`}
             style={{
               backgroundColor: campaign.style?.logoStyle === 'none' ? 'transparent' : (isDarkBg ? `${primaryColor}40` : 'rgba(255,255,255,0.8)'),
