@@ -1,5 +1,7 @@
 'use client';
 
+import { toast } from 'react-hot-toast';
+
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { CampaignConfig, DEFAULT_CAMPAIGN, CampaignStatus } from './types';
@@ -94,7 +96,7 @@ export default function CampaignBuilder() {
     // Strict validation for Publishing actions
     if (targetStatus === 1 && (!campaign.businessName?.trim() || !campaign.googleReviewUrl?.trim())) {
       if (!isAutoSave) {
-        alert("Please provide a Campaign Name and Google Review URL to publish your campaign.");
+        toast.error("Please provide a Campaign Name and Google Review URL to publish your campaign.");
       }
       return;
     }
@@ -146,7 +148,7 @@ export default function CampaignBuilder() {
       console.error("[CampaignSave] Failed:", error);
       setSaveStatus('error');
       if (!isAutoSave) {
-        alert(error.message || "Failed to save changes. Please check your connection and try again.");
+        toast.error(error.message || "Failed to save changes. Please check your connection and try again.");
       }
     } finally {
       if (!isAutoSave) {
@@ -165,11 +167,13 @@ export default function CampaignBuilder() {
       setIsUploadingLogo(true);
       const { url } = await MediaService.uploadImage(file);
       patch({ logoUrl: url });
+      toast.success('Logo uploaded successfully!');
     } catch (error) {
       console.error('Failed to upload logo:', error);
-      // Optional: Add toast notification here
+      toast.error('Failed to upload logo. Please try again.');
     } finally {
       setIsUploadingLogo(false);
+      e.target.value = ''; // Reset value to allow re-uploading the same file
     }
   };
 
@@ -383,7 +387,10 @@ export default function CampaignBuilder() {
                           </button>
                           <button
                             disabled={isUploadingLogo}
-                            onClick={() => patch({ logoUrl: null })}
+                            onClick={() => {
+                              patch({ logoUrl: null });
+                              if (logoInputRef.current) logoInputRef.current.value = '';
+                            }}
                             className="px-3 py-1.5 text-xs font-semibold text-error bg-error/5 rounded-lg border border-error/20 hover:bg-error/10 transition-colors disabled:opacity-50"
                           >
                             Remove

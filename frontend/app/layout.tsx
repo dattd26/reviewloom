@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Manrope, Inter } from 'next/font/google'
+import { Toaster } from 'react-hot-toast'
 import './globals.css'
 import 'material-symbols/outlined.css'
 
@@ -30,6 +31,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" className="light">
         <body className={`${manrope.variable} ${inter.variable} antialiased font-body bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed`}>
+          <Toaster position="bottom-right" />
           {children}
         </body>
       </html>
