@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ReviewLoom.Application.DTOs;
-using ReviewLoom.Application.Services;
+using ReviewLoom.Application.Interfaces;
 using ReviewLoom.Domain.Enums;
 
 namespace ReviewLoom.Api.Controllers;

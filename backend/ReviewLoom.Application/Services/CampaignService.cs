@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ReviewLoom.Application.DTOs;
+using ReviewLoom.Application.Interfaces;
+using ReviewLoom.Application.Mappings;
 using ReviewLoom.Domain.Entities;
 using ReviewLoom.Domain.Interfaces;
 
@@ -27,7 +29,7 @@ public class CampaignService : ICampaignService
         foreach (var c in campaigns)
         {
             var stats = await _statsRepository.GetCampaignStatsAsync(c.Id);
-            dtos.Add(MapToDto(c, stats));
+            dtos.Add(c.ToDto(stats));
         }
 
         return dtos;
@@ -39,7 +41,7 @@ public class CampaignService : ICampaignService
         if (campaign == null) return null;
 
         var stats = await _statsRepository.GetCampaignStatsAsync(id);
-        return MapToDto(campaign, stats);
+        return campaign.ToDto(stats);
     }
 
     public async Task<CampaignDto?> GetCampaignBySlugAsync(string slug)
@@ -48,44 +50,18 @@ public class CampaignService : ICampaignService
         if (campaign == null) return null;
 
         var stats = await _statsRepository.GetCampaignStatsAsync(campaign.Id);
-        return MapToDto(campaign, stats);
+        return campaign.ToDto(stats);
     }
 
     public async Task<CampaignDto> CreateCampaignAsync(CreateCampaignDto dto, Guid userId)
     {
         var slug = GenerateSlug(dto.BusinessName);
-
-        var campaign = new Campaign
-        {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            Slug = slug,
-            BusinessName = dto.BusinessName,
-            GoogleReviewUrl = dto.GoogleReviewUrl,
-            LogoUrl = dto.LogoUrl,
-            Status = dto.Status,
-            CreatedAt = DateTime.UtcNow,
-
-            // Initialize sub-components
-            Style = new CampaignStyle
-            {
-                PrimaryColor = dto.Style?.PrimaryColor ?? "#0037b0",
-                FontFamily = dto.Style?.FontFamily ?? "Manrope",
-                LogoStyle = dto.Style?.LogoStyle ?? "soft",
-                RatingIconType = dto.Style?.RatingIconType ?? "stars"
-            },
-            Settings = new CampaignSettings
-            {
-                RoutingThreshold = dto.Settings?.RoutingThreshold ?? 4,
-                Heading = dto.Settings?.Heading ?? "How was your experience?",
-                CtaLabel = dto.Settings?.CtaLabel ?? "Submit Feedback",
-                CollectContact = dto.Settings?.CollectContact ?? false
-            }
-        };
+        var campaign = dto.CreateEntity(userId, slug);
 
         await _unitOfWork.Campaigns.AddAsync(campaign);
         await _unitOfWork.CompleteAsync();
-        return MapToDto(campaign, (0, 0, 0));
+        
+        return campaign.ToDto((0, 0, 0));
     }
 
     public async Task<CampaignDto?> UpdateCampaignAsync(Guid id, UpdateCampaignDto dto)
@@ -93,55 +69,13 @@ public class CampaignService : ICampaignService
         var campaign = await _unitOfWork.Campaigns.GetFullByIdAsync(id);
         if (campaign == null) return null;
 
-        // Update core fields
-        if (!string.IsNullOrEmpty(dto.BusinessName)) campaign.BusinessName = dto.BusinessName;
-        if (dto.GoogleReviewUrl != null) campaign.GoogleReviewUrl = dto.GoogleReviewUrl;
-        if (dto.LogoUrl != null) campaign.LogoUrl = dto.LogoUrl;
-        if (dto.Status.HasValue) campaign.Status = dto.Status.Value;
-
-        // Update Style
-        if (dto.Style != null)
-        {
-            campaign.Style.PrimaryColor = dto.Style.PrimaryColor;
-            campaign.Style.FontFamily = dto.Style.FontFamily;
-            campaign.Style.LogoStyle = dto.Style.LogoStyle;
-            campaign.Style.RatingIconType = dto.Style.RatingIconType;
-            campaign.Style.BackgroundStyle = dto.Style.BackgroundStyle;
-            campaign.Style.BackgroundImage = dto.Style.BackgroundImage;
-            campaign.Style.BackgroundGradient = dto.Style.BackgroundGradient;
-            campaign.Style.QrDotColor = dto.Style.QrDotColor;
-            campaign.Style.QrFrame = dto.Style.QrFrame;
-        }
-
-        // Update Settings
-        if (dto.Settings != null)
-        {
-            campaign.Settings.RoutingThreshold = dto.Settings.RoutingThreshold;
-            campaign.Settings.Heading = dto.Settings.Heading;
-            campaign.Settings.CtaLabel = dto.Settings.CtaLabel;
-            campaign.Settings.ThankYouMessage = dto.Settings.ThankYouMessage;
-            campaign.Settings.CollectContact = dto.Settings.CollectContact;
-            campaign.Settings.IncentiveEnabled = dto.Settings.IncentiveEnabled;
-            campaign.Settings.IncentiveCoupon = dto.Settings.IncentiveCoupon;
-        }
-
-        // Update Standee Config (Upsert)
-        if (dto.StandeeConfig != null)
-        {
-            if (campaign.StandeeConfig == null)
-            {
-                campaign.StandeeConfig = new CampaignStandeeConfig { CampaignId = campaign.Id };
-            }
-            campaign.StandeeConfig.TemplateId = dto.StandeeConfig.TemplateId;
-            campaign.StandeeConfig.CtaText = dto.StandeeConfig.CtaText;
-            campaign.StandeeConfig.ShowLogo = dto.StandeeConfig.ShowLogo;
-        }
+        campaign.UpdateFromDto(dto);
 
         _unitOfWork.Campaigns.Update(campaign);
         await _unitOfWork.CompleteAsync();
 
         var stats = await _statsRepository.GetCampaignStatsAsync(id);
-        return MapToDto(campaign, stats);
+        return campaign.ToDto(stats);
     }
 
     public async Task<bool> DeleteCampaignAsync(Guid id)
@@ -162,7 +96,7 @@ public class CampaignService : ICampaignService
         foreach (var c in campaigns)
         {
             var stats = await _statsRepository.GetCampaignStatsAsync(c.Id);
-            dtos.Add(MapToDto(c, stats));
+            dtos.Add(c.ToDto(stats));
         }
 
         return dtos;
@@ -173,48 +107,5 @@ public class CampaignService : ICampaignService
         var cleanName = new string(businessName.Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c)).ToArray());
         var slug = cleanName.ToLower().Trim().Replace(" ", "-");
         return $"{slug}-{Guid.NewGuid().ToString("N").Substring(0, 6)}";
-    }
-
-    private CampaignDto MapToDto(Campaign c, (long Total, long Positive, long Negative) stats)
-    {
-        return new CampaignDto
-        {
-            Id = c.Id,
-            Slug = c.Slug,
-            BusinessName = c.BusinessName,
-            GoogleReviewUrl = c.GoogleReviewUrl,
-            Status = c.Status,
-            LogoUrl = c.LogoUrl,
-            CreatedAt = c.CreatedAt,
-            Stats = new CampaignStatsDto(stats.Total, stats.Positive, stats.Negative),
-            Style = c.Style == null ? new CampaignStyleDto() : new CampaignStyleDto
-            {
-                PrimaryColor = c.Style.PrimaryColor,
-                FontFamily = c.Style.FontFamily,
-                LogoStyle = c.Style.LogoStyle,
-                RatingIconType = c.Style.RatingIconType,
-                BackgroundStyle = c.Style.BackgroundStyle,
-                BackgroundImage = c.Style.BackgroundImage,
-                BackgroundGradient = c.Style.BackgroundGradient,
-                QrDotColor = c.Style.QrDotColor,
-                QrFrame = c.Style.QrFrame
-            },
-            Settings = c.Settings == null ? new CampaignSettingsDto() : new CampaignSettingsDto
-            {
-                RoutingThreshold = c.Settings.RoutingThreshold,
-                Heading = c.Settings.Heading,
-                CtaLabel = c.Settings.CtaLabel,
-                ThankYouMessage = c.Settings.ThankYouMessage,
-                CollectContact = c.Settings.CollectContact,
-                IncentiveEnabled = c.Settings.IncentiveEnabled,
-                IncentiveCoupon = c.Settings.IncentiveCoupon
-            },
-            StandeeConfig = c.StandeeConfig == null ? null : new CampaignStandeeConfigDto
-            {
-                TemplateId = c.StandeeConfig.TemplateId,
-                CtaText = c.StandeeConfig.CtaText,
-                ShowLogo = c.StandeeConfig.ShowLogo
-            }
-        };
     }
 }
