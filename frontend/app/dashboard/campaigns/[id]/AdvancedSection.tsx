@@ -72,12 +72,12 @@ export default function AdvancedSection({ campaign, onChange }: Props) {
             <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/20 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-lg">check_circle</span>
               <p className="text-xs font-medium text-on-surface-variant">
-                Customers will see an optional "Email or phone (for follow-up)" field.
+                Customers will see an optional &quot;Email or phone (for follow-up)&quot; field.
               </p>
             </div>
           )}
         </div>
-
+ 
         {/* Incentive / Coupon */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -108,7 +108,7 @@ export default function AdvancedSection({ campaign, onChange }: Props) {
                 onChange={(e) => onChange({ settings: { ...campaign.settings, incentiveCoupon: e.target.value.toUpperCase() } })}
               />
               <p className="text-[11px] text-on-surface-variant/60 italic">
-                Shown on the "Thank You" screen for customers who left 4+ star ratings.
+                Shown on the &quot;Thank You&quot; screen for customers who left 4+ star ratings.
               </p>
             </div>
           )}

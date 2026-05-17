@@ -31,16 +31,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LandingPage({ params }: Props) {
   const { slug } = await params;
+  let campaign: Partial<CampaignConfig> | null = null;
 
   try {
     // Fetch campaign data (Public endpoint)
-    const campaign = await apiClient<Partial<CampaignConfig>>(`/r/${slug}`, {
+    campaign = await apiClient<Partial<CampaignConfig>>(`/r/${slug}`, {
       cache: 'no-store' // Ensure we get fresh data (e.g. status changes)
     });
-
-    return <LandingClient slug={slug} campaign={campaign} />;
   } catch (error) {
     console.error('Landing page fetch error:', error);
+  }
+
+  if (!campaign) {
     return notFound();
   }
+
+  return <LandingClient slug={slug} campaign={campaign} />;
 }

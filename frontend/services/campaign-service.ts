@@ -6,6 +6,7 @@ export interface CampaignResponse {
   id: string;
   slug: string;
   businessName: string;
+  logoUrl?: string;
   createdAt: string;
   isActive: boolean;
   stats: {
@@ -27,7 +28,7 @@ export const CampaignService = {
    * Fetches a single campaign by ID
    */
   async getCampaignById(id: string, token: string) {
-    return apiClient<any>(`/campaigns/${id}`, { token });
+    return apiClient<Record<string, unknown>>(`/campaigns/${id}`, { token });
   },
 
   /**
@@ -68,6 +69,6 @@ export const CampaignService = {
    * Fetches campaign stats
    */
   async getCampaignStats(id: string, token: string) {
-    return apiClient<any>(`/campaigns/${id}/stats`, { token });
+    return apiClient<Record<string, unknown>>(`/campaigns/${id}/stats`, { token });
   }
 };

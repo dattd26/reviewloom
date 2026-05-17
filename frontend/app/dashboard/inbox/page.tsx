@@ -1,4 +1,3 @@
-import { UserButton } from '@clerk/nextjs';
 
 export default function FeedbackInbox() {
   return (
@@ -32,7 +31,7 @@ export default function FeedbackInbox() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-0">
             <div>
               <h2 className="text-3xl font-extrabold tracking-tight text-on-surface">Private Feedback</h2>
-              <p className="text-on-surface-variant font-medium mt-1 text-sm">Managing critical customer responses from the 'Not Satisfied' segment.</p>
+              <p className="text-on-surface-variant font-medium mt-1 text-sm">Managing critical customer responses from the &quot;Not Satisfied&quot; segment.</p>
             </div>
             <div className="flex items-center gap-3">
               <button className="flex items-center gap-2 bg-surface-container-lowest text-primary px-4 py-2 rounded-xl font-bold text-sm shadow-sm hover:shadow-md hover:bg-surface-container-low transition-all border border-outline-variant/10 active:scale-95">
@@ -112,7 +111,7 @@ export default function FeedbackInbox() {
                 <h4 className="font-bold text-on-surface/80 text-sm">Leonid Volkov</h4>
                 <span className="text-[10px] font-bold text-on-surface-variant">Oct 23</span>
               </div>
-              <p className="text-sm text-on-surface-variant/80 line-clamp-2 leading-relaxed mt-1">Prices increased by 15% but I don't see any corresponding value added to the dashboard toolset...</p>
+              <p className="text-sm text-on-surface-variant/80 line-clamp-2 leading-relaxed mt-1">Prices increased by 15% but I don&apos;t see any corresponding value added to the dashboard toolset...</p>
               <div className="mt-4 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-outline"></span>
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-outline">Pending</span>
@@ -159,7 +158,7 @@ export default function FeedbackInbox() {
                 <h4 className="text-xs font-extrabold uppercase tracking-widest text-outline mb-4">Customer Feedback</h4>
                 <div className="bg-surface/50 p-6 rounded-2xl border border-outline-variant/10">
                   <p className="text-[15px] leading-relaxed text-on-surface font-medium italic">
-                    "The checkout process was extremely frustrating. It kept declining my valid card three times before finally going through on the fourth attempt. This caused a duplicate hold on my account which my bank is now investigating. I've been a loyal user for 3 years, but this experience makes me want to switch to a competitor. I need this resolved and the extra holds cleared immediately."
+                    &quot;The checkout process was extremely frustrating. It kept declining my valid card three times before finally going through on the fourth attempt. This caused a duplicate hold on my account which my bank is now investigating. I&apos;ve been a loyal user for 3 years, but this experience makes me want to switch to a competitor. I need this resolved and the extra holds cleared immediately.&quot;
                   </p>
                 </div>
 

@@ -199,6 +199,7 @@ export default function StandeeTemplate({ campaign, userConfig, qrCodeDataUrl, w
         {/* Logo */}
         {userConfig.showLogo && campaign.logoUrl && (
           <div style={{ marginBottom: px(28), display: 'flex', justifyContent: 'center' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={campaign.logoUrl}
               alt="Logo"
@@ -261,6 +262,7 @@ export default function StandeeTemplate({ campaign, userConfig, qrCodeDataUrl, w
           <div style={{ position: 'relative', width: px(520), height: px(520) }}>
             {qrCodeDataUrl ? (
               <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={qrCodeDataUrl} alt="QR Code" style={{ width: '100%', height: '100%', display: 'block' }} />
                 {campaign.logoUrl && userConfig.showLogo && (
                   <div
@@ -285,6 +287,7 @@ export default function StandeeTemplate({ campaign, userConfig, qrCodeDataUrl, w
                         boxShadow: `0 ${px(4)} ${px(16)} rgba(0,0,0,0.15)`,
                       }}
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={campaign.logoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
                   </div>

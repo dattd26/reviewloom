@@ -40,6 +40,7 @@ export const mapConfigToDto = (config: CampaignConfig) => {
 /**
  * Maps the nested DTO from the Backend API back to the UI state (CampaignConfig).
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const mapDtoToConfig = (dto: any): CampaignConfig => {
   return {
     ...DEFAULT_CAMPAIGN,

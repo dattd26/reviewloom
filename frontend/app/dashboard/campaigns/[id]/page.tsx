@@ -66,30 +66,14 @@ export default function CampaignBuilder() {
     }
   }, [id, isEditMode, getToken, router]);
 
-  // Auto-save logic
-  useEffect(() => {
-    if (isInitialLoad.current || !isDirty || isLoading) return;
-
-    const timer = setTimeout(async () => {
-      await handleSave(true); // silent auto-save as draft
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [campaign, isDirty, isLoading]);
-
   const patch = (update: Partial<CampaignConfig>) => {
     setCampaign((prev) => ({ ...prev, ...update }));
     setIsDirty(true);
   };
 
   const handleSave = async (isAutoSave = false, forceStatus?: CampaignStatus) => {
-    // Determine the target status:
-    // 1. Use forceStatus if provided (manual button click)
-    // 2. If auto-saving, maintain the current campaign status to avoid regressions
-    // 3. Default to 1 (Published) for manual "Go Live" actions
     const targetStatus: CampaignStatus = forceStatus !== undefined ? forceStatus : (isAutoSave ? campaign.status : 1);
 
-    // Guard: Don't auto-save if name is empty (backend requirement) or if already saving
     if (isAutoSave && !campaign.businessName?.trim()) return;
     if (isSaving && isAutoSave) return;
 
@@ -111,7 +95,7 @@ export default function CampaignBuilder() {
       const token = await getToken();
       if (!token) throw new Error("Authentication session expired. Please sign in again.");
 
-      const campaignToSave = { ...campaign, status: targetStatus as any };
+      const campaignToSave = { ...campaign, status: targetStatus };
 
       if (isEditMode) {
         await CampaignService.updateCampaign(id, campaignToSave, token);
@@ -144,11 +128,12 @@ export default function CampaignBuilder() {
       if (!isAutoSave && targetStatus === 1) {
         router.push('/dashboard/campaigns');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("[CampaignSave] Failed:", error);
       setSaveStatus('error');
       if (!isAutoSave) {
-        toast.error(error.message || "Failed to save changes. Please check your connection and try again.");
+        const errMessage = error instanceof Error ? error.message : "Failed to save changes. Please check your connection and try again.";
+        toast.error(errMessage);
       }
     } finally {
       if (!isAutoSave) {
@@ -157,6 +142,18 @@ export default function CampaignBuilder() {
       }
     }
   };
+
+  // Auto-save logic
+  useEffect(() => {
+    if (isInitialLoad.current || !isDirty || isLoading) return;
+
+    const timer = setTimeout(async () => {
+      await handleSave(true); // silent auto-save as draft
+    }, 3000);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaign, isDirty, isLoading]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -371,6 +368,7 @@ export default function CampaignBuilder() {
                     ) : campaign.logoUrl ? (
                       <div className="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/20">
                         <div className="w-14 h-14 rounded-xl overflow-hidden border border-outline-variant/20 flex-shrink-0 bg-white">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={campaign.logoUrl} alt="Logo" className="w-full h-full object-contain p-1" />
                         </div>
                         <div className="flex-1 min-w-0">

@@ -2,15 +2,15 @@
 
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
-import { useEffect, useState, useRef } from 'react';
-import { CampaignService } from '@/services/campaign-service';
+import { useEffect, useState } from 'react';
+import { CampaignService, CampaignResponse } from '@/services/campaign-service';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 export default function CampaignList() {
   const { getToken } = useAuth();
-  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CampaignResponse | null>(null);
 
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -27,7 +27,7 @@ export default function CampaignList() {
       }
     };
     fetchCampaigns();
-  }, []);
+  }, [getToken]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -44,7 +44,7 @@ export default function CampaignList() {
   };
 
   const totalScans = campaigns.reduce((acc, c) => acc + (c.stats.totalScans || 0), 0);
-  const activeCount = campaigns.filter(c => c.status === 1).length;
+  const activeCount = campaigns.filter(c => c.isActive).length;
   return (
     <>
       {/* Top Nav */}
@@ -186,7 +186,7 @@ export default function CampaignList() {
                         <p className="font-bold text-on-surface text-sm">{new Date(c.createdAt).toLocaleDateString()}</p>
                       </td>
                       <td className="px-8 py-6">
-                        {c.status === 1 ? (
+                        {c.isActive ? (
                           <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.1em] bg-success/10 text-success border border-success/20 backdrop-blur-sm transition-all hover:bg-success/20">
                             <span className="relative flex h-1.5 w-1.5">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
