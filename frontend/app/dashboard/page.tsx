@@ -177,7 +177,7 @@ export default function DashboardOverview() {
                         </div>
                         <div>
                           <p className="text-sm font-bold text-on-surface">New 5-star review via Table 4 QR</p>
-                          <p className="text-xs text-outline italic mt-0.5">"Best steak I've had in the city."</p>
+                          <p className="text-xs text-outline italic mt-0.5">&quot;Best steak I&apos;ve had in the city.&quot;</p>
                         </div>
                       </div>
                     </td>

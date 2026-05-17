@@ -6,8 +6,6 @@ import { toPng } from 'html-to-image';
 import { CampaignConfig } from './types';
 import StandeeTemplate, {
   STANDEE_TEMPLATES,
-  StandeeUserConfig,
-  DEFAULT_STANDEE_CONFIG,
 } from './StandeeTemplate';
 
 interface Props {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import RatingSystem from './RatingSystem';
 import { CampaignConfig, GRADIENT_PRESETS } from '@/app/dashboard/campaigns/[id]/types';
 import { ScanService } from '@/services/scan-service';
@@ -116,6 +116,7 @@ export default function LandingClient({ slug, campaign }: Props) {
             }}
           >
             {campaign.logoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img src={campaign.logoUrl} alt="Logo" className="w-full h-full object-contain p-2" />
             ) : (
               <span className="material-symbols-outlined text-5xl" style={{ color: primaryColor }}>storefront</span>

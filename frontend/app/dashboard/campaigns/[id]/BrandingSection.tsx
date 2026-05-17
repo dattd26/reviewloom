@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
 import { useRef, useState, useEffect } from 'react';
 import {
@@ -46,6 +47,7 @@ export default function BrandingSection({ campaign, onChange }: Props) {
         onChange({ style: { ...campaign.style, backgroundGradient: customCss } });
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaign.style.customGradientStart, campaign.style.customGradientEnd, campaign.style.customGradientDirection, campaign.style.backgroundStyle]);
 
   const handleBgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
