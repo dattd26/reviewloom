@@ -12,23 +12,22 @@ export default function CampaignList() {
   const [isLoading, setIsLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
 
-  const fetchCampaigns = async () => {
-    try {
-      const token = await getToken();
-      if (!token) return;
-      const data = await CampaignService.getMyCampaigns(token);
-      console.log(data);
-      setCampaigns(data);
-    } catch (error) {
-      console.error("Failed to fetch campaigns:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const data = await CampaignService.getMyCampaigns(token);
+        console.log(data);
+        setCampaigns(data);
+      } catch (error) {
+        console.error("Failed to fetch campaigns:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     fetchCampaigns();
-  }, [getToken]);
+  }, []);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
