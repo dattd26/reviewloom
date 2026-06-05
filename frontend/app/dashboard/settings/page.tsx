@@ -5,6 +5,8 @@ import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { BillingService, SubscriptionOverviewResponse } from '@/services/billing-service';
 
+import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
+
 export default function Settings() {
   const { getToken, isSignedIn } = useAuth();
   const [subData, setSubData] = useState<SubscriptionOverviewResponse | null>(null);
@@ -30,14 +32,7 @@ export default function Settings() {
   }, [isSignedIn, getToken]);
 
   if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-xs font-bold text-outline uppercase tracking-widest">Loading Account settings...</p>
-        </div>
-      </div>
-    );
+    return <DashboardLoading title="Loading Settings..." description="Accessing your billing & plan status" />;
   }
 
   const planName = subData?.planName ?? 'Free Plan';

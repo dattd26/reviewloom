@@ -88,6 +88,7 @@ Tất cả các dịch vụ đều sử dụng hàm wrapper `apiClient` được
 
 ### B. Dashboard Overview (`app/dashboard`)
 - Tích hợp biểu đồ thống kê tăng trưởng dạng SVG tùy biến vẽ bằng thẻ `polyline` thay vì sử dụng thư viện nặng như Chart.js để tăng hiệu suất tải trang.
+  - Hỗ trợ tương tác rê chuột (hover interaction) để hiển thị chi tiết số liệu ngày cụ thể qua tooltip kính mờ (glassmorphic tooltip), hiển thị các đường căn chỉnh dọc (vertical alignment line) và chấm định vị điểm giá trị (data point markers).
 - Hiển thị 3 chỉ số quan trọng nhất của doanh nghiệp:
   1. Tổng số lượt quét (Total Scans)
   2. Tỉ lệ phản hồi tốt (Positive Feedback %)

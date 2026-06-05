@@ -1,9 +1,10 @@
 'use client';
 
 import { useAuth } from '@clerk/nextjs';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { InboxService, PrivateFeedback } from '@/services/inbox-service';
 import { CampaignService, CampaignResponse } from '@/services/campaign-service';
+import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
 
 export default function FeedbackInbox() {
   const { getToken } = useAuth();
@@ -12,6 +13,12 @@ export default function FeedbackInbox() {
   const [selectedFeedback, setSelectedFeedback] = useState<PrivateFeedback | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Create a ref to track selectedFeedback to prevent infinite rendering loops in loadFeedback
+  const selectedFeedbackRef = useRef<PrivateFeedback | null>(null);
+  useEffect(() => {
+    selectedFeedbackRef.current = selectedFeedback;
+  }, [selectedFeedback]);
 
   // Filters state
   const [statusFilter, setStatusFilter] = useState<'all' | 'unread' | 'pending' | 'resolved'>('all');
@@ -55,13 +62,16 @@ export default function FeedbackInbox() {
       setFeedbackList(prev =>
         prev.map(f => f.id === id ? { ...f, status: newStatus } : f)
       );
-      if (selectedFeedback && selectedFeedback.id === id) {
-        setSelectedFeedback(prev => prev ? { ...prev, status: newStatus } : null);
-      }
+      setSelectedFeedback(prev => {
+        if (prev && prev.id === id) {
+          return { ...prev, status: newStatus };
+        }
+        return prev;
+      });
     } catch (error) {
       console.error("Failed to update status:", error);
     }
-  }, [getToken, selectedFeedback]);
+  }, [getToken]);
 
   // Load private feedback list
   const loadFeedback = useCallback(async () => {
@@ -80,8 +90,9 @@ export default function FeedbackInbox() {
       setFeedbackList(data);
 
       // Preserve selection if it still exists in the new list, otherwise select the first item or null
+      const currentSelected = selectedFeedbackRef.current;
       if (data.length > 0) {
-        const stillExists = selectedFeedback ? data.find(f => f.id === selectedFeedback.id) : null;
+        const stillExists = currentSelected ? data.find(f => f.id === currentSelected.id) : null;
         if (stillExists) {
           setSelectedFeedback(stillExists);
         } else {
@@ -99,13 +110,16 @@ export default function FeedbackInbox() {
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getToken, statusFilter, campaignFilter, debouncedSearch, handleMarkStatus]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadFeedback();
   }, [loadFeedback]);
+
+  if (isLoading && feedbackList.length === 0) {
+    return <DashboardLoading title="Loading Private Feedback..." description="Accessing customer inbox" />;
+  }
 
   const handleSelectFeedback = async (feedback: PrivateFeedback) => {
     setSelectedFeedback(feedback);
@@ -261,8 +275,8 @@ export default function FeedbackInbox() {
                     key={feedback.id}
                     onClick={() => handleSelectFeedback(feedback)}
                     className={`p-5 rounded-2xl shadow-sm cursor-pointer transition-all border ${isSelected
-                        ? 'bg-surface-container-lowest border-l-4 border-l-primary border-t border-r border-b border-outline-variant/15 shadow-md'
-                        : 'bg-surface-container-low/30 border-outline-variant/10 hover:border-outline-variant/30 hover:bg-surface-container-lowest'
+                      ? 'bg-surface-container-lowest border-l-4 border-l-primary border-t border-r border-b border-outline-variant/15 shadow-md'
+                      : 'bg-surface-container-low/30 border-outline-variant/10 hover:border-outline-variant/30 hover:bg-surface-container-lowest'
                       }`}
                   >
                     <div className="flex justify-between items-start mb-2">

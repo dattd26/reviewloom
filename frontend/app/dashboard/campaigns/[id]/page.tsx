@@ -16,6 +16,7 @@ import ContentSection from './ContentSection';
 import QrSection from './QrSection';
 import AdvancedSection from './AdvancedSection';
 import LivePreview from './LivePreview';
+import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
 
 type ActiveTab = 'branding' | 'content' | 'qr' | 'advanced';
 
@@ -298,10 +299,7 @@ export default function CampaignBuilder() {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-32 space-y-4">
-            <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-            <p className="text-sm font-bold text-outline animate-pulse uppercase tracking-widest">Loading Campaign...</p>
-          </div>
+          <DashboardLoading title="Loading Campaign..." description="Fetching your campaign configuration" />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
             {/* Left Column: Settings (3/5) */}

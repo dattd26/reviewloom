@@ -17,11 +17,24 @@ public class DashboardService : IDashboardService
         _statsRepository = statsRepository;
     }
 
-    public async Task<DashboardOverviewDto> GetDashboardOverviewAsync(Guid userId)
+    public async Task<DashboardOverviewDto> GetDashboardOverviewAsync(Guid userId, DateTime? fromDate = null, DateTime? toDate = null)
     {
-        var overall = await _statsRepository.GetOverallStatsAsync(userId);
-        var growth = await _statsRepository.GetScansGrowthAsync(userId, 30);
-        var recent = await _statsRepository.GetRecentActivityAsync(userId, 10);
+        var endDate = (toDate ?? DateTime.UtcNow).Date;
+        var startDate = (fromDate ?? endDate.AddDays(-29)).Date;
+
+        if (startDate > endDate)
+        {
+            throw new ArgumentException("fromDate must be earlier than or equal to toDate.");
+        }
+
+        if ((endDate - startDate).TotalDays > 365)
+        {
+            startDate = endDate.AddDays(-365);
+        }
+
+        var overall = await _statsRepository.GetOverallStatsAsync(userId, startDate, endDate);
+        var growth = await _statsRepository.GetScansGrowthAsync(userId, startDate, endDate);
+        var recent = await _statsRepository.GetRecentActivityAsync(userId, 10, startDate, endDate);
 
         var growthList = growth.Select(g => new DailyScanGrowthDto
         {
