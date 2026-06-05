@@ -133,7 +133,8 @@ reviewloom/
 │   ├── services/                        # Gọi API sang Backend (campaign-service.ts, scan-service.ts...)
 │   └── lib/                             # Axios/Fetch client base config
 └── docs/                                # Tài liệu đặc tả hệ thống
-    └── dashboard_context.md             # Tài liệu chi tiết module Dashboard & Inbox (Mới)
+    ├── dashboard_context.md             # Tài liệu chi tiết module Dashboard & Inbox (Mới)
+    └── frontend_context.md              # Tài liệu chi tiết cấu trúc & kiến trúc Next.js Frontend (Mới)
 ```
 
 ---
