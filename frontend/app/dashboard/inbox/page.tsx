@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@clerk/nextjs';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { InboxService, PrivateFeedback } from '@/services/inbox-service';
 import { CampaignService, CampaignResponse } from '@/services/campaign-service';
 
@@ -18,7 +18,7 @@ export default function FeedbackInbox() {
   const [campaignFilter, setCampaignFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  
+
   // Form state
   const [replyText, setReplyText] = useState('');
 
@@ -45,13 +45,31 @@ export default function FeedbackInbox() {
     loadCampaigns();
   }, [getToken]);
 
+  const handleMarkStatus = useCallback(async (id: string, newStatus: 'unread' | 'pending' | 'resolved') => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+      await InboxService.updateStatus(token, id, newStatus);
+
+      // Update local state
+      setFeedbackList(prev =>
+        prev.map(f => f.id === id ? { ...f, status: newStatus } : f)
+      );
+      if (selectedFeedback && selectedFeedback.id === id) {
+        setSelectedFeedback(prev => prev ? { ...prev, status: newStatus } : null);
+      }
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    }
+  }, [getToken, selectedFeedback]);
+
   // Load private feedback list
-  const loadFeedback = async () => {
+  const loadFeedback = useCallback(async () => {
     setIsLoading(true);
     try {
       const token = await getToken();
       if (!token) return;
-      
+
       const params = {
         status: statusFilter,
         campaignId: campaignFilter !== 'all' ? campaignFilter : undefined,
@@ -81,35 +99,19 @@ export default function FeedbackInbox() {
     } finally {
       setIsLoading(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getToken, statusFilter, campaignFilter, debouncedSearch, handleMarkStatus]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadFeedback();
-  }, [getToken, statusFilter, campaignFilter, debouncedSearch]);
+  }, [loadFeedback]);
 
   const handleSelectFeedback = async (feedback: PrivateFeedback) => {
     setSelectedFeedback(feedback);
     setReplyText(feedback.replyMessage || '');
     if (feedback.status === 'unread') {
       await handleMarkStatus(feedback.id, 'pending');
-    }
-  };
-
-  const handleMarkStatus = async (id: string, newStatus: 'unread' | 'pending' | 'resolved') => {
-    try {
-      const token = await getToken();
-      if (!token) return;
-      await InboxService.updateStatus(token, id, newStatus);
-      
-      // Update local state
-      setFeedbackList(prev => 
-        prev.map(f => f.id === id ? { ...f, status: newStatus } : f)
-      );
-      if (selectedFeedback && selectedFeedback.id === id) {
-        setSelectedFeedback(prev => prev ? { ...prev, status: newStatus } : null);
-      }
-    } catch (error) {
-      console.error("Failed to update status:", error);
     }
   };
 
@@ -120,23 +122,23 @@ export default function FeedbackInbox() {
       const token = await getToken();
       if (!token) return;
       await InboxService.sendReply(token, selectedFeedback.id, replyText);
-      
+
       // Update local state
-      setFeedbackList(prev => 
-        prev.map(f => f.id === selectedFeedback.id ? { 
-          ...f, 
-          status: 'resolved', 
-          replyMessage: replyText, 
-          repliedAt: new Date().toISOString() 
+      setFeedbackList(prev =>
+        prev.map(f => f.id === selectedFeedback.id ? {
+          ...f,
+          status: 'resolved',
+          replyMessage: replyText,
+          repliedAt: new Date().toISOString()
         } : f)
       );
-      setSelectedFeedback(prev => prev ? { 
-        ...prev, 
-        status: 'resolved', 
-        replyMessage: replyText, 
-        repliedAt: new Date().toISOString() 
+      setSelectedFeedback(prev => prev ? {
+        ...prev,
+        status: 'resolved',
+        replyMessage: replyText,
+        repliedAt: new Date().toISOString()
       } : null);
-      
+
       alert("Reply logged and marked as resolved.");
     } catch (error) {
       console.error("Failed to send reply:", error);
@@ -202,19 +204,19 @@ export default function FeedbackInbox() {
           {/* Filter Bar */}
           <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
             <div className="flex bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/10">
-              <button 
+              <button
                 onClick={() => setStatusFilter('all')}
                 className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${statusFilter === 'all' ? 'bg-white text-primary shadow-sm border border-outline-variant/5' : 'text-on-surface-variant hover:text-on-surface'}`}
               >All</button>
-              <button 
+              <button
                 onClick={() => setStatusFilter('unread')}
                 className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${statusFilter === 'unread' ? 'bg-white text-primary shadow-sm border border-outline-variant/5' : 'text-on-surface-variant hover:text-on-surface'}`}
               >Unread</button>
-              <button 
+              <button
                 onClick={() => setStatusFilter('pending')}
                 className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${statusFilter === 'pending' ? 'bg-white text-primary shadow-sm border border-outline-variant/5' : 'text-on-surface-variant hover:text-on-surface'}`}
               >Pending</button>
-              <button 
+              <button
                 onClick={() => setStatusFilter('resolved')}
                 className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${statusFilter === 'resolved' ? 'bg-white text-primary shadow-sm border border-outline-variant/5' : 'text-on-surface-variant hover:text-on-surface'}`}
               >Resolved</button>
@@ -223,7 +225,7 @@ export default function FeedbackInbox() {
             {/* Campaign Filter Select */}
             <div className="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/15 px-3 py-1.5 rounded-xl text-xs font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors">
               <span className="material-symbols-outlined text-sm">filter_list</span>
-              <select 
+              <select
                 className="bg-transparent border-none p-0 pr-6 text-xs font-semibold focus:ring-0 outline-none cursor-pointer"
                 value={campaignFilter}
                 onChange={(e) => setCampaignFilter(e.target.value)}
@@ -255,14 +257,13 @@ export default function FeedbackInbox() {
               feedbackList.map((feedback) => {
                 const isSelected = selectedFeedback?.id === feedback.id;
                 return (
-                  <div 
+                  <div
                     key={feedback.id}
                     onClick={() => handleSelectFeedback(feedback)}
-                    className={`p-5 rounded-2xl shadow-sm cursor-pointer transition-all border ${
-                      isSelected 
-                        ? 'bg-surface-container-lowest border-l-4 border-l-primary border-t border-r border-b border-outline-variant/15 shadow-md' 
+                    className={`p-5 rounded-2xl shadow-sm cursor-pointer transition-all border ${isSelected
+                        ? 'bg-surface-container-lowest border-l-4 border-l-primary border-t border-r border-b border-outline-variant/15 shadow-md'
                         : 'bg-surface-container-low/30 border-outline-variant/10 hover:border-outline-variant/30 hover:bg-surface-container-lowest'
-                    }`}
+                      }`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-bold text-on-surface text-sm">
@@ -277,12 +278,10 @@ export default function FeedbackInbox() {
                     </p>
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <span className={`w-2 h-2 rounded-full ${
-                          feedback.status === 'unread' ? 'bg-error' : (feedback.status === 'pending' ? 'bg-amber-500' : 'bg-success')
-                        }`}></span>
-                        <span className={`text-[10px] font-extrabold uppercase tracking-widest ${
-                          feedback.status === 'unread' ? 'text-error' : (feedback.status === 'pending' ? 'text-amber-500' : 'text-success')
-                        }`}>
+                        <span className={`w-2 h-2 rounded-full ${feedback.status === 'unread' ? 'bg-error' : (feedback.status === 'pending' ? 'bg-amber-500' : 'bg-success')
+                          }`}></span>
+                        <span className={`text-[10px] font-extrabold uppercase tracking-widest ${feedback.status === 'unread' ? 'text-error' : (feedback.status === 'pending' ? 'text-amber-500' : 'text-success')
+                          }`}>
                           {feedback.status}
                         </span>
                       </div>
@@ -346,7 +345,7 @@ export default function FeedbackInbox() {
                         <h4 className="text-xs font-extrabold uppercase tracking-widest text-outline mb-4">Your Private Response</h4>
                         <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10">
                           <p className="text-[15px] leading-relaxed text-on-surface font-medium">
-                            "{selectedFeedback.replyMessage}"
+                            {`"${selectedFeedback.replyMessage}"`}
                           </p>
                           <p className="text-[10px] text-outline mt-3">
                             Sent at: {selectedFeedback.repliedAt ? new Date(selectedFeedback.repliedAt).toLocaleString() : ''}
@@ -373,7 +372,7 @@ export default function FeedbackInbox() {
 
                   <div className="mt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
                     <div className="flex gap-3 w-full sm:w-auto">
-                      <button 
+                      <button
                         onClick={handleSendReply}
                         disabled={!selectedFeedback.feedbackEmail || !replyText.trim() || isSubmitting}
                         className="flex-1 sm:flex-none bg-primary hover:bg-primary-container text-on-primary px-8 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
@@ -387,9 +386,9 @@ export default function FeedbackInbox() {
                           </>
                         )}
                       </button>
-                      
+
                       {selectedFeedback.status !== 'resolved' && (
-                        <button 
+                        <button
                           onClick={() => handleMarkStatus(selectedFeedback.id, 'resolved')}
                           className="flex-1 sm:flex-none bg-surface-container-high text-on-surface-variant px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-surface-container-highest transition-all active:scale-95 border border-outline-variant/10"
                         >
@@ -398,7 +397,7 @@ export default function FeedbackInbox() {
                       )}
 
                       {selectedFeedback.status === 'resolved' && (
-                        <button 
+                        <button
                           onClick={() => handleMarkStatus(selectedFeedback.id, 'pending')}
                           className="flex-1 sm:flex-none bg-surface-container-high text-on-surface-variant px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-surface-container-highest transition-all active:scale-95 border border-outline-variant/10"
                         >

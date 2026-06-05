@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { CampaignService, CampaignResponse } from '@/services/campaign-service';
@@ -177,7 +178,7 @@ export default function CampaignList() {
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
-                            <img className="w-8 h-8 object-cover rounded-xl" src={c.logoUrl || 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg'} alt="logo" />
+                            <Image className="w-8 h-8 object-cover rounded-xl" src={c.logoUrl || 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg'} alt="logo" width={32} height={32} unoptimized />
                           </div>
                           <p className="font-bold text-on-surface text-sm">{c.businessName}</p>
                         </div>
