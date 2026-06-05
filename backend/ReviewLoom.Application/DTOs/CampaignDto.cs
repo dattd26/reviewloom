@@ -12,6 +12,7 @@ public class CampaignDto
     public string? LogoUrl { get; set; }
     public CampaignStatus Status { get; set; }
     public DateTime? CreatedAt { get; set; }
+    public string? Placement { get; set; }
     public CampaignStatsDto Stats { get; set; } = new();
     public CampaignStyleDto Style { get; set; } = new();
     public CampaignSettingsDto Settings { get; set; } = new();

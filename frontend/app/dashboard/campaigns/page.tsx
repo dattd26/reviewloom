@@ -326,7 +326,7 @@ export default function CampaignList() {
                           </span>
                           <div className="min-w-0">
                             <p className="font-headline font-black text-on-surface text-sm truncate">
-                              {item.businessName}
+                              {item.placement || item.businessName}
                             </p>
                             <p className="text-[10px] font-bold text-outline uppercase tracking-wider mt-0.5">
                               {rankingMetric === 'scans' ? `${item.stats?.totalScans || 0} scans` : `${positiveRate}% happy`}

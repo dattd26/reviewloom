@@ -14,6 +14,7 @@ public class CreateCampaignDto
     
     public string? LogoUrl { get; set; }
     public CampaignStatus Status { get; set; } = CampaignStatus.Draft;
+    public string? Placement { get; set; }
 
     // Optional initial configuration
     public CampaignStyleDto? Style { get; set; }
@@ -26,6 +27,7 @@ public class UpdateCampaignDto
     public string? GoogleReviewUrl { get; set; }
     public string? LogoUrl { get; set; }
     public CampaignStatus? Status { get; set; }
+    public string? Placement { get; set; }
 
     public CampaignStyleDto? Style { get; set; }
     public CampaignSettingsDto? Settings { get; set; }

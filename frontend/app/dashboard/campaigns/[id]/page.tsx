@@ -322,6 +322,23 @@ export default function CampaignBuilder() {
                     />
                   </div>
 
+                  {/* Placement / QR Code Location */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
+                      QR Code Location
+                    </label>
+                    <input
+                      className="w-full bg-surface-container-low border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none text-on-surface placeholder:text-outline/50"
+                      placeholder="(e.g., Cashier, Table 1, Front Door)"
+                      type="text"
+                      value={campaign.placement}
+                      onChange={(e) => patch({ placement: e.target.value })}
+                    />
+                    <p className="text-[11px] text-on-surface-variant/60 italic">
+                      Where will this be placed? This helps track where customers scan.
+                    </p>
+                  </div>
+
                   {/* Google Review URL */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">

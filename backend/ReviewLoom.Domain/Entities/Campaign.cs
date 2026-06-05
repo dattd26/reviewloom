@@ -25,6 +25,8 @@ public partial class Campaign
 
     public DateTime? CreatedAt { get; set; }
 
+    public string? Placement { get; set; }
+
     public virtual ICollection<Scan> Scans { get; set; } = new List<Scan>();
 
     public virtual User User { get; set; } = null!;

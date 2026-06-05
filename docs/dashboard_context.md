@@ -9,6 +9,8 @@ Tài liệu này đặc tả chi tiết kiến trúc, luồng dữ liệu, cấu
 Kiến trúc Backend của ReviewLoom tuân thủ **Clean Architecture** và sử dụng mẫu thiết kế **Repository & Unit of Work** kết hợp linh hoạt giữa **Entity Framework Core** và **Dapper**.
 
 ### A. Thực thể & Cơ sở dữ liệu (Database Schema)
+Bảng `campaigns` đã được thêm cột `Placement` để theo dõi vị trí đặt mã QR (ví dụ: Cashier, Table 1), phục vụ thống kê "Where Customers Scan".
+
 Bảng `scans` đã được nâng cấp qua Migration để hỗ trợ lưu trữ trạng thái xử lý góp ý riêng tư:
 - `status` (VARCHAR(20), NOT NULL, DEFAULT 'unread'): Nhận các giá trị `unread`, `pending`, `resolved`.
 - `reply_message` (TEXT, NULL): Nội dung phản hồi qua email mà chủ cửa hàng gửi cho khách.
