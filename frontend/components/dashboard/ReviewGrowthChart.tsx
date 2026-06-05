@@ -110,12 +110,6 @@ export function ReviewGrowthChart({ scansGrowth }: ReviewGrowthChartProps) {
                     <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.12" />
                     <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0" />
                   </linearGradient>
-                  <filter id="shadow-total" x="-10%" y="-10%" width="120%" height="120%">
-                    <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="var(--color-primary)" floodOpacity="0.12" />
-                  </filter>
-                  <filter id="shadow-positive" x="-10%" y="-10%" width="120%" height="120%">
-                    <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="var(--color-secondary)" floodOpacity="0.1" />
-                  </filter>
                 </defs>
 
                 {/* Horizontal grid lines */}
@@ -127,8 +121,8 @@ export function ReviewGrowthChart({ scansGrowth }: ReviewGrowthChartProps) {
 
                 {/* Growth paths */}
                 <polygon points={generateAreaPoints(scansGrowth, 'total', maxVal, 1000, 320)} fill="url(#chart-grad-primary)" />
-                <polyline points={generateChartPoints(scansGrowth, 'total', maxVal, 1000, 320)} fill="none" stroke="var(--color-primary)" strokeWidth="3.5" filter="url(#shadow-total)" strokeLinecap="round" strokeLinejoin="round" />
-                <polyline points={generateChartPoints(scansGrowth, 'positive', maxVal, 1000, 320)} fill="none" stroke="var(--color-secondary)" strokeWidth="3" filter="url(#shadow-positive)" strokeLinecap="round" strokeLinejoin="round" />
+                <polyline points={generateChartPoints(scansGrowth, 'total', maxVal, 1000, 320)} fill="none" stroke="var(--color-primary)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+                <polyline points={generateChartPoints(scansGrowth, 'positive', maxVal, 1000, 320)} fill="none" stroke="var(--color-secondary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                 <polyline points={generateChartPoints(scansGrowth, 'negative', maxVal, 1000, 320)} fill="none" stroke="var(--color-error)" strokeWidth="2" strokeDasharray="5,5" strokeLinecap="round" />
 
                 {/* Vertical line indicator and data points highlight on hover */}
@@ -142,7 +136,7 @@ export function ReviewGrowthChart({ scansGrowth }: ReviewGrowthChartProps) {
                       stroke="var(--color-outline-variant)"
                       strokeWidth="1.5"
                       strokeDasharray="4,4"
-                      className="pointer-events-none opacity-40 transition-all duration-75"
+                      className="pointer-events-none opacity-40"
                     />
                     <circle
                       cx={svgX}
@@ -151,7 +145,7 @@ export function ReviewGrowthChart({ scansGrowth }: ReviewGrowthChartProps) {
                       fill="var(--color-primary)"
                       stroke="#ffffff"
                       strokeWidth="2"
-                      className="pointer-events-none shadow-sm transition-all duration-75"
+                      className="pointer-events-none shadow-sm"
                     />
                     <circle
                       cx={svgX}
@@ -160,7 +154,7 @@ export function ReviewGrowthChart({ scansGrowth }: ReviewGrowthChartProps) {
                       fill="var(--color-secondary)"
                       stroke="#ffffff"
                       strokeWidth="2"
-                      className="pointer-events-none shadow-sm transition-all duration-75"
+                      className="pointer-events-none shadow-sm"
                     />
                     <circle
                       cx={svgX}
@@ -169,16 +163,8 @@ export function ReviewGrowthChart({ scansGrowth }: ReviewGrowthChartProps) {
                       fill="var(--color-error)"
                       stroke="#ffffff"
                       strokeWidth="2"
-                      className="pointer-events-none shadow-sm transition-all duration-75"
+                      className="pointer-events-none shadow-sm"
                     />
-                  </>
-                )}
-
-                {/* Default pulse indicators when not hovering */}
-                {hoveredIndex === null && hasActivity && (
-                  <>
-                    <circle cx={1000} cy={320 - ((scansGrowth[lastIndex].total / maxVal) * 280) - 20} r="6" fill="var(--color-primary)" stroke="#ffffff" strokeWidth="2.5" className="animate-pulse" />
-                    <circle cx={1000} cy={320 - (((scansGrowth[lastIndex].positive || 0) / maxVal) * 280) - 20} r="6" fill="var(--color-secondary)" stroke="#ffffff" strokeWidth="2.5" className="animate-pulse" />
                   </>
                 )}
               </svg>
@@ -187,7 +173,7 @@ export function ReviewGrowthChart({ scansGrowth }: ReviewGrowthChartProps) {
               {hoveredIndex !== null && hoveredData && (
                 <div
                   style={tooltipStyle}
-                  className="absolute top-4 z-20 bg-surface-container-lowest/95 backdrop-blur-md p-3.5 rounded-xl border border-outline-variant/20 shadow-lg min-w-[170px] pointer-events-none transition-all duration-75 flex flex-col gap-2"
+                  className="absolute top-4 z-20 bg-surface-container-lowest/95 backdrop-blur-md p-3.5 rounded-xl border border-outline-variant/20 shadow-lg min-w-[170px] pointer-events-none transition-opacity duration-150 flex flex-col gap-2"
                 >
                   <div className="font-label text-[10px] font-bold text-outline uppercase tracking-wider border-b border-outline-variant/10 pb-1 mb-0.5">
                     {new Date(hoveredData.date).toLocaleDateString('en-US', {
