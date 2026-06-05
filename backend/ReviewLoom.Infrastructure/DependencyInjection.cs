@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IScanRepository, ScanRepository>();
         services.AddScoped<IStatsRepository, StatsRepository>();
+        services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
         services.AddScoped<IStripeService, StripeService>();
         services.AddScoped<IMediaService, CloudinaryMediaService>();
 

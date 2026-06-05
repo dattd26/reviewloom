@@ -8,5 +8,6 @@ public interface IUnitOfWork : IDisposable
     ICampaignRepository Campaigns { get; }
     IUserRepository Users { get; }
     IScanRepository Scans { get; }
+    ISubscriptionRepository Subscriptions { get; }
     Task<int> CompleteAsync();
 }
