@@ -23,13 +23,20 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet("overview")]
-    public async Task<IActionResult> GetOverview()
+    public async Task<IActionResult> GetOverview([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
     {
         var userId = await GetCurrentUserIdAsync();
         if (userId == null) return Unauthorized();
 
-        var overview = await _dashboardService.GetDashboardOverviewAsync(userId.Value);
-        return Ok(overview);
+        try
+        {
+            var overview = await _dashboardService.GetDashboardOverviewAsync(userId.Value, fromDate, toDate);
+            return Ok(overview);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     private async Task<Guid?> GetCurrentUserIdAsync()

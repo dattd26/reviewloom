@@ -6,5 +6,5 @@ namespace ReviewLoom.Application.Interfaces;
 
 public interface IDashboardService
 {
-    Task<DashboardOverviewDto> GetDashboardOverviewAsync(Guid userId);
+    Task<DashboardOverviewDto> GetDashboardOverviewAsync(Guid userId, DateTime? fromDate = null, DateTime? toDate = null);
 }

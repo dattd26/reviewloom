@@ -25,8 +25,19 @@ export interface DashboardOverviewResponse {
   recentActivity: RecentActivityRecord[];
 }
 
+export interface DashboardDateRange {
+  fromDate: string;
+  toDate: string;
+}
+
 export const DashboardService = {
-  async getOverview(token: string) {
-    return apiClient<DashboardOverviewResponse>('/dashboard/overview', { token });
+  async getOverview(token: string, dateRange?: DashboardDateRange) {
+    const params = new URLSearchParams();
+
+    if (dateRange?.fromDate) params.set('fromDate', dateRange.fromDate);
+    if (dateRange?.toDate) params.set('toDate', dateRange.toDate);
+
+    const query = params.toString();
+    return apiClient<DashboardOverviewResponse>(`/dashboard/overview${query ? `?${query}` : ''}`, { token });
   }
 };
