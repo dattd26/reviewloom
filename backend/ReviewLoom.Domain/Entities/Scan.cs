@@ -18,6 +18,12 @@ public partial class Scan
 
     public string? FeedbackMessage { get; set; }
 
+    public string Status { get; set; } = "unread";
+
+    public string? ReplyMessage { get; set; }
+
+    public DateTime? RepliedAt { get; set; }
+
     public DateTime? ScannedAt { get; set; }
 
     public virtual Campaign Campaign { get; set; } = null!;

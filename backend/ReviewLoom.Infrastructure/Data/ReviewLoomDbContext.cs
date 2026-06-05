@@ -100,6 +100,9 @@ public partial class ReviewLoomDbContext : DbContext
             entity.Property(e => e.FeedbackEmail).HasColumnName("feedback_email");
             entity.Property(e => e.FeedbackMessage).HasColumnName("feedback_message");
             entity.Property(e => e.FeedbackName).HasColumnName("feedback_name");
+            entity.Property(e => e.Status).HasMaxLength(20).HasDefaultValue("unread").HasColumnName("status");
+            entity.Property(e => e.ReplyMessage).HasColumnName("reply_message");
+            entity.Property(e => e.RepliedAt).HasColumnName("replied_at");
             entity.Property(e => e.ScannedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").HasColumnName("scanned_at");
 
             entity.HasOne(d => d.Campaign).WithMany(p => p.Scans)
