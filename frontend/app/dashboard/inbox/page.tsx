@@ -110,7 +110,6 @@ export default function FeedbackInbox() {
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getToken, statusFilter, campaignFilter, debouncedSearch, handleMarkStatus]);
 
   useEffect(() => {
@@ -276,8 +275,8 @@ export default function FeedbackInbox() {
                     key={feedback.id}
                     onClick={() => handleSelectFeedback(feedback)}
                     className={`p-5 rounded-2xl shadow-sm cursor-pointer transition-all border ${isSelected
-                        ? 'bg-surface-container-lowest border-l-4 border-l-primary border-t border-r border-b border-outline-variant/15 shadow-md'
-                        : 'bg-surface-container-low/30 border-outline-variant/10 hover:border-outline-variant/30 hover:bg-surface-container-lowest'
+                      ? 'bg-surface-container-lowest border-l-4 border-l-primary border-t border-r border-b border-outline-variant/15 shadow-md'
+                      : 'bg-surface-container-low/30 border-outline-variant/10 hover:border-outline-variant/30 hover:bg-surface-container-lowest'
                       }`}
                   >
                     <div className="flex justify-between items-start mb-2">
