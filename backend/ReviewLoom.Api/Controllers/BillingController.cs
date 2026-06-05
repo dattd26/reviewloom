@@ -1,9 +1,12 @@
+using System;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ReviewLoom.Application.Interfaces;
 using ReviewLoom.Application.Services;
+using ReviewLoom.Domain.Interfaces;
 
 namespace ReviewLoom.Api.Controllers;
 
@@ -12,10 +15,14 @@ namespace ReviewLoom.Api.Controllers;
 public class BillingController : ControllerBase
 {
     private readonly IStripeService _stripeService;
+    private readonly IBillingOverviewService _billingOverviewService;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public BillingController(IStripeService stripeService)
+    public BillingController(IStripeService stripeService, IBillingOverviewService billingOverviewService, IUnitOfWork unitOfWork)
     {
         _stripeService = stripeService;
+        _billingOverviewService = billingOverviewService;
+        _unitOfWork = unitOfWork;
     }
 
     [Authorize]
@@ -48,6 +55,26 @@ public class BillingController : ControllerBase
         {
             return BadRequest();
         }
+    }
+
+    [Authorize]
+    [HttpGet("subscription")]
+    public async Task<IActionResult> GetSubscriptionOverview()
+    {
+        var userId = await GetCurrentUserIdAsync();
+        if (userId == null) return Unauthorized();
+
+        var overview = await _billingOverviewService.GetBillingOverviewAsync(userId.Value);
+        return Ok(overview);
+    }
+
+    private async Task<Guid?> GetCurrentUserIdAsync()
+    {
+        var clerkId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(clerkId)) return null;
+
+        var user = await _unitOfWork.Users.GetByClerkIdAsync(clerkId);
+        return user?.Id;
     }
 }
 

@@ -1,30 +1,18 @@
+using System;
 
-namespace ReviewLoom.Domain.Entities;
+namespace ReviewLoom.Application.DTOs;
 
-public partial class Scan
+public class PrivateFeedbackDto
 {
     public Guid Id { get; set; }
-
     public Guid CampaignId { get; set; }
-
-    // negative or positive
-    public string Action { get; set; } = null!;
-
+    public string CampaignBusinessName { get; set; } = string.Empty;
     public int Rating { get; set; }
-
     public string? FeedbackName { get; set; }
-
     public string? FeedbackEmail { get; set; }
-
     public string? FeedbackMessage { get; set; }
-
-    public string Status { get; set; } = "unread";
-
+    public DateTime ScannedAt { get; set; }
+    public string Status { get; set; } = "unread"; // unread, pending, resolved
     public string? ReplyMessage { get; set; }
-
     public DateTime? RepliedAt { get; set; }
-
-    public DateTime? ScannedAt { get; set; }
-
-    public virtual Campaign Campaign { get; set; } = null!;
 }

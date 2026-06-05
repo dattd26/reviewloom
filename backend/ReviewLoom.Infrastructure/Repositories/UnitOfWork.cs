@@ -14,11 +14,13 @@ public class UnitOfWork : IUnitOfWork
         Campaigns = new CampaignRepository(_context);
         Users = new UserRepository(_context);
         Scans = new ScanRepository(_context);
+        Subscriptions = new SubscriptionRepository(_context);
     }
 
     public ICampaignRepository Campaigns { get; private set; }
     public IUserRepository Users { get; private set; }
     public IScanRepository Scans { get; private set; }
+    public ISubscriptionRepository Subscriptions { get; private set; }
 
     public async Task<int> CompleteAsync()
     {
