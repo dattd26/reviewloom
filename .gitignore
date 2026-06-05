@@ -4,8 +4,9 @@
 ## Get latest from `dotnet new gitignore`
 
 .vscode/
-.agents/
-.agents/skills
+
+.agents
+*.lscache
 skills-lock.json
 
 .stitch
