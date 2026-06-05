@@ -18,8 +18,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'ReviewLoom | Build Trust, Automate Growth',
-  description: "Intercept negative experiences before they go public. Our automated ledger captures dissatisfaction privately while routing happy customers to Google and Yelp.",
+  title: 'ReviewLoom | Smart QR Review Campaigns',
+  description: 'ReviewLoom helps local businesses collect more Google reviews, capture private feedback, and measure QR campaign performance.',
 }
 
 export default function RootLayout({
