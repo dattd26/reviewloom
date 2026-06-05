@@ -133,6 +133,7 @@ reviewloom/
 │   ├── services/                        # Gọi API sang Backend (campaign-service.ts, scan-service.ts...)
 │   └── lib/                             # Axios/Fetch client base config
 └── docs/                                # Tài liệu đặc tả hệ thống
+    └── dashboard_context.md             # Tài liệu chi tiết module Dashboard & Inbox (Mới)
 ```
 
 ---
@@ -222,6 +223,11 @@ Nhóm theo module thực tế tồn tại trong code:
 | 10 | `GET` | `/api/v1/Campaigns/{id}/stats` | Có (Clerk JWT) | Tham số `id` trên URL | `CampaignStatsDto` `{ totalScans, positiveScans, negativeScans }` |
 | 11 | `POST` | `/api/v1/billing/create-checkout-session` | Có (Clerk JWT) | `{ planId }` | `{ Url: "https://checkout.stripe.com/..." }` |
 | 12 | `POST` | `/api/v1/billing/webhook` | Không | Stripe Webhook Payload | HTTP 200 |
+| 13 | `GET` | `/api/v1/dashboard/overview` | Có (Clerk JWT) | Không | `DashboardOverviewDto` |
+| 14 | `GET` | `/api/v1/inbox` | Có (Clerk JWT) | Tham số lọc `campaignId`, `status`, `search` | `PrivateFeedbackDto[]` |
+| 15 | `PUT` | `/api/v1/inbox/{id}/status` | Có (Clerk JWT) | `{ status }` | HTTP 204 |
+| 16 | `POST` | `/api/v1/inbox/{id}/reply` | Có (Clerk JWT) | `{ replyMessage }` | HTTP 204 |
+| 17 | `GET` | `/api/v1/billing/subscription` | Có (Clerk JWT) | Không | `SubscriptionOverviewDto` |
 
 ---
 
@@ -276,28 +282,18 @@ Trích xuất trực tiếp từ các hàm nghiệp vụ trong code:
         *   Nếu số sao $\ge$ `RoutingThreshold`: Phản hồi được đánh dấu là `positive`. Khách hàng bấm gửi sẽ tự động được chuyển hướng ngay sang địa chỉ `googleReviewUrl` của doanh nghiệp để viết review trực tiếp.
         *   Nếu số sao $<$ `RoutingThreshold`: Phản hồi được đánh dấu là `negative`. Hệ thống giữ khách hàng lại tại trang Landing Page, hiển thị Form góp ý nội bộ để họ điền phản hồi riêng tư gửi về cho cửa hàng. Sau đó hiển thị màn cảm ơn và kèm coupon khuyến khích (`IncentiveCoupon` nếu `IncentiveEnabled = true`).
 *   **Quy tắc sinh Slug:**
-    *   Khi tạo chiến dịch, `slug` được sinh tự động thông qua hàm `GenerateSlug` trong `CampaignService.cs`:
-        1. Lọc bỏ các ký tự đặc biệt, chỉ giữ lại chữ cái, số và khoảng trắng.
-        2. Chuyển thành chữ thường, thay thế khoảng trắng bằng dấu gạch ngang `-`.
-        3. Ghép thêm 6 ký tự ngẫu nhiên lấy từ Guid phía sau (Ví dụ: `my-business-9ff12b`) để đảm bảo tính duy nhất.
-*   **Quy tắc Upload Ảnh Logo:**
-    *   Các định dạng file logo được chấp nhận bao gồm: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`. Mọi định dạng khác sẽ bị từ chối với lỗi 400 Bad Request ngay tại `MediaController.cs`.
-*   **Quy tắc Thời gian dùng thử (Theo tài liệu pro_plan.md):**
-    *   Mỗi user đăng ký mới nhận được 14 ngày dùng thử miễn phí (`trialing`).
-    *   Hết 14 ngày, trạng thái chuyển sang `expired`. Cho phép xem thông tin cũ nhưng chặn tạo mới chiến dịch.
-    *   Các chiến dịch cũ vẫn hoạt động trong 7 ngày ân hạn (grace period) trước khi trang quét bị khóa hoàn toàn.
+    *   Khi tạo chiến dịch, `slug` được sinh tự động thông qua hàm `GenerateSlug`: Lọc bỏ các ký tự đặc biệt, chuyển thành chữ thường, thay thế khoảng trắng bằng dấu gạch ngang, ghép thêm 6 ký tự ngẫu nhiên lấy từ Guid phía sau để đảm bảo tính duy nhất.
 
 ---
 
 ## 11. Cơ chế bảo mật (Security)
 
-*   **JWT Bearer Validation:** Sử dụng Clerk làm Identity Provider, tự động xác thực token gửi kèm ở Header `Authorization: Bearer <token>`.
+*   **JWT Bearer Validation:** Sử dụng Clerk làm Identity Provider.
 *   **Role & Policy Authorization:**
-    *   Controller `CampaignsController.cs` và endpoint checkout của `BillingController.cs` được bảo vệ bằng filter `[Authorize]`.
-    *   Quyền hạn truy cập tài nguyên (Campaign) được kiểm tra dựa trên ID người dùng sở hữu tài nguyên đó để tránh IDOR (Insecure Direct Object References).
+    *   Các Controller quan trọng như `CampaignsController`, `InboxController`, `BillingController` được bảo vệ bằng filter `[Authorize]`.
+    *   Quyền hạn truy cập tài nguyên (Campaign/Inbox) được kiểm tra dựa trên ID người dùng sở hữu tài nguyên đó (tránh IDOR).
 *   **Xác thực chữ ký Webhook:**
     *   **Clerk webhook:** Bắt buộc có các header `svix-id`, `svix-timestamp`, `svix-signature` và xác thực qua lớp `Webhook` của Svix.
-    *   **Stripe webhook:** Bắt buộc có header `Stripe-Signature` và kiểm tra qua `EventUtility.ConstructEvent` của Stripe SDK.
 *   **Input Validation:** Sử dụng Data Annotations ở Backend (như `[Required]`, `[Url]`, `[RegularExpression]`) để kiểm tra dữ liệu đầu vào.
 *   **Rate Limiting:** Hiện chưa được cấu hình thực tế trong code (mới chỉ nằm ở danh sách Tasks cần làm).
 
