@@ -6,6 +6,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { CampaignService, CampaignResponse } from '@/services/campaign-service';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
+import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
 
 export default function CampaignList() {
   const { getToken } = useAuth();
@@ -27,8 +28,12 @@ export default function CampaignList() {
         setIsLoading(false);
       }
     };
-    fetchCampaigns();
+    setTimeout(fetchCampaigns, 1000);
   }, [getToken]);
+
+  if (isLoading && campaigns.length === 0) {
+    return <DashboardLoading title="Loading Campaigns..." description="Accessing your review campaigns" />;
+  }
 
   const handleDelete = async () => {
     if (!deleteTarget) return;

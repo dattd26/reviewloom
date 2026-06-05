@@ -10,6 +10,8 @@ import { DashboardTopBar } from '@/components/dashboard/DashboardTopBar';
 import { RecentActivityTable } from '@/components/dashboard/RecentActivityTable';
 import { ReviewGrowthChart } from '@/components/dashboard/ReviewGrowthChart';
 
+import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
+
 function formatDateInput(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -26,17 +28,6 @@ function getDefaultDateRange(): DashboardDateRange {
     fromDate: formatDateInput(fromDate),
     toDate: formatDateInput(toDate),
   };
-}
-
-function DashboardLoadingState() {
-  return (
-    <div className="flex-1 flex items-center justify-center min-h-[400px]">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 border-2 border-primary/10 border-t-primary rounded-full animate-spin" />
-        <p className="font-headline text-[10px] font-bold text-outline uppercase tracking-[0.2em] opacity-80">Loading Dashboard...</p>
-      </div>
-    </div>
-  );
 }
 
 export default function DashboardOverview() {
@@ -97,7 +88,7 @@ export default function DashboardOverview() {
     return () => mm.revert();
   }, [isLoaded, isLoading, data]);
 
-  if (!isLoaded || isLoading) return <DashboardLoadingState />;
+  if (!isLoaded || isLoading) return <DashboardLoading />;
   if (!isSignedIn) return <div>Sign in to view this page</div>;
 
   const scansGrowth = data?.scansGrowth ?? [];

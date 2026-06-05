@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { InboxService, PrivateFeedback } from '@/services/inbox-service';
 import { CampaignService, CampaignResponse } from '@/services/campaign-service';
+import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
 
 export default function FeedbackInbox() {
   const { getToken } = useAuth();
@@ -116,6 +117,10 @@ export default function FeedbackInbox() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadFeedback();
   }, [loadFeedback]);
+
+  if (isLoading && feedbackList.length === 0) {
+    return <DashboardLoading title="Loading Private Feedback..." description="Accessing customer inbox" />;
+  }
 
   const handleSelectFeedback = async (feedback: PrivateFeedback) => {
     setSelectedFeedback(feedback);
