@@ -8,7 +8,6 @@ import Link from 'next/link';
 
 export default function UpgradePage() {
   const { getToken } = useAuth();
-  const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleUpgrade = async () => {
@@ -74,7 +73,7 @@ export default function UpgradePage() {
               ))}
             </ul>
 
-            <button 
+            <button
               disabled
               className="w-full py-3.5 rounded-xl font-bold bg-surface-container-low text-outline cursor-not-allowed"
             >
@@ -115,7 +114,7 @@ export default function UpgradePage() {
               ))}
             </ul>
 
-            <button 
+            <button
               onClick={handleUpgrade}
               disabled={isProcessing}
               className="w-full py-3.5 rounded-xl font-black text-white bg-primary hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
