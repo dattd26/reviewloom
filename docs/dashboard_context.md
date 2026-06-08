@@ -9,6 +9,8 @@ Tài liệu này đặc tả chi tiết kiến trúc, luồng dữ liệu, cấu
 Kiến trúc Backend của ReviewLoom tuân thủ **Clean Architecture** và sử dụng mẫu thiết kế **Repository & Unit of Work** kết hợp linh hoạt giữa **Entity Framework Core** và **Dapper**.
 
 ### A. Thực thể & Cơ sở dữ liệu (Database Schema)
+Bảng `campaigns` đã được thêm cột `Placement` để theo dõi vị trí đặt mã QR (ví dụ: Cashier, Table 1), phục vụ thống kê "Where Customers Scan".
+
 Bảng `scans` đã được nâng cấp qua Migration để hỗ trợ lưu trữ trạng thái xử lý góp ý riêng tư:
 - `status` (VARCHAR(20), NOT NULL, DEFAULT 'unread'): Nhận các giá trị `unread`, `pending`, `resolved`.
 - `reply_message` (TEXT, NULL): Nội dung phản hồi qua email mà chủ cửa hàng gửi cho khách.
@@ -47,6 +49,10 @@ Tất cả các API yêu cầu xác thực JWT qua Clerk (`[Authorize]`):
   - `PUT /api/v1/inbox/{id}/status` -> Cập nhật trạng thái xử lý.
   - `POST /api/v1/inbox/{id}/reply` -> Gửi phản hồi góp ý.
 - **`BillingController`**: `GET /api/v1/billing/subscription` -> Trả về DTO chi tiết gói cước.
+- **`CampaignsController`** (Đề xuất thêm các endpoint thống kê chi tiết):
+  - `GET /api/v1/campaigns/performance-summary` -> Trả về thông tin tổng quan hiệu suất của tất cả chiến dịch (tổng scans, conversion rate toàn hệ thống, chiến dịch hiệu quả nhất).
+  - `GET /api/v1/campaigns/{id}/analytics` -> Trả về dữ liệu chi tiết biểu đồ của 1 chiến dịch cụ thể trong 30 ngày (lượt quét theo ngày, tỉ lệ phản hồi tốt vs phản hồi riêng tư, v.v.).
+  - `GET /api/v1/campaigns/rankings` -> Trả về bảng xếp hạng các chiến dịch theo số lượng scans hoặc tỉ lệ đánh giá tốt để chủ cửa hàng tối ưu hóa.
 
 ---
 
@@ -73,6 +79,15 @@ Tất cả các API yêu cầu xác thực JWT qua Clerk (`[Authorize]`):
    - Hỗ trợ đổi trạng thái xử lý trực tiếp (Mark as Resolved) hoặc viết nội dung phản hồi (Send Reply) cập nhật tức thì xuống database.
 
 3. **Gói cước & Cài đặt (`/dashboard/settings/page.tsx`)**:
-   - Hiển thị tên gói cước (Pro hoặc Free), trạng thái dùng thử/thực tế, và hạn gia hạn.
+   - Hiển thị tên gói cước (Pro hoặc Free), trạng thái dùng thực tế, và hạn gia hạn.
    - Thể hiện thanh đo giới hạn sử dụng chiến dịch (ví dụ: 5 / 10 campaigns).
    - Render bảng lịch sử hóa đơn nạp tiền/đăng ký dựa trên lịch sử subscription trong database.
+
+4. **Quản lý & Thống kê Chiến dịch (`/dashboard/campaigns/page.tsx`)**:
+   - Được thiết kế theo phong cách Soft Structuralism với cấu trúc Bento Grid kết hợp thẻ Double-Bezel (Nested Architecture) để hiển thị trực quan các chỉ số:
+     - Tổng số lượt quét của tất cả các chiến dịch (Total Customer Scans).
+     - Tỉ lệ chuyển đổi đánh giá tổng quát (Review Conversion Rate).
+     - Số phản hồi tiêu cực đã bắt gọn riêng tư (Private Feedback Saved).
+     - Hộp thông tin chiến dịch có hiệu suất cao nhất (Top Performing Campaign).
+   - Danh sách chiến dịch được hiển thị dưới dạng lưới thẻ tương tác (Interactive Card Grid) thay vì bảng thông thường, tích hợp hiệu ứng hiển thị Staggered Entry bằng GSAP (`useGSAP`) và các bộ lọc trạng thái (All, Active, Paused) cùng ô tìm kiếm trực tiếp.
+   - Mỗi thẻ chiến dịch hiển thị logo, ngày tạo, trạng thái xuất bản, các chỉ số cụ thể (Scans, Happy Rates, Private Forms) và các thao tác nhanh (Download bản in Standee dạng QR Code trực tiếp, cấu hình chi tiết, xóa chiến dịch).

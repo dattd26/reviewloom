@@ -5,10 +5,12 @@ import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { DashboardDateRange, DashboardOverviewResponse, DashboardService } from '@/services/dashboard-service';
-import { DashboardMetricCards } from '@/components/dashboard/DashboardMetricCards';
 import { DashboardTopBar } from '@/components/dashboard/DashboardTopBar';
-import { RecentActivityTable } from '@/components/dashboard/RecentActivityTable';
 import { ReviewGrowthChart } from '@/components/dashboard/ReviewGrowthChart';
+import { DashboardSidebarMetrics } from '@/components/dashboard/DashboardSidebarMetrics';
+import { QuickActionsHub } from '@/components/dashboard/QuickActionsHub';
+import { StrategicAdvice } from '@/components/dashboard/StrategicAdvice';
+import { LiveActivityFeed } from '@/components/dashboard/LiveActivityFeed';
 
 import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
 
@@ -97,15 +99,27 @@ export default function DashboardOverview() {
     <div ref={containerRef} className="flex-1 flex flex-col min-h-screen">
       <DashboardTopBar firstName={user?.firstName} dateRange={dateRange} onDateRangeChange={setDateRange} />
 
-      <div className="p-8 space-y-8 flex-1">
-        <DashboardMetricCards
-          totalScans={data?.totalScans ?? 0}
-          positivePercentage={data?.positivePercentage ?? 0}
-          newPrivateFeedback={data?.newPrivateFeedback ?? 0}
-          scansGrowth={scansGrowth}
-        />
-        <ReviewGrowthChart scansGrowth={scansGrowth} />
-        <RecentActivityTable activities={data?.recentActivity ?? []} />
+      <div className="p-8 max-w-[1600px] mx-auto w-full flex-1">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          
+          {/* Main Left Column (Command Center) */}
+          <div className="xl:col-span-8 flex flex-col gap-8">
+            <ReviewGrowthChart scansGrowth={scansGrowth} />
+            <LiveActivityFeed activities={data?.recentActivity ?? []} />
+          </div>
+
+          {/* Right Sidebar Column (Insights & Actions) */}
+          <div className="xl:col-span-4 flex flex-col gap-8">
+            <DashboardSidebarMetrics
+              totalScans={data?.totalScans ?? 0}
+              positivePercentage={data?.positivePercentage ?? 0}
+              newPrivateFeedback={data?.newPrivateFeedback ?? 0}
+            />
+            <QuickActionsHub />
+            <StrategicAdvice />
+          </div>
+          
+        </div>
       </div>
     </div>
   );

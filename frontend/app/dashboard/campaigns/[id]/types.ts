@@ -36,6 +36,7 @@ export interface CampaignConfig {
   // Basic
   businessName: string;
   googleReviewUrl: string;
+  placement: string;
   status: CampaignStatus;
   isActive: boolean;
   // Visual Branding
@@ -63,6 +64,7 @@ export const DEFAULT_STANDEE_CONFIG: StandeeUserConfig = {
 export const DEFAULT_CAMPAIGN: CampaignConfig = {
   businessName: '',
   googleReviewUrl: '',
+  placement: '',
   status: 0, // Draft
   logoUrl: null,
   isActive: true,

@@ -87,9 +87,12 @@ Tất cả các dịch vụ đều sử dụng hàm wrapper `apiClient` được
     - **Ý kiến không tốt (1 - 3 sao)**: Mở biểu mẫu thu thập góp ý riêng tư trực tiếp trên trang. Góp ý này sẽ được gửi về Backend và nằm gọn trong Inbox riêng tư của chủ cửa hàng để họ xử lý thay vì bị đăng công khai lên mạng xã hội hay Google Maps.
 
 ### B. Dashboard Overview (`app/dashboard`)
+- Thiết kế theo phong cách **Command Console Layout (Bảng điều khiển trung tâm 2 cột)**:
+  - **Cột trái (Main Column)**: Tập trung hiển thị `ReviewGrowthChart` (biểu đồ SVG tương tác) và `LiveActivityFeed` (Dòng hoạt động thời gian thực của khách hàng thay cho bảng truyền thống).
+  - **Cột phải (Sidebar Column)**: Bao gồm `DashboardSidebarMetrics` (Các thẻ chỉ số xếp dọc), `QuickActionsHub` (Nút tạo chiến dịch, xem thư, cài đặt) và `StrategicAdvice` (Các mẹo tối ưu hóa cho doanh nghiệp).
 - Tích hợp biểu đồ thống kê tăng trưởng dạng SVG tùy biến vẽ bằng thẻ `polyline` thay vì sử dụng thư viện nặng như Chart.js để tăng hiệu suất tải trang.
-  - Hỗ trợ tương tác rê chuột (hover interaction) để hiển thị chi tiết số liệu ngày cụ thể qua tooltip kính mờ (glassmorphic tooltip), hiển thị các đường căn chỉnh dọc (vertical alignment line) và chấm định vị điểm giá trị (data point markers).
-- Hiển thị 3 chỉ số quan trọng nhất của doanh nghiệp:
+  - Hỗ trợ tương tác rê chuột (hover interaction) để hiển thị chi tiết số liệu ngày cụ thể qua tooltip kính mờ (glassmorphic tooltip).
+- Hiển thị 3 chỉ số quan trọng nhất của doanh nghiệp dưới dạng cột thẻ bên phải:
   1. Tổng số lượt quét (Total Scans)
   2. Tỉ lệ phản hồi tốt (Positive Feedback %)
   3. Góp ý riêng tư mới nhận (New Private Feedback)

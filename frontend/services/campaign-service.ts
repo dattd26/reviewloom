@@ -9,6 +9,7 @@ export interface CampaignResponse {
   logoUrl?: string;
   createdAt: string;
   isActive: boolean;
+  placement?: string;
   stats: {
     totalScans: number;
     positiveScans: number;

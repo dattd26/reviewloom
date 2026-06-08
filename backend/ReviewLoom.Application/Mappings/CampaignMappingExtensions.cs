@@ -17,6 +17,7 @@ public static class CampaignMappingExtensions
             Status = campaign.Status,
             LogoUrl = campaign.LogoUrl,
             CreatedAt = campaign.CreatedAt,
+            Placement = campaign.Placement,
             Stats = new CampaignStatsDto(stats.Total, stats.Positive, stats.Negative),
             Style = campaign.Style?.ToDto() ?? new CampaignStyleDto(),
             Settings = campaign.Settings?.ToDto() ?? new CampaignSettingsDto(),
@@ -75,6 +76,7 @@ public static class CampaignMappingExtensions
             GoogleReviewUrl = dto.GoogleReviewUrl,
             LogoUrl = dto.LogoUrl,
             Status = dto.Status,
+            Placement = dto.Placement,
             CreatedAt = DateTime.UtcNow,
             Style = new CampaignStyle
             {
@@ -99,6 +101,7 @@ public static class CampaignMappingExtensions
         if (dto.GoogleReviewUrl != null) campaign.GoogleReviewUrl = dto.GoogleReviewUrl;
         if (dto.LogoUrl != null) campaign.LogoUrl = dto.LogoUrl;
         if (dto.Status.HasValue) campaign.Status = dto.Status.Value;
+        if (dto.Placement != null) campaign.Placement = dto.Placement;
 
         if (dto.Style != null)
         {

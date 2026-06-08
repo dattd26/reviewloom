@@ -7,6 +7,7 @@ export const mapConfigToDto = (config: CampaignConfig) => {
   return {
     businessName: config.businessName,
     googleReviewUrl: config.googleReviewUrl,
+    placement: config.placement,
     logoUrl: config.logoUrl,
     status: config.status,
     isActive: config.isActive,
@@ -46,6 +47,7 @@ export const mapDtoToConfig = (dto: any): CampaignConfig => {
     ...DEFAULT_CAMPAIGN,
     businessName: dto.businessName || '',
     googleReviewUrl: dto.googleReviewUrl || '',
+    placement: dto.placement || '',
     logoUrl: dto.logoUrl,
     status: dto.status ?? 0,
     isActive: dto.isActive ?? true,
