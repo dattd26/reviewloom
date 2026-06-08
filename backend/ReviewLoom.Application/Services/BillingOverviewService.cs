@@ -38,7 +38,7 @@ public class BillingOverviewService : IBillingOverviewService
             dto.PlanName = activeSub.PlanId == "pro_yearly" ? "Pro Plan (Yearly)" : "Pro Plan";
             dto.Status = activeSub.Status;
             dto.RenewsAt = activeSub.CurrentPeriodEnd;
-            dto.CampaignsLimit = 10; // Pro limit
+            dto.CampaignsLimit = 100; // Pro practical display limit
             dto.CardBrand = "Visa";
             dto.CardLast4 = "4242";
         }

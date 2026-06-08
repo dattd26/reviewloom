@@ -12,6 +12,12 @@ namespace ReviewLoom.Application.Services;
 
 public class CampaignService : ICampaignService
 {
+    private static readonly HashSet<string> ProStandeeTemplateIds = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "prestige_dark",
+        "salon_blush"
+    };
+
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStatsRepository _statsRepository;
 
@@ -67,8 +73,7 @@ public class CampaignService : ICampaignService
             return null;
 
         var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(campaignEntity.UserId);
-        var subscription = System.Linq.Enumerable.FirstOrDefault(subscriptions, s => s.Status == "active");
-        bool isPro = subscription != null && subscription.PlanId != null;
+        bool isPro = HasProSubscription(subscriptions);
 
         return new PublicCampaignDto
         {
@@ -84,16 +89,16 @@ public class CampaignService : ICampaignService
     public async Task<CampaignDto> CreateCampaignAsync(CreateCampaignDto dto, Guid userId)
     {
         var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(userId);
-        var subscription = System.Linq.Enumerable.FirstOrDefault(subscriptions, s => s.Status == "active");
-        bool isPro = subscription != null && subscription.PlanId != null;
+        bool isPro = HasProSubscription(subscriptions);
         bool showWatermark = !isPro;
 
         if (!isPro)
         {
-            var userCampaigns = await GetUserCampaignsAsync(userId);
-            if (System.Linq.Enumerable.Count(userCampaigns) >= 1)
+            var userCampaigns = await _unitOfWork.Campaigns.GetByUserIdAsync(userId);
+            var activeCampaigns = userCampaigns.Count(c => c.Status != Domain.Enums.CampaignStatus.Archived);
+            if (activeCampaigns >= 3)
             {
-                throw new InvalidOperationException("Free plan allows a maximum of 1 campaign. Please upgrade to Pro.");
+                throw new InvalidOperationException("Free plan limits active campaigns to 3. Upgrade to Pro to create unlimited campaigns.");
             }
         }
 
@@ -110,6 +115,15 @@ public class CampaignService : ICampaignService
     {
         var campaign = await _unitOfWork.Campaigns.GetFullByIdAsync(id);
         if (campaign == null) return null;
+
+        if (dto.StandeeConfig != null && ProStandeeTemplateIds.Contains(dto.StandeeConfig.TemplateId))
+        {
+            var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(campaign.UserId);
+            if (!HasProSubscription(subscriptions))
+            {
+                throw new InvalidOperationException("This standee template requires a Pro subscription.");
+            }
+        }
 
         campaign.UpdateFromDto(dto);
 
@@ -149,8 +163,14 @@ public class CampaignService : ICampaignService
     private async Task<bool> GetShowWatermarkAsync(Guid userId)
     {
         var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(userId);
-        var subscription = System.Linq.Enumerable.FirstOrDefault(subscriptions, s => s.Status == "active");
-        return subscription == null || subscription.PlanId == null;
+        return !HasProSubscription(subscriptions);
+    }
+
+    private static bool HasProSubscription(IEnumerable<Subscription> subscriptions)
+    {
+        return subscriptions.Any(s =>
+            (s.Status == "active" || s.Status == "trialing") &&
+            !string.IsNullOrWhiteSpace(s.PlanId));
     }
 
     private string GenerateSlug(string businessName)
