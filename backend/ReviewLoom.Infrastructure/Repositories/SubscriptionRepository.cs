@@ -22,4 +22,18 @@ public class SubscriptionRepository : Repository<Subscription>, ISubscriptionRep
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<Subscription?> GetByProviderSubscriptionIdAsync(string providerSubscriptionId)
+    {
+        return await Context.Subscriptions
+            .FirstOrDefaultAsync(s => s.ProviderSubscriptionId == providerSubscriptionId);
+    }
+
+    public async Task<Subscription?> GetLatestByProviderCustomerIdAsync(string providerCustomerId)
+    {
+        return await Context.Subscriptions
+            .Where(s => s.ProviderCustomerId == providerCustomerId)
+            .OrderByDescending(s => s.CreatedAt)
+            .FirstOrDefaultAsync();
+    }
 }

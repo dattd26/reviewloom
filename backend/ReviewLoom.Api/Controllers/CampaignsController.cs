@@ -77,10 +77,17 @@ public class CampaignsController : ControllerBase
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var campaign = await _campaignService.UpdateCampaignAsync(id, dto);
-        if (campaign == null) return NotFound();
+        try
+        {
+            var campaign = await _campaignService.UpdateCampaignAsync(id, dto);
+            if (campaign == null) return NotFound();
 
-        return Ok(campaign);
+            return Ok(campaign);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     [HttpDelete("{id}")]

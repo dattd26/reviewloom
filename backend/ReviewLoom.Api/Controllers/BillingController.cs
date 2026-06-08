@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using ReviewLoom.Application.Interfaces;
 using ReviewLoom.Application.Services;
 
@@ -16,27 +17,58 @@ public class BillingController : ControllerBase
     private readonly IStripeService _stripeService;
     private readonly IBillingOverviewService _billingOverviewService;
     private readonly IUserService _userService;
+    private readonly IConfiguration _configuration;
 
-    public BillingController(IStripeService stripeService, IBillingOverviewService billingOverviewService, IUserService userService)
+    public BillingController(
+        IStripeService stripeService,
+        IBillingOverviewService billingOverviewService,
+        IUserService userService,
+        IConfiguration configuration)
     {
         _stripeService = stripeService;
         _billingOverviewService = billingOverviewService;
         _userService = userService;
+        _configuration = configuration;
     }
 
     [Authorize]
     [HttpPost("create-checkout-session")]
     public async Task<IActionResult> CreateCheckoutSession([FromBody] CreateCheckoutRequest request)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+        var userId = await GetCurrentUserIdAsync();
+        if (userId == null) return Unauthorized();
 
-        var successUrl = "https://your-frontend-url.com/dashboard?session_id={CHECKOUT_SESSION_ID}";
-        var cancelUrl = "https://your-frontend-url.com/dashboard";
+        var frontendBaseUrl = GetFrontendBaseUrl();
+        var successUrl = $"{frontendBaseUrl}/dashboard/settings?checkout=success&session_id={{CHECKOUT_SESSION_ID}}";
+        var cancelUrl = $"{frontendBaseUrl}/dashboard/upgrade?checkout=cancelled";
 
-        var url = await _stripeService.CreateCheckoutSessionAsync(userId, request.PlanId, successUrl, cancelUrl);
+        try
+        {
+            var url = await _stripeService.CreateCheckoutSessionAsync(userId.Value.ToString(), request.PlanId, successUrl, cancelUrl);
+            return Ok(new { Url = url });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
 
-        return Ok(new { Url = url });
+    [Authorize]
+    [HttpPost("create-portal-session")]
+    public async Task<IActionResult> CreatePortalSession()
+    {
+        var userId = await GetCurrentUserIdAsync();
+        if (userId == null) return Unauthorized();
+
+        try
+        {
+            var url = await _stripeService.CreateBillingPortalSessionAsync(userId.Value, $"{GetFrontendBaseUrl()}/dashboard/settings");
+            return Ok(new { Url = url });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
     [HttpPost("webhook")]
@@ -73,6 +105,11 @@ public class BillingController : ControllerBase
         if (string.IsNullOrEmpty(clerkId)) return null;
 
         return await _userService.GetUserIdByClerkIdAsync(clerkId);
+    }
+
+    private string GetFrontendBaseUrl()
+    {
+        return (_configuration["Frontend:BaseUrl"] ?? "http://localhost:3000").TrimEnd('/');
     }
 }
 
