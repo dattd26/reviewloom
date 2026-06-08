@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
   - Introduced `selectedFeedbackRef` using React `useRef` to securely access the latest selected feedback inside the `loadFeedback` callback without triggering a callback recreation and subsequent `useEffect` trigger.
 
 ### Added
+- **Stripe Subscription Checkout**: Added config-driven Stripe Hosted Checkout, Billing Portal sessions, four primary webhook handlers, subscription Stripe ID mapping, and Free/Pro enforcement aligned to 3 free active campaigns.
 - **Subscription & Stripe Integration**:
   - Implemented logic to limit Free accounts to 1 location, 1 campaign, 100 scans/month, and 50 feedback/month.
   - Implemented 7-day analytics limitation for Free accounts in `DashboardService`.

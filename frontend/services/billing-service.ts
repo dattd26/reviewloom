@@ -22,9 +22,9 @@ export const BillingService = {
     return apiClient<SubscriptionOverviewResponse>('/billing/subscription', { token });
   },
   async createPortalSession(token: string) {
-    return apiClient<{ url: string }>('/billing/portal', { method: 'POST', token });
+    return apiClient<{ url: string }>('/billing/create-portal-session', { method: 'POST', token });
   },
-  async createCheckoutSession(token: string, planId: string) {
+  async createCheckoutSession(token: string, planId: 'monthly' | 'yearly') {
     return apiClient<{ url: string }>('/billing/create-checkout-session', {
       method: 'POST',
       body: JSON.stringify({ planId }),
