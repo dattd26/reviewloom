@@ -25,11 +25,12 @@ public class CampaignService : ICampaignService
     {
         var campaigns = await _unitOfWork.Campaigns.GetByUserIdAsync(userId);
         var dtos = new List<CampaignDto>();
+        bool showWatermark = await GetShowWatermarkAsync(userId);
 
         foreach (var c in campaigns)
         {
             var stats = await _statsRepository.GetCampaignStatsAsync(c.Id);
-            dtos.Add(c.ToDto(stats));
+            dtos.Add(c.ToDto(stats, showWatermark));
         }
 
         return dtos;
@@ -41,7 +42,8 @@ public class CampaignService : ICampaignService
         if (campaign == null) return null;
 
         var stats = await _statsRepository.GetCampaignStatsAsync(id);
-        return campaign.ToDto(stats);
+        bool showWatermark = await GetShowWatermarkAsync(campaign.UserId);
+        return campaign.ToDto(stats, showWatermark);
     }
 
     public async Task<CampaignDto?> GetCampaignBySlugAsync(string slug)
@@ -50,7 +52,8 @@ public class CampaignService : ICampaignService
         if (campaign == null) return null;
 
         var stats = await _statsRepository.GetCampaignStatsAsync(campaign.Id);
-        return campaign.ToDto(stats);
+        bool showWatermark = await GetShowWatermarkAsync(campaign.UserId);
+        return campaign.ToDto(stats, showWatermark);
     }
 
     public async Task<PublicCampaignDto?> GetPublicCampaignBySlugAsync(string slug)
@@ -83,6 +86,7 @@ public class CampaignService : ICampaignService
         var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(userId);
         var subscription = System.Linq.Enumerable.FirstOrDefault(subscriptions, s => s.Status == "active");
         bool isPro = subscription != null && subscription.PlanId != null;
+        bool showWatermark = !isPro;
 
         if (!isPro)
         {
@@ -99,7 +103,7 @@ public class CampaignService : ICampaignService
         await _unitOfWork.Campaigns.AddAsync(campaign);
         await _unitOfWork.CompleteAsync();
         
-        return campaign.ToDto((0, 0, 0));
+        return campaign.ToDto((0, 0, 0), showWatermark);
     }
 
     public async Task<CampaignDto?> UpdateCampaignAsync(Guid id, UpdateCampaignDto dto)
@@ -113,7 +117,8 @@ public class CampaignService : ICampaignService
         await _unitOfWork.CompleteAsync();
 
         var stats = await _statsRepository.GetCampaignStatsAsync(id);
-        return campaign.ToDto(stats);
+        bool showWatermark = await GetShowWatermarkAsync(campaign.UserId);
+        return campaign.ToDto(stats, showWatermark);
     }
 
     public async Task<bool> DeleteCampaignAsync(Guid id)
@@ -134,10 +139,18 @@ public class CampaignService : ICampaignService
         foreach (var c in campaigns)
         {
             var stats = await _statsRepository.GetCampaignStatsAsync(c.Id);
-            dtos.Add(c.ToDto(stats));
+            bool showWatermark = await GetShowWatermarkAsync(c.UserId);
+            dtos.Add(c.ToDto(stats, showWatermark));
         }
 
         return dtos;
+    }
+
+    private async Task<bool> GetShowWatermarkAsync(Guid userId)
+    {
+        var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(userId);
+        var subscription = System.Linq.Enumerable.FirstOrDefault(subscriptions, s => s.Status == "active");
+        return subscription == null || subscription.PlanId == null;
     }
 
     private string GenerateSlug(string businessName)

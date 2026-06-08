@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api-client';
-import { CampaignConfig } from '@/app/dashboard/campaigns/[id]/types';
+import { CampaignConfig } from '@/types/campaign';
 import LandingClient from '@/components/campaign/LandingClient';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';

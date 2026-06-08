@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
   - Created `IUserService` and `UserService` in the Application layer to centralize user management and Clerk synchronization logic, avoiding duplicate user lookups in controllers.
   - Encapsulated business rules (monthly scan/feedback limits, free plan campaign caps) within Application Services (`ScanService.LogScanAsync`, `CampaignService.CreateCampaignAsync`).
   - Created a formal architecture rules document at [clean_architecture_rules.md](file:///home/ducdat/IT/CNPM/LT-Web-ASP.Net-Core/reviewloom/docs/architecture/clean_architecture_rules.md) to define coding standards and layering constraints.
+  - **Frontend Architecture Restructuring**:
+    - Restructured campaign configuration types into `@/types/campaign` and mappers into `@/lib/campaign-mappers`.
+    - Made types self-contained by moving `StandeeTemplateId` and `StandeeUserConfig` directly to `types/campaign.ts`, avoiding cross-directory UI component references and circular dependency risks.
+    - Standardized type and helper imports across the entire frontend project.
 
 ### Fixed
 - **Frontend**: Fixed infinite rendering loop and API call spam on the Private Feedback Inbox page ([page.tsx](file:///home/ducdat/IT/CNPM/LT-Web-ASP.Net-Core/reviewloom/frontend/app/dashboard/inbox/page.tsx)).

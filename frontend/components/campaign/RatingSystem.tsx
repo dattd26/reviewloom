@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { RatingIconType } from '@/app/dashboard/campaigns/[id]/types';
+import { RatingIconType } from '@/types/campaign';
 
 interface RatingSystemProps {
   type: RatingIconType;

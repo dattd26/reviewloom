@@ -5,8 +5,7 @@ namespace ReviewLoom.Application.Mappings;
 
 public static class CampaignMappingExtensions
 {
-    //this Campaign campaign biến method đó thành một extension method cho class Campaign
-    public static CampaignDto ToDto(this Campaign campaign, (long Total, long Positive, long Negative) stats)
+    public static CampaignDto ToDto(this Campaign campaign, (long Total, long Positive, long Negative) stats, bool showWatermark)
     {
         return new CampaignDto
         {
@@ -21,7 +20,8 @@ public static class CampaignMappingExtensions
             Stats = new CampaignStatsDto(stats.Total, stats.Positive, stats.Negative),
             Style = campaign.Style?.ToDto() ?? new CampaignStyleDto(),
             Settings = campaign.Settings?.ToDto() ?? new CampaignSettingsDto(),
-            StandeeConfig = campaign.StandeeConfig?.ToDto()
+            StandeeConfig = campaign.StandeeConfig?.ToDto(),
+            ShowWatermark = showWatermark
         };
     }
 

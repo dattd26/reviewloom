@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
 import { toPng } from 'html-to-image';
-import { CampaignConfig, GRADIENT_PRESETS } from './types';
+import { CampaignConfig, GRADIENT_PRESETS } from '@/types/campaign';
 import StandeeDesignerModal from './StandeeDesignerModal';
 
 interface Props {

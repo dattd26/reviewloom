@@ -1,6 +1,6 @@
 'use client';
 
-import { CampaignConfig } from './types';
+import { CampaignConfig } from '@/types/campaign';
 
 interface Props {
   campaign: CampaignConfig;

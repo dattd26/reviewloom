@@ -1,10 +1,8 @@
 'use client';
 
-import { CampaignConfig } from './types';
+import { CampaignConfig, StandeeTemplateId, StandeeUserConfig } from '@/types/campaign';
 
 // ─── Template Definitions ───────────────────────────────────────────────────
-
-export type StandeeTemplateId = 'minimal_white' | 'prestige_dark' | 'salon_blush' | 'cafe_kraft';
 
 export interface StandeeTemplateConfig {
   id: StandeeTemplateId;
@@ -79,20 +77,6 @@ export const STANDEE_TEMPLATES: StandeeTemplateConfig[] = [
     isPro: false,
   },
 ];
-
-// ─── User-editable config (local to the designer, not part of CampaignConfig) ─
-
-export interface StandeeUserConfig {
-  templateId: StandeeTemplateId;
-  ctaText: string;
-  showLogo: boolean;
-}
-
-export const DEFAULT_STANDEE_CONFIG: StandeeUserConfig = {
-  templateId: 'minimal_white',
-  ctaText: 'Review Us on Google',
-  showLogo: true,
-};
 
 // ─── Component ───────────────────────────────────────────────────────────────
 

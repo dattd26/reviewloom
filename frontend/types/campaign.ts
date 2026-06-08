@@ -1,4 +1,10 @@
-import { StandeeUserConfig } from "./StandeeTemplate";
+export type StandeeTemplateId = 'minimal_white' | 'prestige_dark' | 'salon_blush' | 'cafe_kraft';
+
+export interface StandeeUserConfig {
+  templateId: StandeeTemplateId;
+  ctaText: string;
+  showLogo: boolean;
+}
 
 export type RatingIconType = 'stars' | 'emoji' | 'thumbs';
 export type QrFrameType = 'none' | 'scan_to_rate' | 'review_discount';
@@ -7,7 +13,7 @@ export type BackgroundStyle = 'none' | 'image' | 'gradient';
 
 export type CampaignStatus = 0 | 1 | 2; // Draft, Published, Archived
 
-interface CampaignSettings {
+export interface CampaignSettings {
   routingThreshold: 4 | 5;
   heading: string;
   ctaLabel: string;
@@ -17,7 +23,7 @@ interface CampaignSettings {
   incentiveCoupon: string;
 }
 
-interface CampaignStyle {
+export interface CampaignStyle {
   primaryColor: string;
   fontFamily: FontOption;
   logoStyle: 'circle' | 'square' | 'soft' | 'none';
@@ -43,7 +49,7 @@ export interface CampaignConfig {
   logoUrl: string | null;
   style: CampaignStyle;
   settings: CampaignSettings;
-  showWatermark?: boolean;
+  showWatermark: boolean;
 
   // Stats
   stats: {
@@ -69,6 +75,7 @@ export const DEFAULT_CAMPAIGN: CampaignConfig = {
   status: 0, // Draft
   logoUrl: null,
   isActive: true,
+  showWatermark: true,
   style: {
     logoStyle: 'soft',
     ratingIconType: 'stars',
@@ -91,7 +98,6 @@ export const DEFAULT_CAMPAIGN: CampaignConfig = {
     collectContact: false,
     incentiveEnabled: false,
     incentiveCoupon: '',
-
   },
   standeeConfig: { ...DEFAULT_STANDEE_CONFIG },
   stats: {

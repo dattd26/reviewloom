@@ -17,6 +17,7 @@ public class CampaignDto
     public CampaignStyleDto Style { get; set; } = new();
     public CampaignSettingsDto Settings { get; set; } = new();
     public CampaignStandeeConfigDto? StandeeConfig { get; set; }
+    public bool ShowWatermark { get; set; }
 }
 
 public class CampaignStyleDto

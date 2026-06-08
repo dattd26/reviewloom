@@ -1,6 +1,6 @@
 'use client';
 
-import { CampaignConfig, QR_FRAMES, QrFrameType } from './types';
+import { CampaignConfig, QR_FRAMES, QrFrameType } from '@/types/campaign';
 
 interface Props {
   campaign: CampaignConfig;

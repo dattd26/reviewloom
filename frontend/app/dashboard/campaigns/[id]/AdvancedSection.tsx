@@ -1,6 +1,6 @@
 'use client';
 
-import { CampaignConfig, RatingIconType } from './types';
+import { CampaignConfig, RatingIconType } from '@/types/campaign';
 
 interface Props {
   campaign: CampaignConfig;

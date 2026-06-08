@@ -8,7 +8,7 @@ import {
   FontOption,
   BackgroundStyle,
   GRADIENT_PRESETS,
-} from './types';
+} from '@/types/campaign';
 
 interface Props {
   campaign: CampaignConfig;

@@ -4,13 +4,13 @@ import { toast } from 'react-hot-toast';
 
 import Link from 'next/link';
 import { useRef, useState } from 'react';
-import { CampaignConfig, DEFAULT_CAMPAIGN, CampaignStatus } from './types';
+import { CampaignConfig, DEFAULT_CAMPAIGN, CampaignStatus } from '@/types/campaign';
 import { useAuth } from '@clerk/nextjs';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { CampaignService } from '@/services/campaign-service';
 import { MediaService } from '@/services/media-service';
-import { mapDtoToConfig } from './mappers';
+import { mapDtoToConfig } from '@/lib/campaign-mappers';
 import BrandingSection from './BrandingSection';
 import ContentSection from './ContentSection';
 import QrSection from './QrSection';

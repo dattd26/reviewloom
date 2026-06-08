@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toPng } from 'html-to-image';
-import { CampaignConfig } from './types';
+import { CampaignConfig } from '@/types/campaign';
 import StandeeTemplate, {
   STANDEE_TEMPLATES,
 } from './StandeeTemplate';

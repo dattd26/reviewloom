@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import RatingSystem from './RatingSystem';
-import { CampaignConfig, GRADIENT_PRESETS } from '@/app/dashboard/campaigns/[id]/types';
+import { CampaignConfig, GRADIENT_PRESETS } from '@/types/campaign';
 import { ScanService } from '@/services/scan-service';
 
 interface Props {

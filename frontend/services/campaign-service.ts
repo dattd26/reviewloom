@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api-client";
-import { CampaignConfig } from "@/app/dashboard/campaigns/[id]/types";
-import { mapConfigToDto } from "@/app/dashboard/campaigns/[id]/mappers";
+import { CampaignConfig } from "@/types/campaign";
+import { mapConfigToDto } from "@/lib/campaign-mappers";
 
 export interface CampaignResponse {
   id: string;

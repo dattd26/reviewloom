@@ -1,4 +1,4 @@
-import { CampaignConfig, DEFAULT_CAMPAIGN } from "./types";
+import { CampaignConfig, DEFAULT_CAMPAIGN } from "@/types/campaign";
 
 /**
  * Maps the UI state (CampaignConfig) to the nested DTO structure expected by the Backend API.
@@ -51,6 +51,7 @@ export const mapDtoToConfig = (dto: any): CampaignConfig => {
     logoUrl: dto.logoUrl,
     status: dto.status ?? 0,
     isActive: dto.isActive ?? true,
+    showWatermark: dto.showWatermark ?? true,
     style: {
       ...DEFAULT_CAMPAIGN.style,
       primaryColor: dto.style?.primaryColor ?? DEFAULT_CAMPAIGN.style.primaryColor,
