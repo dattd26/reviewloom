@@ -62,6 +62,19 @@ public class CampaignsController : ControllerBase
         var userId = await GetCurrentUserIdAsync();
         if (userId == null) return Unauthorized();
 
+        var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(userId.Value);
+        var subscription = System.Linq.Enumerable.FirstOrDefault(subscriptions, s => s.Status == "active");
+        bool isPro = subscription != null && subscription.PlanId != null;
+
+        if (!isPro)
+        {
+            var userCampaigns = await _campaignService.GetUserCampaignsAsync(userId.Value);
+            if (System.Linq.Enumerable.Count(userCampaigns) >= 1)
+            {
+                return BadRequest("Free plan allows a maximum of 1 campaign. Please upgrade to Pro.");
+            }
+        }
+
         var campaign = await _campaignService.CreateCampaignAsync(dto, userId.Value);
         return CreatedAtAction(nameof(GetById), new { id = campaign.Id }, campaign);
     }

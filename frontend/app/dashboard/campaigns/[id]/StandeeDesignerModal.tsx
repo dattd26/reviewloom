@@ -86,13 +86,16 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
                 {STANDEE_TEMPLATES.map((tpl) => {
                   const isActive = userConfig.templateId === tpl.id;
                   const accent = tpl.accentColor ?? campaign.style.primaryColor;
+                  const isLocked = tpl.isPro && campaign.showWatermark;
                   return (
                     <button
                       key={tpl.id}
-                      onClick={() => onChange({ templateId: tpl.id })}
+                      onClick={() => !isLocked && onChange({ templateId: tpl.id })}
+                      disabled={isLocked}
+                      title={isLocked ? 'Upgrade to Pro to unlock this template' : ''}
                       className={`relative rounded-2xl p-3.5 text-left transition-all border-2 group ${isActive
                           ? 'border-primary bg-primary/5 shadow-sm'
-                          : 'border-slate-100 hover:border-slate-200 bg-white'
+                          : isLocked ? 'border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed' : 'border-slate-100 hover:border-slate-200 bg-white'
                         }`}
                     >
                       {/* Swatch */}
@@ -120,14 +123,23 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
                         </span>
                       )}
 
-                      {/* Active check */}
-                      {isActive && (
+                      {/* Active check / Lock icon */}
+                      {isActive && !isLocked && (
                         <span
                           className="absolute bottom-2 right-2 w-4 h-4 rounded-full flex items-center justify-center text-white"
                           style={{ background: 'var(--color-primary)' }}
                         >
                           <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                             check
+                          </span>
+                        </span>
+                      )}
+                      {isLocked && (
+                        <span
+                          className="absolute bottom-2 right-2 w-4 h-4 rounded-full flex items-center justify-center bg-slate-200 text-slate-500"
+                        >
+                          <span className="material-symbols-outlined text-[12px]">
+                            lock
                           </span>
                         </span>
                       )}

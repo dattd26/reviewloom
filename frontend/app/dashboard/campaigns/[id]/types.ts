@@ -43,6 +43,7 @@ export interface CampaignConfig {
   logoUrl: string | null;
   style: CampaignStyle;
   settings: CampaignSettings;
+  showWatermark?: boolean;
 
   // Stats
   stats: {

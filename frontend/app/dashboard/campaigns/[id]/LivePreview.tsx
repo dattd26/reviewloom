@@ -479,6 +479,11 @@ export default function LivePreview({ campaign, onChange }: Props) {
             <p className="text-3xl text-slate-400 font-medium tracking-wide">
               Thank you for supporting our local business!
             </p>
+            {campaign.showWatermark && (
+              <p className="text-2xl text-slate-400/80 font-bold">
+                Created with Free Plan - reviewloom
+              </p>
+            )}
           </div>
         </div>
       </div>

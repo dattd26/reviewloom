@@ -20,5 +20,15 @@ export interface SubscriptionOverviewResponse {
 export const BillingService = {
   async getSubscriptionOverview(token: string) {
     return apiClient<SubscriptionOverviewResponse>('/billing/subscription', { token });
+  },
+  async createPortalSession(token: string) {
+    return apiClient<{ url: string }>('/billing/portal', { method: 'POST', token });
+  },
+  async createCheckoutSession(token: string, planId: string) {
+    return apiClient<{ url: string }>('/billing/create-checkout-session', {
+      method: 'POST',
+      body: JSON.stringify({ planId }),
+      token,
+    });
   }
 };

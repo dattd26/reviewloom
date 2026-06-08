@@ -131,4 +131,27 @@ public class StatsRepository : IStatsRepository
             (DateTime)r.scanned_at
         )).ToList();
     }
+
+    public async Task<(long TotalScans, long TotalFeedback)> GetUserMonthlyUsageAsync(Guid userId, DateTime monthStart)
+    {
+        using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+        
+        var nextMonth = monthStart.AddMonths(1);
+
+        var sql = @"
+            SELECT 
+                COUNT(s.id) AS totalscans,
+                COUNT(s.feedback_message) AS totalfeedback
+            FROM scans s
+            JOIN campaigns c ON s.campaign_id = c.id
+            WHERE c.user_id = @UserId
+              AND s.scanned_at >= @MonthStart
+              AND s.scanned_at < @NextMonth";
+
+        var result = await connection.QueryFirstOrDefaultAsync<dynamic>(sql, new { UserId = userId, MonthStart = monthStart, NextMonth = nextMonth });
+        if (result == null) return (0, 0);
+
+        return ((long)(result.totalscans ?? 0), (long)(result.totalfeedback ?? 0));
+    }
 }

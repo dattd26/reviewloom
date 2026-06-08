@@ -8,12 +8,14 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import QRCode from 'qrcode';
 import { CampaignService, CampaignResponse } from '@/services/campaign-service';
+import { BillingService, SubscriptionOverviewResponse } from '@/services/billing-service';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
 
 export default function CampaignList() {
   const { getToken } = useAuth();
   const [campaigns, setCampaigns] = useState<CampaignResponse[]>([]);
+  const [subData, setSubData] = useState<SubscriptionOverviewResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<CampaignResponse | null>(null);
   
@@ -30,8 +32,12 @@ export default function CampaignList() {
       try {
         const token = await getToken();
         if (!token) return;
-        const data = await CampaignService.getMyCampaigns(token);
+        const [data, billing] = await Promise.all([
+          CampaignService.getMyCampaigns(token),
+          BillingService.getSubscriptionOverview(token)
+        ]);
         setCampaigns(data);
+        setSubData(billing);
       } catch (error) {
         console.error("Failed to fetch campaigns:", error);
       } finally {
@@ -170,13 +176,24 @@ export default function CampaignList() {
             <button className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-surface-container-high transition-all text-outline hover:text-primary border border-outline-variant/15 hover:border-primary/20">
               <span className="material-symbols-outlined text-[22px]">notifications</span>
             </button>
-            <Link
-              href="/dashboard/campaigns/new"
-              className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all shrink-0"
-            >
-              <span className="material-symbols-outlined text-base">add</span>
-              Create Campaign
-            </Link>
+            {subData && campaigns.length >= subData.campaignsLimit ? (
+              <Link
+                href="/dashboard/upgrade"
+                className="bg-primary/50 text-white/80 px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-sm transition-all shrink-0 cursor-pointer"
+                title={`Limit reached (${subData.campaignsLimit}). Upgrade to Pro.`}
+              >
+                <span className="material-symbols-outlined text-base">lock</span>
+                Upgrade to Create
+              </Link>
+            ) : (
+              <Link
+                href="/dashboard/campaigns/new"
+                className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all shrink-0"
+              >
+                <span className="material-symbols-outlined text-base">add</span>
+                Create Campaign
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -389,13 +406,23 @@ export default function CampaignList() {
             </div>
             <p className="font-headline font-black text-lg text-on-surface mb-1">No campaigns found</p>
             <p className="text-sm text-outline mb-6">Create a campaign or adjust filters to start tracking scans.</p>
-            <Link
-              href="/dashboard/campaigns/new"
-              className="inline-flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
-            >
-              <span className="material-symbols-outlined text-base">add</span>
-              Create First Campaign
-            </Link>
+            {subData && campaigns.length >= subData.campaignsLimit ? (
+              <Link
+                href="/dashboard/upgrade"
+                className="inline-flex items-center gap-2 bg-primary/50 text-white/80 px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest transition-all"
+              >
+                <span className="material-symbols-outlined text-base">lock</span>
+                Upgrade to Create
+              </Link>
+            ) : (
+              <Link
+                href="/dashboard/campaigns/new"
+                className="inline-flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+              >
+                <span className="material-symbols-outlined text-base">add</span>
+                Create First Campaign
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -11,10 +11,12 @@ namespace ReviewLoom.Application.Services;
 public class DashboardService : IDashboardService
 {
     private readonly IStatsRepository _statsRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public DashboardService(IStatsRepository statsRepository)
+    public DashboardService(IStatsRepository statsRepository, IUnitOfWork unitOfWork)
     {
         _statsRepository = statsRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<DashboardOverviewDto> GetDashboardOverviewAsync(Guid userId, DateTime? fromDate = null, DateTime? toDate = null)
@@ -27,8 +29,22 @@ public class DashboardService : IDashboardService
             throw new ArgumentException("fromDate must be earlier than or equal to toDate.");
         }
 
-        if ((endDate - startDate).TotalDays > 365)
+        var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(userId);
+        var subscription = System.Linq.Enumerable.FirstOrDefault(subscriptions, s => s.Status == "active");
+        bool isPro = subscription != null && subscription.PlanId != null;
+
+        if (!isPro)
         {
+            // Free tier gets max 7 days of analytics
+            var minStartDate = endDate.AddDays(-6);
+            if (startDate < minStartDate)
+            {
+                startDate = minStartDate;
+            }
+        }
+        else if ((endDate - startDate).TotalDays > 365)
+        {
+            // Pro tier gets max 365 days
             startDate = endDate.AddDays(-365);
         }
 

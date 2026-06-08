@@ -238,10 +238,12 @@ export default function LandingClient({ slug, campaign }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="mt-10 flex flex-col items-center opacity-40">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: textMuted }}>Powered by</p>
-          <p className="text-xs font-black tracking-tight mt-1" style={{ color: textPrimary }}>ReviewLoom</p>
-        </div>
+        {campaign.showWatermark !== false && (
+          <div className="mt-10 flex flex-col items-center opacity-40">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: textMuted }}>Powered by</p>
+            <p className="text-xs font-black tracking-tight mt-1" style={{ color: textPrimary }}>ReviewLoom</p>
+          </div>
+        )}
       </main>
     </div>
   );

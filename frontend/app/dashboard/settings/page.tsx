@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { BillingService, SubscriptionOverviewResponse } from '@/services/billing-service';
@@ -9,6 +10,7 @@ import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
 
 export default function Settings() {
   const { getToken, isSignedIn } = useAuth();
+  const router = useRouter();
   const [subData, setSubData] = useState<SubscriptionOverviewResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -43,6 +45,24 @@ export default function Settings() {
   const cardBrand = subData?.cardBrand;
   const cardLast4 = subData?.cardLast4;
   const billingHistory = subData?.billingHistory ?? [];
+
+  const handleManageSubscription = async () => {
+    if (planName === 'Free Plan' || planName === 'Free') {
+      router.push('/dashboard/upgrade');
+      return;
+    }
+
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const res = await BillingService.createPortalSession(token);
+      if (res.url) {
+        window.location.href = res.url;
+      }
+    } catch (error) {
+      console.error('Failed to open portal:', error);
+    }
+  };
 
   // Percentage calculations for progress bar
   const limitPercentage = Math.min((campaignsUsed / campaignsLimit) * 100, 100);
@@ -98,8 +118,10 @@ export default function Settings() {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <button className="w-full sm:w-auto bg-primary text-on-primary px-8 py-3 rounded-xl font-bold hover:bg-primary-container transition-colors shadow-md shadow-primary/20 active:scale-95">
-                  Manage Subscription
+                <button 
+                  onClick={handleManageSubscription}
+                  className="w-full sm:w-auto bg-primary text-on-primary px-8 py-3 rounded-xl font-bold hover:bg-primary-container transition-colors shadow-md shadow-primary/20 active:scale-95">
+                  {planName === 'Free Plan' || planName === 'Free' ? 'Upgrade to Pro' : 'Manage Subscription'}
                 </button>
               </div>
             </div>

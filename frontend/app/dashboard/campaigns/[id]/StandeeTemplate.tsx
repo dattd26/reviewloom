@@ -317,20 +317,34 @@ export default function StandeeTemplate({ campaign, userConfig, qrCodeDataUrl, w
         <div style={{ flex: 1 }} />
 
         {/* Footer branding */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: px(20) }}>
-          <div style={{ height: px(1), width: px(80), background: tpl.isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }} />
-          <p
-            style={{
-              fontSize: px(22),
-              fontWeight: 800,
-              color: tpl.isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8',
-              letterSpacing: '0.25em',
-              textTransform: 'uppercase',
-            }}
-          >
-            ReviewLoom
-          </p>
-          <div style={{ height: px(1), width: px(80), background: tpl.isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: px(20), flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: px(20) }}>
+            <div style={{ height: px(1), width: px(80), background: tpl.isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }} />
+            <p
+              style={{
+                fontSize: px(22),
+                fontWeight: 800,
+                color: tpl.isDark ? 'rgba(255,255,255,0.3)' : '#94a3b8',
+                letterSpacing: '0.25em',
+                textTransform: 'uppercase',
+              }}
+            >
+              ReviewLoom
+            </p>
+            <div style={{ height: px(1), width: px(80), background: tpl.isDark ? 'rgba(255,255,255,0.15)' : '#cbd5e1' }} />
+          </div>
+          {campaign.showWatermark && (
+            <p
+              style={{
+                fontSize: px(18),
+                fontWeight: 600,
+                color: tpl.isDark ? 'rgba(255,255,255,0.2)' : '#94a3b8',
+                marginTop: px(8),
+              }}
+            >
+              Created with Free Plan - reviewloom.com
+            </p>
+          )}
         </div>
       </div>
     </div>
