@@ -49,7 +49,7 @@ export function LiveActivityFeed({ activities }: LiveActivityFeedProps) {
           </div>
         ) : (
           <div className="relative border-l-2 border-outline-variant/10 ml-4 space-y-8 pb-2">
-            {activities.map((activity, i) => {
+            {activities.map((activity) => {
               const isPositive = activity.action === 'positive';
               return (
                 <div key={activity.id} className="relative pl-8 group">
@@ -81,7 +81,7 @@ export function LiveActivityFeed({ activities }: LiveActivityFeedProps) {
                   {/* Feedback Content Box */}
                   {activity.feedbackMessage && (
                     <div className={`mt-3 p-3.5 rounded-2xl rounded-tl-sm text-sm italic border ${isPositive ? 'bg-secondary/5 border-secondary/10 text-on-surface-variant' : 'bg-error/5 border-error/10 text-on-surface-variant'}`}>
-                      "{activity.feedbackMessage}"
+                      &quot;{activity.feedbackMessage}&quot;
                     </div>
                   )}
                   

@@ -31,8 +31,6 @@ export function ReviewGrowthChart({ scansGrowth }: ReviewGrowthChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   
   const maxVal = scansGrowth.length > 0 ? Math.max(...scansGrowth.map((g) => g.total), 10) : 10;
-  const lastIndex = scansGrowth.length - 1;
-  const hasActivity = scansGrowth.some((day) => day.total > 0 || day.positive > 0 || day.negative > 0);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (scansGrowth.length === 0) return;

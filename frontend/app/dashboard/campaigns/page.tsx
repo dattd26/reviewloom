@@ -90,7 +90,7 @@ export default function CampaignList() {
     }
   };
 
-  const handleDownloadQR = async (slug: string, businessName: string) => {
+  const handleDownloadQR = async (slug: string) => {
     try {
       setDownloadingSlug(slug);
       // The scanned QR points to the campaign landing route
@@ -357,7 +357,7 @@ export default function CampaignList() {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setFilter(tab.id as any)}
+                onClick={() => setFilter(tab.id as 'all' | 'active' | 'inactive')}
                 className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all flex-1 sm:flex-initial text-center ${
                   filter === tab.id
                     ? 'bg-white text-primary shadow-sm'
@@ -485,7 +485,7 @@ export default function CampaignList() {
                     {/* Quick Actions Panel */}
                     <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-100 mt-auto">
                       <button
-                        onClick={() => handleDownloadQR(c.slug, c.businessName)}
+                        onClick={() => handleDownloadQR(c.slug)}
                         disabled={downloadingSlug === c.slug}
                         className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-sm disabled:opacity-50 cursor-pointer"
                       >
