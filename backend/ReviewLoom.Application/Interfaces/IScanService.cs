@@ -5,5 +5,5 @@ namespace ReviewLoom.Application.Interfaces;
 
 public interface IScanService
 {
-    Task LogScanAsync(string slug, LogScanDto request);
+    Task<ScanResultDto> LogScanAsync(string slug, LogScanDto request);
 }

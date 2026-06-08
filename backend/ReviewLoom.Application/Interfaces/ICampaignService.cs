@@ -9,6 +9,7 @@ public interface ICampaignService
 {
     Task<CampaignDto?> GetCampaignByIdAsync(Guid id);
     Task<CampaignDto?> GetCampaignBySlugAsync(string slug);
+    Task<PublicCampaignDto?> GetPublicCampaignBySlugAsync(string slug);
     Task<IEnumerable<CampaignDto>> GetUserCampaignsAsync(Guid userId);
     Task<CampaignDto> CreateCampaignAsync(CreateCampaignDto dto, Guid userId);
     Task<CampaignDto?> UpdateCampaignAsync(Guid id, UpdateCampaignDto dto);

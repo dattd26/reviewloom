@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReviewLoom.Application.Interfaces;
-using ReviewLoom.Domain.Interfaces;
 
 namespace ReviewLoom.Api.Controllers;
 
@@ -14,12 +13,12 @@ namespace ReviewLoom.Api.Controllers;
 public class DashboardController : ControllerBase
 {
     private readonly IDashboardService _dashboardService;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
 
-    public DashboardController(IDashboardService dashboardService, IUnitOfWork unitOfWork)
+    public DashboardController(IDashboardService dashboardService, IUserService userService)
     {
         _dashboardService = dashboardService;
-        _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [HttpGet("overview")]
@@ -44,7 +43,6 @@ public class DashboardController : ControllerBase
         var clerkId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(clerkId)) return null;
 
-        var user = await _unitOfWork.Users.GetByClerkIdAsync(clerkId);
-        return user?.Id;
+        return await _userService.GetUserIdByClerkIdAsync(clerkId);
     }
 }

@@ -1,12 +1,10 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using ReviewLoom.Domain.Entities;
-using ReviewLoom.Domain.Interfaces;
+using ReviewLoom.Application.Interfaces;
 using Svix;
 
 namespace ReviewLoom.Api.Controllers;
@@ -16,12 +14,12 @@ namespace ReviewLoom.Api.Controllers;
 public class ClerkWebhookController : ControllerBase
 {
     private readonly string _webhookSecret;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
 
-    public ClerkWebhookController(IConfiguration configuration, IUnitOfWork unitOfWork)
+    public ClerkWebhookController(IConfiguration configuration, IUserService userService)
     {
         _webhookSecret = configuration["Clerk:WebhookSecret"] ?? string.Empty;
-        _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [HttpPost("clerk")]
@@ -95,26 +93,14 @@ public class ClerkWebhookController : ControllerBase
 
             if (!string.IsNullOrEmpty(clerkId) && !string.IsNullOrEmpty(email))
             {
-                var existingUser = await _unitOfWork.Users.GetByClerkIdAsync(clerkId);
-                if (existingUser == null)
+                string? firstName = null;
+                // Attempt to extract name if available (optional)
+                if (userObj.TryGetProperty("first_name", out var firstNameElem) && firstNameElem.ValueKind == JsonValueKind.String)
                 {
-                    var newUser = new User
-                    {
-                        Id = Guid.NewGuid(),
-                        ClerkId = clerkId,
-                        Email = email,
-                        CreatedAt = DateTime.UtcNow
-                    };
-
-                    // Attempt to extract name if available (optional)
-                    if (userObj.TryGetProperty("first_name", out var firstNameElem) && firstNameElem.ValueKind == JsonValueKind.String)
-                    {
-                        newUser.BusinessName = firstNameElem.GetString(); // Use as fallback business name
-                    }
-
-                    await _unitOfWork.Users.AddAsync(newUser);
-                    await _unitOfWork.CompleteAsync();
+                    firstName = firstNameElem.GetString(); // Use as fallback business name
                 }
+
+                await _userService.CreateUserAsync(clerkId, email, firstName);
             }
         }
         else if (eventType == "user.deleted")
@@ -124,12 +110,7 @@ public class ClerkWebhookController : ControllerBase
 
             if (!string.IsNullOrEmpty(clerkId))
             {
-                var existingUser = await _unitOfWork.Users.GetByClerkIdAsync(clerkId);
-                if (existingUser != null)
-                {
-                    _unitOfWork.Users.Remove(existingUser);
-                    await _unitOfWork.CompleteAsync();
-                }
+                await _userService.DeleteUserAsync(clerkId);
             }
         }
 

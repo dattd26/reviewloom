@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReviewLoom.Application.Interfaces;
-using ReviewLoom.Domain.Interfaces;
 
 namespace ReviewLoom.Api.Controllers;
 
@@ -14,12 +13,12 @@ namespace ReviewLoom.Api.Controllers;
 public class InboxController : ControllerBase
 {
     private readonly IInboxService _inboxService;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
 
-    public InboxController(IInboxService inboxService, IUnitOfWork unitOfWork)
+    public InboxController(IInboxService inboxService, IUserService userService)
     {
         _inboxService = inboxService;
-        _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -61,8 +60,7 @@ public class InboxController : ControllerBase
         var clerkId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(clerkId)) return null;
 
-        var user = await _unitOfWork.Users.GetByClerkIdAsync(clerkId);
-        return user?.Id;
+        return await _userService.GetUserIdByClerkIdAsync(clerkId);
     }
 }
 

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReviewLoom.Application.Interfaces;
 using ReviewLoom.Application.Services;
-using ReviewLoom.Domain.Interfaces;
 
 namespace ReviewLoom.Api.Controllers;
 
@@ -16,13 +15,13 @@ public class BillingController : ControllerBase
 {
     private readonly IStripeService _stripeService;
     private readonly IBillingOverviewService _billingOverviewService;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
 
-    public BillingController(IStripeService stripeService, IBillingOverviewService billingOverviewService, IUnitOfWork unitOfWork)
+    public BillingController(IStripeService stripeService, IBillingOverviewService billingOverviewService, IUserService userService)
     {
         _stripeService = stripeService;
         _billingOverviewService = billingOverviewService;
-        _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [Authorize]
@@ -73,8 +72,7 @@ public class BillingController : ControllerBase
         var clerkId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(clerkId)) return null;
 
-        var user = await _unitOfWork.Users.GetByClerkIdAsync(clerkId);
-        return user?.Id;
+        return await _userService.GetUserIdByClerkIdAsync(clerkId);
     }
 }
 

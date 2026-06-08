@@ -51,9 +51,13 @@ sequenceDiagram
 
 ### Các tầng kiến trúc (Cơ cấu Backend):
 *   **ReviewLoom.Domain:** Tầng trung tâm chứa các Entity cốt lõi (`User`, `Campaign`, `Scan`, `Subscription`, `CampaignStyle`, `CampaignSettings`, `CampaignStandeeConfig`), các Enum (`CampaignStatus`) và các Interface định nghĩa Repository (`IRepository`, `ICampaignRepository`, `IScanRepository`, `IUserRepository`, `IStatsRepository`, `IUnitOfWork`).
-*   **ReviewLoom.Application:** Chứa các logic nghiệp vụ (Services: `CampaignService`, `ScanService`, `StatsService`), định nghĩa DTOs (`CampaignDto`, `CreateCampaignDto`, `LogScanDto`, `CampaignStatsDto`) và các extension method mapping giữa Entity và DTO (`CampaignMappingExtensions.cs`).
+*   **ReviewLoom.Application:** Chứa các logic nghiệp vụ (Services: `CampaignService`, `ScanService`, `StatsService`, `UserService`), định nghĩa DTOs (`CampaignDto`, `CreateCampaignDto`, `LogScanDto`, `CampaignStatsDto`, `PublicCampaignDto`, `ScanResultDto`) và các extension method mapping giữa Entity và DTO (`CampaignMappingExtensions.cs`).
 *   **ReviewLoom.Infrastructure:** Chi tiết triển khai kỹ thuật bao gồm EF Core DbContext (`ReviewLoomDbContext`), các lớp Repository cụ thể tương tác DB (`Repository`, `CampaignRepository`, `ScanRepository`, `UserRepository`, `StatsRepository`, `UnitOfWork`), và các tích hợp dịch vụ bên ngoài (`StripeService`, `CloudinaryMediaService`).
 *   **ReviewLoom.Api:** Điểm đầu vào ứng dụng REST API, các Controller (`CampaignsController`, `RController`, `MediaController`, `BillingController`, `ClerkWebhookController`) và cấu hình middleware, Authentication/Authorization trong `Program.cs`.
+
+> [!IMPORTANT]
+> **Quy tắc Kiến trúc bắt buộc (Architectural Layering Rule)**:
+> Để duy trì tính độc lập giữa các tầng, **API Controllers tuyệt đối KHÔNG ĐƯỢC PHÉP inject trực tiếp `IUnitOfWork` hoặc bất kỳ Repository nào**. Mọi truy cập dữ liệu và kiểm tra logic nghiệp vụ phải đi qua Application Services. Xem chi tiết tại [Clean Architecture Rules](file:///home/ducdat/IT/CNPM/LT-Web-ASP.Net-Core/reviewloom/docs/architecture/clean_architecture_rules.md).
 
 ### Các Design Pattern sử dụng:
 1.  **Repository & Unit of Work Pattern:** Che giấu chi tiết của EF Core DbContext khỏi tầng nghiệp vụ, quản lý giao dịch tập trung (`IUnitOfWork.CompleteAsync()`).
@@ -133,8 +137,9 @@ reviewloom/
 │   ├── services/                        # Gọi API sang Backend (campaign-service.ts, scan-service.ts...)
 │   └── lib/                             # Axios/Fetch client base config
 └── docs/                                # Tài liệu đặc tả hệ thống
-    ├── dashboard_context.md             # Tài liệu chi tiết module Dashboard & Inbox (Mới)
-    └── frontend_context.md              # Tài liệu chi tiết cấu trúc & kiến trúc Next.js Frontend (Mới)
+    ├── architecture/                    # Tài liệu kiến trúc & quy tắc Clean Architecture (Mới)
+    ├── dashboard_context.md             # Tài liệu chi tiết module Dashboard & Inbox
+    └── frontend_context.md              # Tài liệu chi tiết cấu trúc & kiến trúc Next.js Frontend
 ```
 
 ---

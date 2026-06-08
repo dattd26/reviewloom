@@ -53,8 +53,46 @@ public class CampaignService : ICampaignService
         return campaign.ToDto(stats);
     }
 
+    public async Task<PublicCampaignDto?> GetPublicCampaignBySlugAsync(string slug)
+    {
+        var campaignEntity = await _unitOfWork.Campaigns.GetBySlugAsync(slug);
+        if (campaignEntity == null || campaignEntity.Status != ReviewLoom.Domain.Enums.CampaignStatus.Published)
+            return null;
+
+        var campaign = await GetCampaignBySlugAsync(slug);
+        if (campaign == null)
+            return null;
+
+        var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(campaignEntity.UserId);
+        var subscription = System.Linq.Enumerable.FirstOrDefault(subscriptions, s => s.Status == "active");
+        bool isPro = subscription != null && subscription.PlanId != null;
+
+        return new PublicCampaignDto
+        {
+            BusinessName = campaign.BusinessName,
+            LogoUrl = campaign.LogoUrl,
+            GoogleReviewUrl = campaign.GoogleReviewUrl,
+            Style = campaign.Style,
+            Settings = campaign.Settings,
+            ShowWatermark = !isPro
+        };
+    }
+
     public async Task<CampaignDto> CreateCampaignAsync(CreateCampaignDto dto, Guid userId)
     {
+        var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(userId);
+        var subscription = System.Linq.Enumerable.FirstOrDefault(subscriptions, s => s.Status == "active");
+        bool isPro = subscription != null && subscription.PlanId != null;
+
+        if (!isPro)
+        {
+            var userCampaigns = await GetUserCampaignsAsync(userId);
+            if (System.Linq.Enumerable.Count(userCampaigns) >= 1)
+            {
+                throw new InvalidOperationException("Free plan allows a maximum of 1 campaign. Please upgrade to Pro.");
+            }
+        }
+
         var slug = GenerateSlug(dto.BusinessName);
         var campaign = dto.CreateEntity(userId, slug);
 

@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReviewLoom.Application.DTOs;
 using ReviewLoom.Application.Interfaces;
-using ReviewLoom.Domain.Interfaces;
 
 namespace ReviewLoom.Api.Controllers;
 
@@ -16,13 +15,13 @@ public class CampaignsController : ControllerBase
 {
     private readonly ICampaignService _campaignService;
     private readonly IStatsService _statsService;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
 
-    public CampaignsController(ICampaignService campaignService, IStatsService statsService, IUnitOfWork unitOfWork)
+    public CampaignsController(ICampaignService campaignService, IStatsService statsService, IUserService userService)
     {
         _campaignService = campaignService;
         _statsService = statsService;
-        _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -62,21 +61,15 @@ public class CampaignsController : ControllerBase
         var userId = await GetCurrentUserIdAsync();
         if (userId == null) return Unauthorized();
 
-        var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(userId.Value);
-        var subscription = System.Linq.Enumerable.FirstOrDefault(subscriptions, s => s.Status == "active");
-        bool isPro = subscription != null && subscription.PlanId != null;
-
-        if (!isPro)
+        try
         {
-            var userCampaigns = await _campaignService.GetUserCampaignsAsync(userId.Value);
-            if (System.Linq.Enumerable.Count(userCampaigns) >= 1)
-            {
-                return BadRequest("Free plan allows a maximum of 1 campaign. Please upgrade to Pro.");
-            }
+            var campaign = await _campaignService.CreateCampaignAsync(dto, userId.Value);
+            return CreatedAtAction(nameof(GetById), new { id = campaign.Id }, campaign);
         }
-
-        var campaign = await _campaignService.CreateCampaignAsync(dto, userId.Value);
-        return CreatedAtAction(nameof(GetById), new { id = campaign.Id }, campaign);
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPut("{id}")]
@@ -104,7 +97,6 @@ public class CampaignsController : ControllerBase
         var clerkId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(clerkId)) return null;
 
-        var user = await _unitOfWork.Users.GetByClerkIdAsync(clerkId);
-        return user?.Id;
+        return await _userService.GetUserIdByClerkIdAsync(clerkId);
     }
 }
