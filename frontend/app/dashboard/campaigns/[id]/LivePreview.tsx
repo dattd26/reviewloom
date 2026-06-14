@@ -80,7 +80,10 @@ export default function LivePreview({ campaign, onChange }: Props) {
     const timer = setTimeout(() => {
       const generateQR = async () => {
         try {
-          const url = await QRCode.toDataURL(campaign.googleReviewUrl || 'https://reviewloom.com', {
+          const scanUrl = campaign.slug
+            ? `${window.location.origin}/r/${campaign.slug}`
+            : `${window.location.origin}/r/preview-placeholder`;
+          const url = await QRCode.toDataURL(scanUrl, {
             errorCorrectionLevel: 'H',
             margin: 1,
             width: 512,
@@ -100,7 +103,7 @@ export default function LivePreview({ campaign, onChange }: Props) {
     // Mỗi lần có change huỷ timer cũ và tạo một setTimeout(150ms) mới
     // => Khi user đang kéo color thì không generate QR liên tục
     return () => clearTimeout(timer);
-  }, [campaign.googleReviewUrl, campaign.style.qrDotColor]);
+  }, [campaign.slug, campaign.style.qrDotColor]);
 
   const executeDownload = async (type: 'qr' | 'standee') => {
     const ref = type === 'qr' ? qrOnlyRef : printableRef;

@@ -40,6 +40,7 @@ export interface CampaignStyle {
 
 export interface CampaignConfig {
   // Basic
+  slug?: string;
   businessName: string;
   googleReviewUrl: string;
   placement: string;
@@ -69,6 +70,7 @@ export const DEFAULT_STANDEE_CONFIG: StandeeUserConfig = {
 };
 
 export const DEFAULT_CAMPAIGN: CampaignConfig = {
+  slug: '',
   businessName: '',
   googleReviewUrl: '',
   placement: '',

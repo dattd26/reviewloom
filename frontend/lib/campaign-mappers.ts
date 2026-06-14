@@ -5,6 +5,7 @@ import { CampaignConfig, DEFAULT_CAMPAIGN } from "@/types/campaign";
  */
 export const mapConfigToDto = (config: CampaignConfig) => {
   return {
+    slug: config.slug,
     businessName: config.businessName,
     googleReviewUrl: config.googleReviewUrl,
     placement: config.placement,
@@ -45,6 +46,7 @@ export const mapConfigToDto = (config: CampaignConfig) => {
 export const mapDtoToConfig = (dto: any): CampaignConfig => {
   return {
     ...DEFAULT_CAMPAIGN,
+    slug: dto.slug || '',
     businessName: dto.businessName || '',
     googleReviewUrl: dto.googleReviewUrl || '',
     placement: dto.placement || '',

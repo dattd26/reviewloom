@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
     - Standardized type and helper imports across the entire frontend project.
 
 ### Fixed
+- **QR Code Routing Target**: Fixed the QR code URL generation in the Live Preview component (`LivePreview.tsx`) to target the correct campaign routing path (`/r/[slug]`) rather than routing users directly to Google Maps. Also mapped the campaign `slug` to the frontend state configuration model to allow resolving URLs in the client builder.
 - **Backend**: Fixed `Campaign` mapping logic in `CampaignMappingExtensions.ToDto()` where the `IsActive` property on `CampaignDto` was not initialized, resulting in the campaign list page in the dashboard always showing campaigns as "Paused" even if their database status was `1` (Published).
 - **Frontend**: Fixed infinite rendering loop and API call spam on the Private Feedback Inbox page ([page.tsx](file:///home/ducdat/IT/CNPM/LT-Web-ASP.Net-Core/reviewloom/frontend/app/dashboard/inbox/page.tsx)).
   - Isolated the `selectedFeedback` dependency from the `handleMarkStatus` callback by using a functional state updater: `setSelectedFeedback(prev => ...)`.
