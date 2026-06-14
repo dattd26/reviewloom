@@ -15,12 +15,14 @@ public class UnitOfWork : IUnitOfWork
         Users = new UserRepository(_context);
         Scans = new ScanRepository(_context);
         Subscriptions = new SubscriptionRepository(_context);
+        StandeeTemplates = new StandeeTemplateRepository(_context);
     }
 
     public ICampaignRepository Campaigns { get; private set; }
     public IUserRepository Users { get; private set; }
     public IScanRepository Scans { get; private set; }
     public ISubscriptionRepository Subscriptions { get; private set; }
+    public IStandeeTemplateRepository StandeeTemplates { get; private set; }
 
     public async Task<int> CompleteAsync()
     {

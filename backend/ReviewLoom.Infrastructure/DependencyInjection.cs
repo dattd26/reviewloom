@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
         services.AddScoped<IStripeService, StripeService>();
         services.AddScoped<IMediaService, CloudinaryMediaService>();
+        services.AddScoped<IStandeeTemplateRepository, StandeeTemplateRepository>();
 
         return services;
     }
