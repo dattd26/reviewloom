@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Dynamic Standee Template Catalog**:
+  - Migrated the standee template catalog definitions from frontend hardcoding to the PostgreSQL database under the new `standee_templates` table.
+  - Added ModelBuilder seed data to initialize 16 templates (12 new industry-specific templates grouped by Restaurant, Coffee Shop, Salon & Spa, Home Services, plus 4 original templates for backward compatibility).
+  - Created `IStandeeTemplateRepository`, `IStandeeTemplateService`, and `StandeeTemplateService` to manage templates.
+  - Exposed GET `/api/v1/StandeeTemplates` endpoint via `StandeeTemplatesController` to serve template metadata to the client.
+  - Refactored `CampaignService` to dynamically query the database for premium/pro template validation instead of using a hardcoded template ID list.
+  - Updated the Next.js frontend to retrieve template catalogs from the API, group them by category in the Standee Designer sidebar, show dynamic loading states, and dynamically resolve layouts/styling styles for all 16 template configurations.
+
 ### Refactored
 - **Clean Architecture & Layering Enforcement**:
   - Removed direct dependencies on `IUnitOfWork` and repositories from all API Controllers (`RController`, `CampaignsController`, `InboxController`, `DashboardController`, `BillingController`, `ClerkWebhookController`).
