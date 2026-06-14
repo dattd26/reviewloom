@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import Link from 'next/link';
 import QRCode from 'qrcode';
 import { toPng } from 'html-to-image';
 
-import { CampaignConfig, StandeeTemplate, StandeeUserConfig, DEFAULT_CAMPAIGN } from '@/types/campaign';
+import { CampaignConfig, StandeeTemplate, StandeeUserConfig } from '@/types/campaign';
 import { CampaignService } from '@/services/campaign-service';
 import { StandeeTemplateService } from '@/services/standee-template-service';
-import { mapDtoToConfig, mapConfigToDto } from '@/lib/campaign-mappers';
+import { mapDtoToConfig } from '@/lib/campaign-mappers';
 import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
 
 import StandeeTemplateComponent, { STANDEE_TEMPLATES_MAP } from '../StandeeTemplate';
@@ -20,7 +20,6 @@ const PREVIEW_WIDTH = 360;
 
 export default function StandeeDesignerPage() {
   const { id } = useParams() as { id: string };
-  const router = useRouter();
   const { getToken } = useAuth();
 
   const [campaign, setCampaign] = useState<CampaignConfig | null>(null);
@@ -79,13 +78,13 @@ export default function StandeeDesignerPage() {
       }
     }, 150);
     return () => clearTimeout(timer);
-  }, [campaign?.slug, campaign?.style.qrDotColor]);
+  }, [campaign]);
 
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const saveChanges = useCallback((updatedCampaign: CampaignConfig) => {
     if (saveTimeout) clearTimeout(saveTimeout);
-    
+
     const timeout = setTimeout(async () => {
       try {
         setIsSaving(true);
@@ -98,7 +97,7 @@ export default function StandeeDesignerPage() {
         setIsSaving(false);
       }
     }, 1000);
-    
+
     setSaveTimeout(timeout);
   }, [getToken, id, saveTimeout]);
 
@@ -131,8 +130,7 @@ export default function StandeeDesignerPage() {
   if (isLoading || !campaign) return <DashboardLoading />;
 
   const userConfig = campaign.standeeConfig;
-  const selectedTemplate = templates.find((t) => t.id === userConfig.templateId) || templates[0];
-  
+
   const categories: Record<string, string> = {
     general: 'General & Classic',
     restaurant: 'Restaurants & Dining',
@@ -169,7 +167,7 @@ export default function StandeeDesignerPage() {
             </p>
           </div>
         </div>
-        
+
         <button
           onClick={handleDownload}
           disabled={isDownloading || !qrCodeDataUrl}
@@ -191,7 +189,7 @@ export default function StandeeDesignerPage() {
         {/* Left Sidebar (Controls) */}
         <div className="w-[380px] bg-white border-r border-outline-variant/20 overflow-y-auto shrink-0 flex flex-col">
           <div className="p-6 space-y-8">
-            
+
             {/* Headline Settings */}
             <div>
               <h3 className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-3">Copywriting</h3>
@@ -230,14 +228,12 @@ export default function StandeeDesignerPage() {
                     e.preventDefault();
                     if (campaign.logoUrl) handleConfigChange({ showLogo: !userConfig.showLogo });
                   }}
-                  className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
-                    userConfig.showLogo && campaign.logoUrl ? 'bg-primary' : 'bg-surface-container-highest'
-                  } ${!campaign.logoUrl ? 'opacity-50 pointer-events-none' : ''}`}
+                  className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${userConfig.showLogo && campaign.logoUrl ? 'bg-primary' : 'bg-surface-container-highest'
+                    } ${!campaign.logoUrl ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                   <span
-                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                      userConfig.showLogo && campaign.logoUrl ? 'translate-x-5' : 'translate-x-0'
-                    }`}
+                    className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${userConfig.showLogo && campaign.logoUrl ? 'translate-x-5' : 'translate-x-0'
+                      }`}
                   />
                 </div>
               </label>
@@ -250,7 +246,7 @@ export default function StandeeDesignerPage() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">Template Catalog</h3>
               </div>
-              
+
               <div className="space-y-6">
                 {Object.entries(categories).map(([catKey, catLabel]) => {
                   const catTemplates = templatesByCategory[catKey] || [];
@@ -272,13 +268,12 @@ export default function StandeeDesignerPage() {
                               onClick={() => !isLocked && handleConfigChange({ templateId: tpl.id })}
                               disabled={isLocked}
                               title={isLocked ? 'Upgrade to Pro to unlock this template' : ''}
-                              className={`relative rounded-2xl p-3 text-left transition-all border-2 group ${
-                                isActive
-                                  ? 'border-primary bg-primary/5 shadow-sm'
-                                  : isLocked
+                              className={`relative rounded-2xl p-3 text-left transition-all border-2 group ${isActive
+                                ? 'border-primary bg-primary/5 shadow-sm'
+                                : isLocked
                                   ? 'border-outline-variant/10 bg-surface-container-low opacity-60 cursor-not-allowed'
                                   : 'border-outline-variant/20 hover:border-outline-variant/40 bg-white'
-                              }`}
+                                }`}
                             >
                               <div
                                 className="w-full h-16 rounded-xl mb-3 overflow-hidden flex flex-col items-center justify-center gap-1 relative border border-black/5"
@@ -296,7 +291,7 @@ export default function StandeeDesignerPage() {
                               <p className={`text-[11px] font-black tracking-wide truncate ${isActive ? 'text-primary' : 'text-on-surface'}`}>
                                 {tpl.name}
                               </p>
-                              
+
                               {tpl.isPremium && (
                                 <span className="absolute top-2 right-2 px-1.5 py-0.5 bg-amber-400/20 text-amber-700 text-[8px] font-black uppercase tracking-wider rounded-md">
                                   Pro
@@ -335,7 +330,7 @@ export default function StandeeDesignerPage() {
             </div>
 
             {/* Standee Shadow/Container */}
-            <div 
+            <div
               className="relative shadow-2xl rounded-[2px] bg-white overflow-hidden"
               style={{ width: PREVIEW_WIDTH, height: PREVIEW_WIDTH * 1.5, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.05)' }}
             >

@@ -61,18 +61,12 @@ function RatingPreview({ campaign }: { campaign: CampaignConfig }) {
   );
 }
 
-export default function LivePreview({ campaign, onChange }: Props) {
+export default function LivePreview({ campaign }: Props) {
   const params = useParams();
   const id = params?.id as string;
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const qrOnlyRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
 
   // Generate real QR Code with Debouncing to improve performance during color dragging
   useEffect(() => {
@@ -363,7 +357,7 @@ export default function LivePreview({ campaign, onChange }: Props) {
         {/* Standee Designer CTA Card */}
         <div className="mt-4 bg-gradient-to-br from-surface-container-lowest to-surface-container-low p-5 rounded-3xl shadow-sm border border-outline-variant/10 flex flex-col gap-4 w-[300px] sm:w-[320px] transition-all duration-500 animate-in fade-in slide-in-from-bottom-6 relative z-30 overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl transition-all duration-500 group-hover:bg-primary/10" />
-          
+
           <div className="flex items-center gap-3 relative z-10">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[20px]">view_quilt</span>
