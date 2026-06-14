@@ -18,7 +18,7 @@ export default function CampaignList() {
   const [subData, setSubData] = useState<SubscriptionOverviewResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<CampaignResponse | null>(null);
-  
+
   // Filtering and Searching states
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,7 +44,7 @@ export default function CampaignList() {
         setIsLoading(false);
       }
     };
-    setTimeout(fetchCampaigns, 1000);
+    fetchCampaigns();
   }, [getToken]);
 
   // GSAP animation hook for entering components
@@ -128,8 +128,8 @@ export default function CampaignList() {
   const totalNegative = campaigns.reduce((acc, c) => acc + (c.stats?.negativeScans || 0), 0);
   const activeCount = campaigns.filter(c => c.isActive).length;
 
-  const overallConversionRate = totalScans > 0 
-    ? Math.round((totalPositive / totalScans) * 100) 
+  const overallConversionRate = totalScans > 0
+    ? Math.round((totalPositive / totalScans) * 100)
     : 0;
 
   // Sort and select top 3 campaigns for the leaderboard
@@ -147,14 +147,14 @@ export default function CampaignList() {
 
   // Filter campaigns list
   const filteredCampaigns = campaigns.filter(c => {
-    const matchesFilter = 
-      filter === 'all' || 
-      (filter === 'active' && c.isActive) || 
+    const matchesFilter =
+      filter === 'all' ||
+      (filter === 'active' && c.isActive) ||
       (filter === 'inactive' && !c.isActive);
-    
+
     const matchesSearch = c.businessName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          c.slug.toLowerCase().includes(searchQuery.toLowerCase());
-                          
+      c.slug.toLowerCase().includes(searchQuery.toLowerCase());
+
     return matchesFilter && matchesSearch;
   });
 
@@ -200,7 +200,7 @@ export default function CampaignList() {
 
       {/* Main Container */}
       <div className="p-8 max-w-7xl mx-auto w-full flex-1">
-        
+
         {/* Welcome Section */}
         <div className="mb-12 animate-fade-in">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] uppercase tracking-[0.2em] font-black mb-4">
@@ -216,7 +216,7 @@ export default function CampaignList() {
 
         {/* Aggregate Stats (Bento Grid) */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
-          
+
           {/* Tile 1: Total Customer Scans */}
           <div className="bento-tile col-span-12 md:col-span-6 lg:col-span-4 bg-slate-100/50 border border-slate-200/40 rounded-[2rem] p-2 shadow-sm flex flex-col justify-between min-h-[200px]">
             <div className="bg-white border border-slate-200/50 rounded-[calc(2rem-0.5rem)] p-6 flex-1 flex flex-col justify-between">
@@ -272,7 +272,7 @@ export default function CampaignList() {
           {/* Tile 4: Campaign Performance Leaderboard (Asymmetrical Block) */}
           <div className="bento-tile col-span-12 bg-slate-100/50 border border-slate-200/40 rounded-[2rem] p-2 shadow-sm min-h-[160px] flex">
             <div className="bg-white border border-slate-200/50 rounded-[calc(2rem-0.5rem)] p-6 flex-1 flex flex-col gap-6">
-              
+
               {/* Leaderboard Header */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
                 <div>
@@ -288,21 +288,19 @@ export default function CampaignList() {
                 <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
                   <button
                     onClick={() => setRankingMetric('scans')}
-                    className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${
-                      rankingMetric === 'scans'
-                        ? 'bg-white text-primary shadow-sm'
-                        : 'text-outline hover:text-on-surface'
-                    }`}
+                    className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${rankingMetric === 'scans'
+                      ? 'bg-white text-primary shadow-sm'
+                      : 'text-outline hover:text-on-surface'
+                      }`}
                   >
                     Most Scans
                   </button>
                   <button
                     onClick={() => setRankingMetric('satisfaction')}
-                    className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${
-                      rankingMetric === 'satisfaction'
-                        ? 'bg-white text-primary shadow-sm'
-                        : 'text-outline hover:text-on-surface'
-                    }`}
+                    className={`px-3 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${rankingMetric === 'satisfaction'
+                      ? 'bg-white text-primary shadow-sm'
+                      : 'text-outline hover:text-on-surface'
+                      }`}
                   >
                     Highest Satisfaction
                   </button>
@@ -335,9 +333,8 @@ export default function CampaignList() {
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <span
-                            className={`px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider shrink-0 ${
-                              rankColors[idx]?.bg || 'bg-slate-100 border-slate-200 text-slate-500'
-                            }`}
+                            className={`px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider shrink-0 ${rankColors[idx]?.bg || 'bg-slate-100 border-slate-200 text-slate-500'
+                              }`}
                           >
                             {rankColors[idx]?.label || `${idx + 1}`}
                           </span>
@@ -375,11 +372,10 @@ export default function CampaignList() {
               <button
                 key={tab.id}
                 onClick={() => setFilter(tab.id as 'all' | 'active' | 'inactive')}
-                className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all flex-1 sm:flex-initial text-center ${
-                  filter === tab.id
-                    ? 'bg-white text-primary shadow-sm'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                }`}
+                className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all flex-1 sm:flex-initial text-center ${filter === tab.id
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
               >
                 {tab.label}
               </button>
@@ -427,7 +423,7 @@ export default function CampaignList() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {filteredCampaigns.map((c) => {
-              const positiveRate = c.stats?.totalScans > 0 
+              const positiveRate = c.stats?.totalScans > 0
                 ? Math.round((c.stats.positiveScans / c.stats.totalScans) * 100)
                 : 0;
 
@@ -437,7 +433,7 @@ export default function CampaignList() {
                   className="campaign-card bg-slate-100/50 border border-slate-200/40 rounded-[2.5rem] p-2 shadow-sm transition-all duration-500 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 group"
                 >
                   <div className="bg-white border border-slate-200/50 rounded-[calc(2.5rem-0.5rem)] p-6 flex flex-col justify-between h-full">
-                    
+
                     {/* Campaign Info */}
                     <div className="flex items-start justify-between gap-4 mb-6">
                       <div className="flex items-center gap-4">
