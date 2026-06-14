@@ -101,19 +101,30 @@ export default function CampaignBuilder() {
       if (isEditMode) {
         await CampaignService.updateCampaign(id, campaignToSave, token);
       } else {
-        const result = await CampaignService.createCampaign(campaignToSave, token);
+        try {
+          const result = await CampaignService.createCampaign(campaignToSave, token);
+          // Transition to edit mode immediately after creation to prevent duplicate POSTs
+          if (result && result.id) {
+            router.replace(`/dashboard/campaigns/${result.id}`, { scroll: false });
 
-        // Transition to edit mode immediately after creation to prevent duplicate POSTs
-        if (result && result.id) {
-          router.replace(`/dashboard/campaigns/${result.id}`, { scroll: false });
-
-          if (isAutoSave) {
-            // Stop here; the router change will trigger a re-render/fetch which syncs state
-            setIsDirty(false);
-            setSaveStatus('saved');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-            return;
+            if (isAutoSave) {
+              // Stop here; the router change will trigger a re-render/fetch which syncs state
+              setIsDirty(false);
+              setSaveStatus('saved');
+              setTimeout(() => setSaveStatus('idle'), 2000);
+              return;
+            }
           }
+        } catch (error: unknown) {
+          const isErrInstance = error instanceof Error;
+          const errMessage = isErrInstance ? error.message : "Failed to save changes. Please check your connection and try again.";
+          console.error("[CampaignSave] Failed to create campaign:", isErrInstance ? error : new Error(String(error)));
+          setSaveStatus('error');
+          if (!isAutoSave) {
+            toast.error(errMessage);
+          }
+
+          return;
         }
       }
 

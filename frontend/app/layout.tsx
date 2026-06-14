@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" className="light">
+      <html lang="en" className="light" suppressHydrationWarning>
         <body className={`${manrope.variable} ${inter.variable} antialiased font-body bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed`}>
           <Toaster position="bottom-right" />
           {children}
