@@ -12,12 +12,6 @@ namespace ReviewLoom.Application.Services;
 
 public class CampaignService : ICampaignService
 {
-    private static readonly HashSet<string> ProStandeeTemplateIds = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "prestige_dark",
-        "salon_blush"
-    };
-
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStatsRepository _statsRepository;
 
@@ -116,12 +110,16 @@ public class CampaignService : ICampaignService
         var campaign = await _unitOfWork.Campaigns.GetFullByIdAsync(id);
         if (campaign == null) return null;
 
-        if (dto.StandeeConfig != null && ProStandeeTemplateIds.Contains(dto.StandeeConfig.TemplateId))
+        if (dto.StandeeConfig != null)
         {
-            var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(campaign.UserId);
-            if (!HasProSubscription(subscriptions))
+            var template = await _unitOfWork.StandeeTemplates.GetByIdAsync(dto.StandeeConfig.TemplateId);
+            if (template != null && template.IsPremium)
             {
-                throw new InvalidOperationException("This standee template requires a Pro subscription.");
+                var subscriptions = await _unitOfWork.Subscriptions.GetByUserIdAsync(campaign.UserId);
+                if (!HasProSubscription(subscriptions))
+                {
+                    throw new InvalidOperationException("This standee template requires a Pro subscription.");
+                }
             }
         }
 

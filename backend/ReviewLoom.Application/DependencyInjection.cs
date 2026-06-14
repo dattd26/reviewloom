@@ -15,6 +15,7 @@ public static class DependencyInjection
         services.AddScoped<IInboxService, InboxService>();
         services.AddScoped<IBillingOverviewService, BillingOverviewService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IStandeeTemplateService, StandeeTemplateService>();
 
         return services;
     }
