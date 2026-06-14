@@ -1,11 +1,13 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { toPng } from 'html-to-image';
-import { CampaignConfig } from '@/types/campaign';
-import StandeeTemplate, {
-  STANDEE_TEMPLATES,
+import { useAuth } from '@clerk/nextjs';
+import { CampaignConfig, StandeeTemplate } from '@/types/campaign';
+import { StandeeTemplateService } from '@/services/standee-template-service';
+import StandeeTemplateComponent, {
+  STANDEE_TEMPLATES_MAP,
 } from './StandeeTemplate';
 
 interface Props {
@@ -23,12 +25,54 @@ const PREVIEW_WIDTH = 340;
 
 export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, onClose, onChange }: Props) {
   const userConfig = campaign.standeeConfig;
+  const { getToken } = useAuth();
+  
+  const [templates, setTemplates] = useState<StandeeTemplate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    async function loadTemplates() {
+      try {
+        setIsLoading(true);
+        const token = await getToken();
+        if (token) {
+          const list = await StandeeTemplateService.getTemplates(token);
+          setTemplates(list);
+        }
+      } catch (err) {
+        console.error('Failed to load standee templates:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    if (isOpen) {
+      loadTemplates();
+    }
+  }, [isOpen, getToken]);
+
   if (!isOpen) return null;
 
-  const selectedTemplate = STANDEE_TEMPLATES.find((t) => t.id === userConfig.templateId)!;
+  const selectedTemplate = templates.find((t) => t.id === userConfig.templateId) || templates[0];
+  const selectedTemplateStyle = selectedTemplate
+    ? (STANDEE_TEMPLATES_MAP[selectedTemplate.id] || STANDEE_TEMPLATES_MAP.minimal_white)
+    : STANDEE_TEMPLATES_MAP.minimal_white;
+
+  const categories: Record<string, string> = {
+    general: 'General & Classic',
+    restaurant: 'Restaurants & Dining',
+    coffee: 'Coffee Shops & Cafes',
+    salon: 'Salons, Spas & Beauty',
+    services: 'Home & Professional Services'
+  };
+
+  const templatesByCategory = templates.reduce((acc, tpl) => {
+    const cat = tpl.category || 'general';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(tpl);
+    return acc;
+  }, {} as Record<string, StandeeTemplate[]>);
 
   const handleDownload = async () => {
     if (!exportRef.current) return;
@@ -79,77 +123,111 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
 
             {/* Template picker */}
             <div>
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
-                Template
-              </h3>
-              <div className="grid grid-cols-2 gap-2.5">
-                {STANDEE_TEMPLATES.map((tpl) => {
-                  const isActive = userConfig.templateId === tpl.id;
-                  const accent = tpl.accentColor ?? campaign.style.primaryColor;
-                  const isLocked = tpl.isPro && campaign.showWatermark;
-                  return (
-                    <button
-                      key={tpl.id}
-                      onClick={() => !isLocked && onChange({ templateId: tpl.id })}
-                      disabled={isLocked}
-                      title={isLocked ? 'Upgrade to Pro to unlock this template' : ''}
-                      className={`relative rounded-2xl p-3.5 text-left transition-all border-2 group ${isActive
-                          ? 'border-primary bg-primary/5 shadow-sm'
-                          : isLocked ? 'border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed' : 'border-slate-100 hover:border-slate-200 bg-white'
-                        }`}
-                    >
-                      {/* Swatch */}
-                      <div
-                        className="w-full h-14 rounded-xl mb-2.5 overflow-hidden flex flex-col items-center justify-center gap-1 relative"
-                        style={{ background: tpl.bgGradient ?? tpl.bgColor }}
-                      >
-                        {/* Mini accent bar */}
-                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent }} />
-                        <div
-                          className="w-8 h-8 rounded-md"
-                          style={{ background: tpl.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.8)', border: `1px solid ${tpl.surfaceBorder}` }}
-                        />
+              {isLoading ? (
+                <div>
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
+                    Loading Catalog...
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {[1, 2, 3, 4].map((n) => (
+                      <div key={n} className="h-28 rounded-2xl bg-slate-100/70 animate-pulse border-2 border-transparent" />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {Object.entries(categories).map(([catKey, catLabel]) => {
+                    const catTemplates = templatesByCategory[catKey] || [];
+                    if (catTemplates.length === 0) return null;
+
+                    return (
+                      <div key={catKey}>
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
+                          {catLabel}
+                        </h3>
+                        <div className="grid grid-cols-2 gap-2.5">
+                          {catTemplates.map((tpl) => {
+                            const style = STANDEE_TEMPLATES_MAP[tpl.id] || STANDEE_TEMPLATES_MAP.minimal_white;
+                            const isActive = userConfig.templateId === tpl.id;
+                            const accent = style.accentColor ?? campaign.style.primaryColor;
+                            const isLocked = tpl.isPremium && campaign.showWatermark;
+
+                            return (
+                              <button
+                                key={tpl.id}
+                                onClick={() => !isLocked && onChange({ templateId: tpl.id })}
+                                disabled={isLocked}
+                                title={isLocked ? 'Upgrade to Pro to unlock this template' : ''}
+                                className={`relative rounded-2xl p-3 text-left transition-all border-2 group ${
+                                  isActive
+                                    ? 'border-primary bg-primary/5 shadow-sm'
+                                    : isLocked
+                                    ? 'border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed'
+                                    : 'border-slate-100 hover:border-slate-200 bg-white'
+                                }`}
+                              >
+                                {/* Swatch */}
+                                <div
+                                  className="w-full h-14 rounded-xl mb-2 overflow-hidden flex flex-col items-center justify-center gap-1 relative"
+                                  style={{ background: style.bgGradient ?? style.bgColor }}
+                                >
+                                  {/* Mini accent bar */}
+                                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: accent }} />
+                                  <div
+                                    className="w-8 h-8 rounded-md"
+                                    style={{
+                                      background: style.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.8)',
+                                      border: `1px solid ${style.surfaceBorder}`,
+                                    }}
+                                  />
+                                </div>
+                                {/* Labels */}
+                                <p className={`text-[11px] font-black tracking-wide truncate ${isActive ? 'text-primary' : 'text-slate-700'}`}>
+                                  {tpl.name}
+                                </p>
+                                <p className="text-[9px] text-slate-400 font-medium mt-0.5 leading-tight truncate">
+                                  {style.tagline}
+                                </p>
+
+                                {/* Pro badge */}
+                                {tpl.isPremium && (
+                                  <span className="absolute top-2 right-2 px-1.5 py-0.5 bg-amber-400/20 text-amber-700 text-[8px] font-black uppercase tracking-wider rounded-md">
+                                    Pro
+                                  </span>
+                                )}
+
+                                {/* Active check / Lock icon */}
+                                {isActive && !isLocked && (
+                                  <span
+                                    className="absolute bottom-2 right-2 w-4 h-4 rounded-full flex items-center justify-center text-white"
+                                    style={{ background: 'var(--color-primary)' }}
+                                  >
+                                    <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                      check
+                                    </span>
+                                  </span>
+                                )}
+                                {isLocked && (
+                                  <span
+                                    className="absolute bottom-2 right-2 w-4 h-4 rounded-full flex items-center justify-center bg-slate-200 text-slate-500"
+                                  >
+                                    <span className="material-symbols-outlined text-[10px]">
+                                      lock
+                                    </span>
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                      {/* Labels */}
-                      <p className={`text-[11px] font-black tracking-wide ${isActive ? 'text-primary' : 'text-slate-700'}`}>
-                        {tpl.label}
-                      </p>
-                      <p className="text-[10px] text-slate-400 font-medium mt-0.5 leading-tight">{tpl.tagline}</p>
-
-                      {/* Pro badge */}
-                      {tpl.isPro && (
-                        <span className="absolute top-2 right-2 px-1.5 py-0.5 bg-amber-400/20 text-amber-700 text-[8px] font-black uppercase tracking-wider rounded-md">
-                          Pro
-                        </span>
-                      )}
-
-                      {/* Active check / Lock icon */}
-                      {isActive && !isLocked && (
-                        <span
-                          className="absolute bottom-2 right-2 w-4 h-4 rounded-full flex items-center justify-center text-white"
-                          style={{ background: 'var(--color-primary)' }}
-                        >
-                          <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                            check
-                          </span>
-                        </span>
-                      )}
-                      {isLocked && (
-                        <span
-                          className="absolute bottom-2 right-2 w-4 h-4 rounded-full flex items-center justify-center bg-slate-200 text-slate-500"
-                        >
-                          <span className="material-symbols-outlined text-[12px]">
-                            lock
-                          </span>
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            {/* CTA Text */}
+            {/* Headline Text */}
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">
                 Headline Text
@@ -219,11 +297,11 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
 
             {/* Scaled preview */}
             <div
-              className="shadow-2xl shadow-slate-900/20 rounded-md overflow-hidden"
+              className="shadow-2xl shadow-slate-900/20 rounded-md overflow-hidden bg-white"
               style={{ width: PREVIEW_WIDTH, height: PREVIEW_WIDTH * 1.5 }}
             >
               <div style={{ transform: `scale(${PREVIEW_WIDTH / EXPORT_WIDTH})`, transformOrigin: 'top left', width: EXPORT_WIDTH }}>
-                <StandeeTemplate
+                <StandeeTemplateComponent
                   campaign={campaign}
                   userConfig={userConfig}
                   qrCodeDataUrl={qrCodeDataUrl}
@@ -234,8 +312,8 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
 
             {/* Template label */}
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              {selectedTemplate.label} Template
-              {selectedTemplate.isPro && <span className="ml-2 text-amber-500">· Pro</span>}
+              {selectedTemplate ? selectedTemplate.name : 'Minimal White'} Template
+              {selectedTemplate?.isPremium && <span className="ml-2 text-amber-500">· Pro</span>}
             </p>
           </div>
         </div>
@@ -258,7 +336,7 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
             </button>
             <button
               onClick={handleDownload}
-              disabled={isDownloading}
+              disabled={isDownloading || isLoading}
               className="px-6 py-2.5 rounded-xl bg-primary text-white font-black text-[11px] uppercase tracking-wider hover:bg-primary-hover transition-all flex items-center gap-2 shadow-lg shadow-primary/20 disabled:opacity-50 active:scale-95"
             >
               {isDownloading ? (
@@ -286,7 +364,7 @@ export default function StandeeDesignerModal({ campaign, qrCodeDataUrl, isOpen, 
         }}
       >
         <div ref={exportRef}>
-          <StandeeTemplate
+          <StandeeTemplateComponent
             campaign={campaign}
             userConfig={userConfig}
             qrCodeDataUrl={qrCodeDataUrl}
