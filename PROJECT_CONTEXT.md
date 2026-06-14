@@ -50,7 +50,7 @@ sequenceDiagram
 ```
 
 ### Các tầng kiến trúc (Cơ cấu Backend):
-*   **ReviewLoom.Domain:** Tầng trung tâm chứa các Entity cốt lõi (`User`, `Campaign`, `Scan`, `Subscription`, `CampaignStyle`, `CampaignSettings`, `CampaignStandeeConfig`), các Enum (`CampaignStatus`) và các Interface định nghĩa Repository (`IRepository`, `ICampaignRepository`, `IScanRepository`, `IUserRepository`, `IStatsRepository`, `IUnitOfWork`).
+*   **ReviewLoom.Domain:** Tầng trung tâm chứa các Entity cốt lõi (`User`, `Campaign`, `Scan`, `Subscription`, `CampaignStyle`, `CampaignSettings`, `CampaignStandeeConfig`, `StandeeTemplate`), các Enum (`CampaignStatus`) và các Interface định nghĩa Repository (`IRepository`, `ICampaignRepository`, `IScanRepository`, `IUserRepository`, `IStandeeTemplateRepository`, `IStatsRepository`, `IUnitOfWork`).
 *   **ReviewLoom.Application:** Chứa các logic nghiệp vụ (Services: `CampaignService`, `ScanService`, `StatsService`, `UserService`), định nghĩa DTOs (`CampaignDto`, `CreateCampaignDto`, `LogScanDto`, `CampaignStatsDto`, `PublicCampaignDto`, `ScanResultDto`) và các extension method mapping giữa Entity và DTO (`CampaignMappingExtensions.cs`).
 *   **ReviewLoom.Infrastructure:** Chi tiết triển khai kỹ thuật bao gồm EF Core DbContext (`ReviewLoomDbContext`), các lớp Repository cụ thể tương tác DB (`Repository`, `CampaignRepository`, `ScanRepository`, `UserRepository`, `StatsRepository`, `UnitOfWork`), và các tích hợp dịch vụ bên ngoài (`StripeService`, `CloudinaryMediaService`).
 *   **ReviewLoom.Api:** Điểm đầu vào ứng dụng REST API, các Controller (`CampaignsController`, `RController`, `MediaController`, `BillingController`, `ClerkWebhookController`) và cấu hình middleware, Authentication/Authorization trong `Program.cs`.
@@ -203,7 +203,7 @@ Nhóm theo module thực tế tồn tại trong code:
     3.  Nếu số sao < `RoutingThreshold` -> Ghi nhận `Action = negative` -> Hiển thị form góp ý (Name, Email, Message) -> Khách hàng bấm gửi -> Gọi API ghi nhận Scan -> Hiển thị thông báo Cảm ơn nội bộ (và hiển thị mã giảm giá Coupon nếu có).
 
 ### Module Thiết kế Standee (Standee Designer)
-*   **Chức năng:** Cho phép chủ cửa hàng thiết kế trực quan Standee in ấn (A5/A6) từ 4 template có sẵn: Minimal (Free), Prestige (Pro), Blush (Pro), Kraft (Free) và tải ảnh PNG 300 DPI (1200 x 1800 px) về máy để in.
+*   **Chức năng:** Cho phép chủ cửa hàng thiết kế trực quan Standee in ấn (4x6 inch) từ danh mục 12 template mẫu mới thuộc 4 nhóm ngành hàng (Restaurant, Coffee Shop, Salon & Spa, Home Services) cộng với 4 template cổ điển. Danh mục được lưu trữ động ở backend database và tải qua API, phân biệt quyền sử dụng giữa tài khoản Free và Pro.
 *   **Công nghệ frontend:** Sử dụng thư viện `html-to-image` để render một component HTML ẩn có kích thước 1200px (đại diện cho tỷ lệ 2:3) thành file PNG.
 
 ### Module Quản lý Media (Media & Logo Upload)
@@ -246,7 +246,8 @@ Database được thiết kế theo cấu trúc chuẩn hóa cao cho các chiế
 *   **campaigns:** Khóa chính `id` UUID. Chứa thông tin gốc của chiến dịch (slug, google_review_url, business_name, logo_url, thank_you_message, status).
 *   **campaign_styles:** Khóa chính `campaign_id` (1:1 với `campaigns` ON DELETE CASCADE). Lưu trữ cấu hình màu sắc, kiểu dáng Landing Page và QR Code.
 *   **campaign_settings:** Khóa chính `campaign_id` (1:1 với `campaigns` ON DELETE CASCADE). Cấu hình ngưỡng sao và coupon quà tặng.
-*   **campaign_standee_configs:** Khóa chính `campaign_id` (1:1 với `campaigns` ON DELETE CASCADE). Cấu hình thiết kế standee.
+*   **campaign_standee_configs:** Khóa chính `campaign_id` (1:1 với `campaigns` ON DELETE CASCADE). Cấu hình thiết kế standee. Cột `template_id` liên kết FK với bảng `standee_templates`.
+*   **standee_templates:** Lưu trữ danh sách mẫu standee (Id, Name, Category, IsPremium, ThumbnailUrl, SchemaJson).
 *   **scans:** Khóa chính `id` UUID. Lưu trữ lịch sử quét QR và thông tin feedback. Liên kết FK với `campaigns`.
 *   **subscriptions:** Khóa chính `id` UUID. Lưu trữ trạng thái gói cước (active, trialing, expired...). Liên kết FK với `users`.
 

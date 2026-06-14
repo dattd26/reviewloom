@@ -68,7 +68,7 @@ export default function CampaignList() {
           return;
         }
 
-        const tl = gsap.timeline({ defaults: { duration: 0.65, ease: 'power3.out' } });
+        const tl = gsap.timeline({ defaults: { duration: 0.2, ease: 'power3.out' } });
         tl.fromTo('.animate-fade-in', { opacity: 0, y: -12 }, { opacity: 1, y: 0, stagger: 0.05 })
           .fromTo('.bento-tile', { opacity: 0, y: 20, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, stagger: 0.06 }, '-=0.3')
           .fromTo('.campaign-card', { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, stagger: 0.08 }, '-=0.3');

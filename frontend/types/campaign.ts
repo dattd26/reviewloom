@@ -1,4 +1,18 @@
-export type StandeeTemplateId = 'minimal_white' | 'prestige_dark' | 'salon_blush' | 'cafe_kraft';
+export type StandeeTemplateId = string;
+
+export interface StandeeTemplateSchema {
+  layout: string;
+  editableFields: string[];
+}
+
+export interface StandeeTemplate {
+  id: string;
+  name: string;
+  category: string;
+  isPremium: boolean;
+  thumbnailUrl: string;
+  schema: StandeeTemplateSchema;
+}
 
 export interface StandeeUserConfig {
   templateId: StandeeTemplateId;

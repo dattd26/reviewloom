@@ -81,7 +81,7 @@ export default function DashboardOverview() {
           return;
         }
 
-        const tl = gsap.timeline({ defaults: { duration: 0.65, ease: 'power3.out' } });
+        const tl = gsap.timeline({ defaults: { duration: 0.2, ease: 'power3.out' } });
         tl.fromTo('.animate-fade-in', { opacity: 0, y: -12 }, { opacity: 1, y: 0, stagger: 0.06 })
           .fromTo('.animate-slide-up', { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: 0.08 }, '-=0.35');
       }
@@ -101,7 +101,7 @@ export default function DashboardOverview() {
 
       <div className="p-8 max-w-[1600px] mx-auto w-full flex-1">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-          
+
           {/* Main Left Column (Command Center) */}
           <div className="xl:col-span-8 flex flex-col gap-8">
             <ReviewGrowthChart scansGrowth={scansGrowth} />
@@ -118,7 +118,7 @@ export default function DashboardOverview() {
             <QuickActionsHub />
             <StrategicAdvice />
           </div>
-          
+
         </div>
       </div>
     </div>

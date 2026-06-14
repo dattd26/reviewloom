@@ -11,4 +11,5 @@ public class CampaignStandeeConfig
 
     // Navigation Property
     public virtual Campaign Campaign { get; set; } = null!;
+    public virtual StandeeTemplate Template { get; set; } = null!;
 }

@@ -9,5 +9,6 @@ public interface IUnitOfWork : IDisposable
     IUserRepository Users { get; }
     IScanRepository Scans { get; }
     ISubscriptionRepository Subscriptions { get; }
+    IStandeeTemplateRepository StandeeTemplates { get; }
     Task<int> CompleteAsync();
 }

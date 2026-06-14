@@ -19,6 +19,7 @@ public partial class ReviewLoomDbContext : DbContext
     public virtual DbSet<Scan> Scans { get; set; }
     public virtual DbSet<Subscription> Subscriptions { get; set; }
     public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<StandeeTemplate> StandeeTemplates { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -88,7 +89,45 @@ public partial class ReviewLoomDbContext : DbContext
             entity.Property(e => e.TemplateId).HasDefaultValue("minimal_white").HasColumnName("template_id");
             entity.Property(e => e.CtaText).HasColumnName("cta_text");
             entity.Property(e => e.ShowLogo).HasDefaultValue(true).HasColumnName("show_logo");
+
+            // Relationship configuration
+            entity.HasOne(e => e.Template)
+                .WithMany()
+                .HasForeignKey(e => e.TemplateId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("campaign_standee_configs_template_id_fkey");
         });
+
+        modelBuilder.Entity<StandeeTemplate>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("standee_templates_pkey");
+            entity.ToTable("standee_templates");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name").IsRequired();
+            entity.Property(e => e.Category).HasColumnName("category").IsRequired();
+            entity.Property(e => e.IsPremium).HasColumnName("is_premium");
+            entity.Property(e => e.ThumbnailUrl).HasColumnName("thumbnail_url").IsRequired();
+            entity.Property(e => e.SchemaJson).HasColumnType("jsonb").HasColumnName("schema_json").IsRequired();
+        });
+
+        modelBuilder.Entity<StandeeTemplate>().HasData(
+            new StandeeTemplate { Id = "minimal_white", Name = "Minimal White", Category = "general", IsPremium = false, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"minimal_white\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "prestige_dark", Name = "Prestige Dark", Category = "general", IsPremium = true, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"prestige_dark\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "salon_blush", Name = "Salon Blush", Category = "salon", IsPremium = true, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"salon_blush\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "cafe_kraft", Name = "Cafe Kraft", Category = "coffee", IsPremium = false, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"cafe_kraft\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "restaurant-modern", Name = "Modern Table", Category = "restaurant", IsPremium = false, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"restaurant-modern\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "restaurant-elegant", Name = "Elegant Dining", Category = "restaurant", IsPremium = true, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"restaurant-elegant\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "restaurant-casual", Name = "Fast Casual", Category = "restaurant", IsPremium = false, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"restaurant-casual\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "coffee-minimal", Name = "Minimal Coffee", Category = "coffee", IsPremium = false, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"coffee-minimal\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "coffee-cozy", Name = "Cozy Cafe", Category = "coffee", IsPremium = false, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"coffee-cozy\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "coffee-premium", Name = "Premium Coffee", Category = "coffee", IsPremium = true, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"coffee-premium\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "salon-minimal", Name = "Beauty Minimal", Category = "salon", IsPremium = false, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"salon-minimal\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "salon-luxury", Name = "Luxury Spa", Category = "salon", IsPremium = true, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"salon-luxury\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "salon-barber", Name = "Modern Barber", Category = "salon", IsPremium = false, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"salon-barber\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "services-hvac", Name = "HVAC Trust", Category = "services", IsPremium = false, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"services-hvac\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "services-roofing", Name = "Roofing Pro", Category = "services", IsPremium = false, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"services-roofing\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" },
+            new StandeeTemplate { Id = "services-plumbing", Name = "Plumbing Expert", Category = "services", IsPremium = true, ThumbnailUrl = "", SchemaJson = "{\"layout\": \"services-plumbing\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}" }
+        );
 
         modelBuilder.Entity<Scan>(entity =>
         {
