@@ -1,5 +1,6 @@
 using ReviewLoom.Application.DTOs;
 using ReviewLoom.Domain.Entities;
+using ReviewLoom.Domain.Enums;
 
 namespace ReviewLoom.Application.Mappings;
 
@@ -14,6 +15,7 @@ public static class CampaignMappingExtensions
             BusinessName = campaign.BusinessName,
             GoogleReviewUrl = campaign.GoogleReviewUrl,
             Status = campaign.Status,
+            IsActive = campaign.Status == CampaignStatus.Published,
             LogoUrl = campaign.LogoUrl,
             CreatedAt = campaign.CreatedAt,
             Placement = campaign.Placement,
