@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Async Feedback Reply via Email**:
+  - Installed `MailKit` and `Microsoft.Extensions.Hosting.Abstractions` packages.
+  - Implemented `IEmailService` and `IEmailQueue` in the Application layer.
+  - Implemented `SmtpEmailService` (MailKit-based SMTP client), `EmailQueue` (System.Threading.Channels), and `EmailBackgroundService` (IHostedService background queue worker) in the Infrastructure layer.
+  - Registered email services in `DependencyInjection.cs`.
+  - Updated `InboxService.SendFeedbackReplyAsync` to asynchronously queue response emails to reviewers using the `Reply-To` header configured to the business owner's email address.
+  - Added SMTP configuration block to `appsettings.json`.
 - **Dynamic Standee Template Catalog**:
   - Migrated the standee template catalog definitions from frontend hardcoding to the PostgreSQL database under the new `standee_templates` table.
   - Added ModelBuilder seed data to initialize 16 templates (12 new industry-specific templates grouped by Restaurant, Coffee Shop, Salon & Spa, Home Services, plus 4 original templates for backward compatibility).

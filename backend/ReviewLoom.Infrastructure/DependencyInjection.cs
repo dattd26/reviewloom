@@ -25,6 +25,11 @@ public static class DependencyInjection
         services.AddScoped<IMediaService, CloudinaryMediaService>();
         services.AddScoped<IStandeeTemplateRepository, StandeeTemplateRepository>();
 
+        // Email Services
+        services.AddTransient<IEmailService, SmtpEmailService>();
+        services.AddSingleton<IEmailQueue, EmailQueue>();
+        services.AddHostedService<EmailBackgroundService>();
+
         return services;
     }
 }

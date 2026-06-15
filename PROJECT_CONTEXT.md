@@ -84,7 +84,7 @@ sequenceDiagram
 *   **CQRS:** Chưa sử dụng (Hệ thống dùng Service-based pattern truyền thống).
 *   **Authentication:** Clerk JWT Bearer Authentication (tích hợp qua `AddJwtBearer` và `Clerk:Authority` config).
 *   **Caching:** Chưa xác định (Không có code caching trong hệ thống hiện tại).
-*   **Background Jobs:** Chưa xác định (Chưa có hàng đợi hoặc background worker chạy ngầm).
+*   **Background Jobs:** Hàng đợi bất đồng bộ trong bộ nhớ (`System.Threading.Channels` + `IHostedService`) dùng để gửi email phản hồi phản hồi (feedback reply) qua SMTP mà không chặn API.
 
 ### Database:
 *   **DBMS:** PostgreSQL.
@@ -331,8 +331,8 @@ Dựa trên phân tích thực tế mã nguồn:
 
 1.  **Hộp thư góp ý tĩnh (Mock Inbox):**
     *   Trang Hộp thư góp ý (`frontend/app/dashboard/inbox/page.tsx`) hiển thị các feedback tiêu cực của khách hàng hiện tại hoàn toàn là **dữ liệu tĩnh (hardcoded mock data)**. Chưa có API Backend hay Service gọi dữ liệu thật từ bảng `scans` của cơ sở dữ liệu.
-2.  **Thiếu hệ thống gửi Email:**
-    *   Hệ thống thông báo email (Resend/SendGrid) cho chủ cửa hàng khi có feedback xấu mới chỉ nằm trong kế hoạch, chưa được viết code tích hợp.
+2.  **Hệ thống gửi Email:**
+    *   Đã triển khai hệ thống gửi email phản hồi phản hồi (feedback reply) bất đồng bộ qua SMTP. Hiện tại cần cấu hình các thông số SMTP thực tế trong file cấu hình để hoạt động chính thức.
 3.  **Chưa kiểm soát quyền Subscription:**
     *   Mặc dù DB có bảng `subscriptions`, API Backend chưa thực sự áp dụng middleware hay chính sách phân quyền gói cước (ví dụ: chưa chặn tạo mới khi hết hạn trial).
 
