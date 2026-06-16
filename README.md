@@ -38,10 +38,13 @@
 ```text
 reviewloom/
 ├── backend/                # ASP.NET Core Solution
-│   ├── ReviewLoom.Api/     # REST API & Controllers
-│   ├── ReviewLoom.App/     # Business Logic & DTOs
-│   ├── ReviewLoom.Domain/  # Entities & Enums
-│   └── ReviewLoom.Infra/   # DB Context & Services
+│   ├── src/                # Production Code
+│   │   ├── ReviewLoom.Api/          # REST API & Controllers
+│   │   ├── ReviewLoom.Application/  # Business Logic & DTOs
+│   │   ├── ReviewLoom.Domain/       # Entities & Enums
+│   │   └── ReviewLoom.Infrastructure/ # DB Context & Services
+│   └── tests/              # Test Projects
+│       └── ReviewLoom.Infrastructure.Tests/
 ├── frontend/               # Next.js Application
 │   ├── app/                # Pages & Routes
 │   ├── components/         # Reusable UI Components
@@ -55,15 +58,15 @@ reviewloom/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- .NET SDK 8.0+
+- .NET SDK 10.0+ (or 8.0+)
 - Node.js 20+
 - PostgreSQL instance
 
 ### Backend Setup
 1. `cd backend`
-2. Cấu hình `appsettings.json` (ConnectionStrings, Clerk Keys).
-3. `dotnet ef database update`
-4. `dotnet run --project ReviewLoom.Api`
+2. Cấu hình `src/ReviewLoom.Api/appsettings.Development.json` (ConnectionStrings, Clerk Keys).
+3. Chạy migrations: `dotnet ef database update --project src/ReviewLoom.Infrastructure --startup-project src/ReviewLoom.Api`
+4. Chạy dự án: `dotnet run --project src/ReviewLoom.Api`
 
 ### Frontend Setup
 1. `cd frontend`
