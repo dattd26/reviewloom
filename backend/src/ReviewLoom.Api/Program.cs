@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using Microsoft.OpenApi.Models;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,7 +46,16 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
+        var allowedOrigins = builder.Configuration["Frontend:AllowedOrigins"]
+                             ?? builder.Configuration["Frontend:BaseUrl"]
+                             ?? "http://localhost:3000";
+
+        var origins = allowedOrigins
+            .Split(';', StringSplitOptions.RemoveEmptyEntries)
+            .Select(o => o.Trim())
+            .ToArray();
+
+        policy.WithOrigins(origins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();

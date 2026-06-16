@@ -492,3 +492,4 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 backend/ReviewLoom.Api/appsettings.Development.json
+backend/src/ReviewLoom.Api/appsettings.Development.json
