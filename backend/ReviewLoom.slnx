@@ -1,6 +1,7 @@
 <Solution>
-  <Project Path="ReviewLoom.Api/ReviewLoom.Api.csproj" />
-  <Project Path="ReviewLoom.Domain/ReviewLoom.Domain.csproj" />
-  <Project Path="ReviewLoom.Application/ReviewLoom.Application.csproj" />
-  <Project Path="ReviewLoom.Infrastructure/ReviewLoom.Infrastructure.csproj" />
+  <Project Path="src/ReviewLoom.Api/ReviewLoom.Api.csproj" />
+  <Project Path="src/ReviewLoom.Domain/ReviewLoom.Domain.csproj" />
+  <Project Path="src/ReviewLoom.Application/ReviewLoom.Application.csproj" />
+  <Project Path="src/ReviewLoom.Infrastructure/ReviewLoom.Infrastructure.csproj" />
+  <Project Path="tests/ReviewLoom.Infrastructure.Tests/ReviewLoom.Infrastructure.Tests.csproj" />
 </Solution>

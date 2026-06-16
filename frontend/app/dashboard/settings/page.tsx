@@ -1,6 +1,72 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
+import { useEffect, useState } from 'react';
+import { BillingService, SubscriptionOverviewResponse } from '@/services/billing-service';
+
+import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
 
 export default function Settings() {
+  const { getToken, isSignedIn } = useAuth();
+  const router = useRouter();
+  const [subData, setSubData] = useState<SubscriptionOverviewResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadBillingData = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const response = await BillingService.getSubscriptionOverview(token);
+        setSubData(response);
+      } catch (error) {
+        console.error("Failed to load billing statistics:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isSignedIn) {
+      loadBillingData();
+    }
+  }, [isSignedIn, getToken]);
+
+  if (isLoading) {
+    return <DashboardLoading title="Loading Settings..." description="Accessing your billing & plan status" />;
+  }
+
+  const planName = subData?.planName ?? 'Free Plan';
+  const subStatus = subData?.status ?? 'active';
+  const renewsAt = subData?.renewsAt ? new Date(subData.renewsAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : null;
+  const campaignsUsed = subData?.campaignsUsed ?? 0;
+  const campaignsLimit = subData?.campaignsLimit ?? 3;
+  const cardBrand = subData?.cardBrand;
+  const cardLast4 = subData?.cardLast4;
+  const billingHistory = subData?.billingHistory ?? [];
+
+  const handleManageSubscription = async () => {
+    if (planName === 'Free Plan' || planName === 'Free') {
+      router.push('/dashboard/upgrade');
+      return;
+    }
+
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const res = await BillingService.createPortalSession(token);
+      if (res.url) {
+        window.location.href = res.url;
+      }
+    } catch (error) {
+      console.error('Failed to open portal:', error);
+    }
+  };
+
+  // Percentage calculations for progress bar
+  const limitPercentage = Math.min((campaignsUsed / campaignsLimit) * 100, 100);
+
   return (
     <>
       {/* TopNavBar Anchor */}
@@ -15,7 +81,6 @@ export default function Settings() {
         <div className="flex items-center space-x-6">
           <div className="relative group">
             <span className="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors">notifications</span>
-            <div className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border-2 border-white"></div>
           </div>
           <span className="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors">help_outline</span>
         </div>
@@ -38,20 +103,25 @@ export default function Settings() {
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-8">
                 <div>
-                  <span className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 inline-block border border-primary/10">Active Subscription</span>
-                  <h2 className="text-4xl font-extrabold text-on-surface font-headline">Pro Plan</h2>
-                  <p className="text-outline font-medium mt-1.5">Renews on Dec 12, 2024</p>
+                  <span className="bg-primary/10 text-primary px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 inline-block border border-primary/10">
+                    {subStatus.toUpperCase()} SUBSCRIPTION
+                  </span>
+                  <h2 className="text-4xl font-extrabold text-on-surface font-headline">{planName}</h2>
+                  {renewsAt && (
+                    <p className="text-outline font-medium mt-1.5">
+                      {subStatus === 'trialing' ? `Trial ends on ${renewsAt}` : `Renews on ${renewsAt}`}
+                    </p>
+                  )}
                 </div>
                 <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10">
                   <span className="material-symbols-outlined text-primary text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <button className="w-full sm:w-auto bg-primary text-on-primary px-8 py-3 rounded-xl font-bold hover:bg-primary-container transition-colors shadow-md shadow-primary/20 active:scale-95">
-                  Manage Subscription
-                </button>
-                <button className="w-full sm:w-auto text-primary font-bold hover:underline px-4 py-3 rounded-xl hover:bg-primary/5 transition-colors">
-                  View Features
+                <button 
+                  onClick={handleManageSubscription}
+                  className="w-full sm:w-auto bg-primary text-on-primary px-8 py-3 rounded-xl font-bold hover:bg-primary-container transition-colors shadow-md shadow-primary/20 active:scale-95">
+                  {planName === 'Free Plan' || planName === 'Free' ? 'Upgrade to Pro' : 'Manage Subscription'}
                 </button>
               </div>
             </div>
@@ -70,18 +140,18 @@ export default function Settings() {
                 <div>
                   <div className="flex justify-between items-end mb-3">
                     <span className="text-sm font-bold text-on-surface-variant">QR Campaigns active</span>
-                    <span className="text-lg font-black text-on-surface">5 <span className="text-sm text-outline font-medium">/ 10</span></span>
+                    <span className="text-lg font-black text-on-surface">{campaignsUsed} <span className="text-sm text-outline font-medium">/ {campaignsLimit}</span></span>
                   </div>
                   <div className="w-full bg-surface-container-high h-3 rounded-full overflow-hidden">
-                    <div className="bg-secondary h-full w-1/2 rounded-full"></div>
+                    <div className="bg-secondary h-full rounded-full transition-all duration-500" style={{ width: `${limitPercentage}%` }}></div>
                   </div>
-                  <p className="text-xs text-outline font-medium mt-3">You have 50% capacity remaining this month.</p>
+                  <p className="text-xs text-outline font-medium mt-3">
+                    {campaignsLimit - campaignsUsed > 0 
+                      ? `You have ${campaignsLimit - campaignsUsed} campaign opportunities remaining.` 
+                      : "You have reached your active campaigns limit. Upgrade for more."}
+                  </p>
                 </div>
               </div>
-            </div>
-            <div className="p-4 bg-secondary/10 rounded-xl flex items-start space-x-3 mt-8 border border-secondary/20">
-              <span className="material-symbols-outlined text-secondary text-sm mt-0.5">info</span>
-              <p className="text-xs text-secondary font-bold leading-relaxed">Need more campaigns? Upgrade to Business for unlimited access.</p>
             </div>
           </div>
 
@@ -89,35 +159,30 @@ export default function Settings() {
           <div className="col-span-1 md:col-span-6 lg:col-span-4 bg-surface-container-lowest rounded-2xl p-8 shadow-sm border border-outline-variant/10">
             <h3 className="text-xl font-bold font-headline mb-6 text-on-surface">Payment Methods</h3>
             <div className="space-y-4 mb-8">
-              <div className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-transparent hover:border-outline-variant/30 transition-all group">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-8 bg-white border border-outline-variant/20 rounded-md flex items-center justify-center shadow-sm">
-                    <span className="material-symbols-outlined text-on-surface-variant">credit_card</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-on-surface">Visa ending in 4242</p>
-                    <p className="text-xs text-outline font-medium">Expires 04/26</p>
+              {cardLast4 ? (
+                <div className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-transparent hover:border-outline-variant/30 transition-all group">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-8 bg-white border border-outline-variant/20 rounded-md flex items-center justify-center shadow-sm">
+                      <span className="material-symbols-outlined text-on-surface-variant">credit_card</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-on-surface">{cardBrand} ending in {cardLast4}</p>
+                      <p className="text-xs text-outline font-medium">Active Card</p>
+                    </div>
                   </div>
                 </div>
-                <button className="text-outline hover:text-error transition-colors p-2 rounded-lg hover:bg-error/10 opacity-0 group-hover:opacity-100 focus:opacity-100">
-                  <span className="material-symbols-outlined text-[20px]">delete</span>
-                </button>
-              </div>
+              ) : (
+                <div className="p-4 bg-surface-container-low/50 rounded-xl text-center text-xs text-outline font-medium border border-dashed border-outline-variant/20">
+                  No billing cards saved. Subscribe to add a card.
+                </div>
+              )}
             </div>
-            <button className="w-full flex items-center justify-center space-x-2 py-3.5 border-2 border-dashed border-outline-variant/50 text-on-surface-variant font-bold rounded-xl hover:border-primary hover:text-primary hover:bg-primary/5 transition-all">
-              <span className="material-symbols-outlined text-sm">add</span>
-              <span>Add new card</span>
-            </button>
           </div>
 
           {/* 4. Billing History Table */}
           <div className="col-span-1 md:col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/10 overflow-hidden flex flex-col">
             <div className="p-6 sm:p-8 border-b border-outline-variant/10 flex justify-between items-center bg-surface/30">
               <h3 className="text-xl font-bold font-headline text-on-surface">Billing History</h3>
-              <button className="text-primary font-bold text-sm flex items-center hover:bg-primary/5 px-3 py-1.5 rounded-lg transition-colors">
-                <span>Export All</span>
-                <span className="material-symbols-outlined ml-1 text-[18px]">file_download</span>
-              </button>
             </div>
             <div className="overflow-x-auto flex-1">
               <table className="w-full text-left border-collapse min-w-[500px]">
@@ -126,27 +191,19 @@ export default function Settings() {
                     <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-outline">Date</th>
                     <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-outline">Amount</th>
                     <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-outline">Status</th>
-                    <th className="px-8 py-4 text-[10px] font-bold uppercase tracking-widest text-outline text-right">Invoice</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/10">
-                  {[
-                    { date: 'Nov 12, 2024', amount: '$29.00', status: 'Paid' },
-                    { date: 'Oct 12, 2024', amount: '$29.00', status: 'Paid' },
-                    { date: 'Sep 12, 2024', amount: '$29.00', status: 'Paid' },
-                  ].map((item, index) => (
+                  {billingHistory.map((item, index) => (
                     <tr key={index} className="hover:bg-surface-container-low/30 transition-colors group">
-                      <td className="px-8 py-5 text-sm font-bold text-on-surface-variant">{item.date}</td>
+                      <td className="px-8 py-5 text-sm font-bold text-on-surface-variant">
+                        {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
+                      </td>
                       <td className="px-8 py-5 text-sm font-black text-on-surface">{item.amount}</td>
                       <td className="px-8 py-5">
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-secondary/10 text-secondary border border-secondary/20">
                           {item.status}
                         </span>
-                      </td>
-                      <td className="px-8 py-5 text-right">
-                        <button className="p-2 text-outline hover:text-primary hover:bg-primary/10 rounded-full transition-colors">
-                          <span className="material-symbols-outlined">download</span>
-                        </button>
                       </td>
                     </tr>
                   ))}

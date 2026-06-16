@@ -244,6 +244,7 @@ _pkginfo.txt
 # Visual Studio cache files
 # files ending in .cache can be ignored
 *.[Cc]ache
+*.lscache
 # but keep track of directories ending in .cache
 !?*.[Cc]ache/
 
@@ -490,3 +491,5 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+backend/ReviewLoom.Api/appsettings.Development.json
+backend/src/ReviewLoom.Api/appsettings.Development.json

@@ -1,18 +1,22 @@
 'use client';
 
+import { toast } from 'react-hot-toast';
+
 import Link from 'next/link';
 import { useRef, useState } from 'react';
-import { CampaignConfig, DEFAULT_CAMPAIGN, CampaignStatus } from './types';
+import { CampaignConfig, DEFAULT_CAMPAIGN, CampaignStatus } from '@/types/campaign';
 import { useAuth } from '@clerk/nextjs';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { CampaignService } from '@/services/campaign-service';
-import { mapDtoToConfig } from './mappers';
+import { MediaService } from '@/services/media-service';
+import { mapDtoToConfig } from '@/lib/campaign-mappers';
 import BrandingSection from './BrandingSection';
 import ContentSection from './ContentSection';
 import QrSection from './QrSection';
 import AdvancedSection from './AdvancedSection';
 import LivePreview from './LivePreview';
+import { DashboardLoading } from '@/components/dashboard/DashboardLoading';
 
 type ActiveTab = 'branding' | 'content' | 'qr' | 'advanced';
 
@@ -33,6 +37,8 @@ export default function CampaignBuilder() {
   const [campaign, setCampaign] = useState<CampaignConfig>(DEFAULT_CAMPAIGN);
   const [activeTab, setActiveTab] = useState<ActiveTab>('branding');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'draft' | 'publish' | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isLoading, setIsLoading] = useState(isEditMode);
   const [isDirty, setIsDirty] = useState(false);
@@ -61,6 +67,94 @@ export default function CampaignBuilder() {
     }
   }, [id, isEditMode, getToken, router]);
 
+  const patch = (update: Partial<CampaignConfig>) => {
+    setCampaign((prev) => ({ ...prev, ...update }));
+    setIsDirty(true);
+  };
+
+  const handleSave = async (isAutoSave = false, forceStatus?: CampaignStatus) => {
+    const targetStatus: CampaignStatus = forceStatus !== undefined ? forceStatus : (isAutoSave ? campaign.status : 1);
+
+    if (isAutoSave && !campaign.businessName?.trim()) return;
+    if (isSaving && isAutoSave) return;
+
+    // Strict validation for Publishing actions
+    if (targetStatus === 1 && (!campaign.businessName?.trim() || !campaign.googleReviewUrl?.trim())) {
+      if (!isAutoSave) {
+        toast.error("Please provide a Campaign Name and Google Review URL to publish your campaign.");
+      }
+      return;
+    }
+
+    if (!isAutoSave) {
+      setIsSaving(true);
+      setPendingAction(targetStatus === 1 ? 'publish' : 'draft');
+    }
+    setSaveStatus('saving');
+
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("Authentication session expired. Please sign in again.");
+
+      const campaignToSave = { ...campaign, status: targetStatus };
+
+      if (isEditMode) {
+        await CampaignService.updateCampaign(id, campaignToSave, token);
+      } else {
+        try {
+          const result = await CampaignService.createCampaign(campaignToSave, token);
+          // Transition to edit mode immediately after creation to prevent duplicate POSTs
+          if (result && result.id) {
+            router.replace(`/dashboard/campaigns/${result.id}`, { scroll: false });
+
+            if (isAutoSave) {
+              // Stop here; the router change will trigger a re-render/fetch which syncs state
+              setIsDirty(false);
+              setSaveStatus('saved');
+              setTimeout(() => setSaveStatus('idle'), 2000);
+              return;
+            }
+          }
+        } catch (error: unknown) {
+          const isErrInstance = error instanceof Error;
+          const errMessage = isErrInstance ? error.message : "Failed to save changes. Please check your connection and try again.";
+          console.error("[CampaignSave] Failed to create campaign:", isErrInstance ? error : new Error(String(error)));
+          setSaveStatus('error');
+          if (!isAutoSave) {
+            toast.error(errMessage);
+          }
+
+          return;
+        }
+      }
+
+      // Sync local state immediately for a smooth UI experience
+      setCampaign(prev => ({ ...prev, status: targetStatus }));
+      setIsDirty(false);
+      setSaveStatus('saved');
+
+      // Reset indicator after success
+      setTimeout(() => setSaveStatus('idle'), 2000);
+
+      // Navigate back on manual publish success
+      if (!isAutoSave && targetStatus === 1) {
+        router.push('/dashboard/campaigns');
+      }
+    } catch (error) {
+      console.error("[CampaignSave] Failed:", error);
+      setSaveStatus('error');
+      if (!isAutoSave) {
+        const errMessage = error instanceof Error ? error.message : "Failed to save changes. Please check your connection and try again.";
+        toast.error(errMessage);
+      }
+    } finally {
+      if (!isAutoSave) {
+        setIsSaving(false);
+        setPendingAction(null);
+      }
+    }
+  };
+
   // Auto-save logic
   useEffect(() => {
     if (isInitialLoad.current || !isDirty || isLoading) return;
@@ -70,89 +164,26 @@ export default function CampaignBuilder() {
     }, 3000);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaign, isDirty, isLoading]);
 
-  const patch = (update: Partial<CampaignConfig>) => {
-    setCampaign((prev) => ({ ...prev, ...update }));
-    setIsDirty(true);
-  };
-
-  const handleSave = async (isAutoSave = false, forceStatus?: CampaignStatus) => {
-    // Determine the target status:
-    // 1. Use forceStatus if provided (manual button click)
-    // 2. If auto-saving, maintain the current campaign status to avoid regressions
-    // 3. Default to 1 (Published) for manual "Go Live" actions
-    const targetStatus: CampaignStatus = forceStatus !== undefined ? forceStatus : (isAutoSave ? campaign.status : 1);
-
-    // Guard: Don't auto-save if name is empty (backend requirement) or if already saving
-    if (isAutoSave && !campaign.name?.trim()) return;
-    if (isSaving && isAutoSave) return;
-
-    // Strict validation for Publishing actions
-    if (targetStatus === 1 && (!campaign.name?.trim() || !campaign.googleReviewUrl?.trim())) {
-      if (!isAutoSave) {
-        alert("Please provide a Campaign Name and Google Review URL to publish your campaign.");
-      }
-      return;
-    }
-
-    if (!isAutoSave) setIsSaving(true);
-    setSaveStatus('saving');
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    console.log(file);
+    if (!file) return;
 
     try {
-      const token = await getToken();
-      if (!token) throw new Error("Authentication session expired. Please sign in again.");
-
-      const campaignToSave = { ...campaign, status: targetStatus as any };
-
-      if (isEditMode) {
-        await CampaignService.updateCampaign(id, campaignToSave, token);
-      } else {
-        const result = await CampaignService.createCampaign(campaignToSave, token);
-        
-        // Transition to edit mode immediately after creation to prevent duplicate POSTs
-        if (result && result.id) {
-          router.replace(`/dashboard/campaigns/${result.id}`, { scroll: false });
-          
-          if (isAutoSave) {
-            // Stop here; the router change will trigger a re-render/fetch which syncs state
-            setIsDirty(false);
-            setSaveStatus('saved');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-            return;
-          }
-        }
-      }
-
-      // Sync local state immediately for a smooth UI experience
-      setCampaign(prev => ({ ...prev, status: targetStatus }));
-      setIsDirty(false);
-      setSaveStatus('saved');
-      
-      // Reset indicator after success
-      setTimeout(() => setSaveStatus('idle'), 2000);
-
-      // Navigate back on manual publish success
-      if (!isAutoSave && targetStatus === 1) {
-        router.push('/dashboard/campaigns');
-      }
-    } catch (error: any) {
-      console.error("[CampaignSave] Failed:", error);
-      setSaveStatus('error');
-      if (!isAutoSave) {
-        alert(error.message || "Failed to save changes. Please check your connection and try again.");
-      }
+      setIsUploadingLogo(true);
+      const { url } = await MediaService.uploadImage(file);
+      patch({ logoUrl: url });
+      toast.success('Logo uploaded successfully!');
+    } catch (error) {
+      console.error('Failed to upload logo:', error);
+      toast.error('Failed to upload logo. Please try again.');
     } finally {
-      if (!isAutoSave) setIsSaving(false);
+      setIsUploadingLogo(false);
+      e.target.value = ''; // Reset value to allow re-uploading the same file
     }
-  };
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => patch({ logo: ev.target?.result as string });
-    reader.readAsDataURL(file);
   };
 
   return (
@@ -179,16 +210,14 @@ export default function CampaignBuilder() {
 
           <div className="hidden sm:flex items-center gap-4">
             {/* Transient Save Status */}
-            <div className={`flex items-center gap-2 px-3 py-1.5 transition-all duration-500 ${
-              saveStatus === 'idle' ? 'opacity-0 translate-x-2 pointer-events-none' : 'opacity-100 translate-x-0'
-            }`}>
-              <span className={`w-1 h-1 rounded-full ${
-                saveStatus === 'saving' ? 'bg-primary animate-pulse' : 
+            <div className={`flex items-center gap-2 px-3 py-1.5 transition-all duration-500 ${saveStatus === 'idle' ? 'opacity-0 translate-x-2 pointer-events-none' : 'opacity-100 translate-x-0'
+              }`}>
+              <span className={`w-1 h-1 rounded-full ${saveStatus === 'saving' ? 'bg-primary animate-pulse' :
                 saveStatus === 'saved' ? 'bg-success' : 'bg-error'
-              }`} />
+                }`} />
               <span className="text-[9px] font-black uppercase tracking-widest text-outline">
-                {saveStatus === 'saving' ? 'Saving' : 
-                 saveStatus === 'saved' ? 'Saved' : 'Error'}
+                {saveStatus === 'saving' ? 'Saving' :
+                  saveStatus === 'saved' ? 'Saved' : 'Error'}
               </span>
             </div>
 
@@ -210,28 +239,44 @@ export default function CampaignBuilder() {
               <button
                 onClick={() => handleSave(false, 0)}
                 disabled={isSaving || !isDirty}
-                className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-low rounded-xl border border-outline-variant/20 transition-all disabled:opacity-40"
+                className="relative px-5 py-2.5 min-w-[140px] text-xs font-black uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-low rounded-xl border border-outline-variant/20 transition-all disabled:opacity-40 flex items-center justify-center gap-2 group"
               >
-                Save Draft
+                {pendingAction === 'draft' ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-on-surface-variant/30 border-t-on-surface-variant rounded-full animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[16px] opacity-50 group-hover:opacity-100 transition-opacity">draft</span>
+                    Save Draft
+                  </>
+                )}
               </button>
+
               <button
                 onClick={() => handleSave(false, 1)}
                 disabled={isSaving}
-                className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-xl transition-all flex items-center gap-2 ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-primary/20 active:scale-[0.98]'
+                className={`relative px-6 py-2.5 min-w-[160px] text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-xl transition-all flex items-center justify-center gap-2 ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-primary/20 active:scale-[0.98]'
                   }`}
                 style={{
                   background: isSaving
                     ? '#94a3b8'
-                    : `linear-gradient(135deg, ${campaign.primaryColor}, ${campaign.primaryColor}cc)`,
+                    : `linear-gradient(135deg, ${campaign.style.primaryColor}, ${campaign.style.primaryColor}cc)`,
                 }}
               >
-                {isSaving ? (
+                {pendingAction === 'publish' ? (
                   <>
                     <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Processing...
+                    <span>Publishing...</span>
                   </>
                 ) : (
-                  campaign.status === 1 ? 'Update Live' : 'Go Live'
+                  <>
+                    <span className="material-symbols-outlined text-[16px]">
+                      {campaign.status === 1 ? 'sync' : 'rocket_launch'}
+                    </span>
+                    {campaign.status === 1 ? 'Update Live' : 'Go Live'}
+                  </>
                 )}
               </button>
             </div>
@@ -246,25 +291,26 @@ export default function CampaignBuilder() {
           <button
             onClick={() => handleSave(false, 0)}
             disabled={isSaving || !isDirty}
-            className="flex-1 py-2.5 text-sm font-semibold text-on-surface-variant bg-surface-container-low rounded-xl border border-outline-variant/20 disabled:opacity-50"
+            className="flex-1 py-3 text-xs font-black uppercase tracking-widest text-on-surface-variant bg-surface-container-low rounded-xl border border-outline-variant/20 disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            Draft
+            {pendingAction === 'draft' ? (
+              <span className="w-4 h-4 border-2 border-on-surface-variant/30 border-t-on-surface-variant rounded-full animate-spin" />
+            ) : 'Draft'}
           </button>
           <button
             onClick={() => handleSave(false, 1)}
             disabled={isSaving}
-            className="flex-1 py-2.5 text-sm font-semibold text-on-primary rounded-xl shadow-md flex items-center justify-center gap-2"
-            style={{ backgroundColor: isSaving ? '#94a3b8' : campaign.primaryColor }}
+            className="flex-1 py-3 text-xs font-black uppercase tracking-widest text-on-primary rounded-xl shadow-md flex items-center justify-center gap-2 transition-all active:scale-95"
+            style={{ backgroundColor: isSaving ? '#94a3b8' : campaign.style.primaryColor }}
           >
-            {isSaving ? 'Saving...' : (campaign.status === 1 ? 'Update' : 'Publish')}
+            {pendingAction === 'publish' ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (campaign.status === 1 ? 'Update' : 'Publish')}
           </button>
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-32 space-y-4">
-            <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-            <p className="text-sm font-bold text-outline animate-pulse uppercase tracking-widest">Loading Campaign...</p>
-          </div>
+          <DashboardLoading title="Loading Campaign..." description="Fetching your campaign configuration" />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
             {/* Left Column: Settings (3/5) */}
@@ -282,9 +328,26 @@ export default function CampaignBuilder() {
                       className="w-full bg-surface-container-low border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none text-on-surface placeholder:text-outline/50"
                       placeholder="e.g. Downtown Cafe Summer Drive"
                       type="text"
-                      value={campaign.name}
-                      onChange={(e) => patch({ name: e.target.value })}
+                      value={campaign.businessName}
+                      onChange={(e) => patch({ businessName: e.target.value })}
                     />
+                  </div>
+
+                  {/* Placement / QR Code Location */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
+                      QR Code Location
+                    </label>
+                    <input
+                      className="w-full bg-surface-container-low border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none text-on-surface placeholder:text-outline/50"
+                      placeholder="(e.g., Cashier, Table 1, Front Door)"
+                      type="text"
+                      value={campaign.placement}
+                      onChange={(e) => patch({ placement: e.target.value })}
+                    />
+                    <p className="text-[11px] text-on-surface-variant/60 italic">
+                      Where will this be placed? This helps track where customers scan.
+                    </p>
                   </div>
 
                   {/* Google Review URL */}
@@ -320,10 +383,19 @@ export default function CampaignBuilder() {
                     <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/70">
                       Business Logo
                     </label>
-                    {campaign.logo ? (
+                    {isUploadingLogo ? (
+                      <div className="w-full border-2 border-dashed border-primary/30 rounded-2xl p-8 flex flex-col items-center bg-primary/5 animate-pulse">
+                        <div className="w-12 h-12 rounded-full bg-white shadow-sm border border-outline-variant/10 flex items-center justify-center text-primary mb-3">
+                          <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                        </div>
+                        <p className="text-sm font-semibold text-primary">Uploading Logo...</p>
+                        <p className="text-xs text-on-surface-variant mt-1">Please wait a moment</p>
+                      </div>
+                    ) : campaign.logoUrl ? (
                       <div className="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/20">
                         <div className="w-14 h-14 rounded-xl overflow-hidden border border-outline-variant/20 flex-shrink-0 bg-white">
-                          <img src={campaign.logo} alt="Logo" className="w-full h-full object-contain p-1" />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={campaign.logoUrl} alt="Logo" className="w-full h-full object-contain p-1" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-on-surface">Logo uploaded</p>
@@ -331,14 +403,19 @@ export default function CampaignBuilder() {
                         </div>
                         <div className="flex gap-2">
                           <button
+                            disabled={isUploadingLogo}
                             onClick={() => logoInputRef.current?.click()}
-                            className="px-3 py-1.5 text-xs font-semibold text-on-surface-variant bg-surface-container rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors"
+                            className="px-3 py-1.5 text-xs font-semibold text-on-surface-variant bg-surface-container rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors disabled:opacity-50"
                           >
                             Change
                           </button>
                           <button
-                            onClick={() => patch({ logo: null })}
-                            className="px-3 py-1.5 text-xs font-semibold text-error bg-error/5 rounded-lg border border-error/20 hover:bg-error/10 transition-colors"
+                            disabled={isUploadingLogo}
+                            onClick={() => {
+                              patch({ logoUrl: null });
+                              if (logoInputRef.current) logoInputRef.current.value = '';
+                            }}
+                            className="px-3 py-1.5 text-xs font-semibold text-error bg-error/5 rounded-lg border border-error/20 hover:bg-error/10 transition-colors disabled:opacity-50"
                           >
                             Remove
                           </button>
@@ -346,8 +423,9 @@ export default function CampaignBuilder() {
                       </div>
                     ) : (
                       <button
+                        disabled={isUploadingLogo}
                         onClick={() => logoInputRef.current?.click()}
-                        className="w-full border-2 border-dashed border-outline-variant/30 rounded-2xl p-8 flex flex-col items-center bg-surface-container-low/30 hover:bg-surface-container-low transition-colors cursor-pointer group"
+                        className="w-full border-2 border-dashed border-outline-variant/30 rounded-2xl p-8 flex flex-col items-center bg-surface-container-low/30 hover:bg-surface-container-low transition-colors cursor-pointer group disabled:cursor-not-allowed"
                       >
                         <div className="w-12 h-12 rounded-full bg-white shadow-sm border border-outline-variant/10 flex items-center justify-center text-primary mb-3 group-hover:scale-110 transition-transform">
                           <span className="material-symbols-outlined">upload_file</span>
@@ -378,8 +456,8 @@ export default function CampaignBuilder() {
                       {([4, 5] as const).map((val) => (
                         <button
                           key={val}
-                          onClick={() => patch({ routingThreshold: val })}
-                          className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${campaign.routingThreshold === val
+                          onClick={() => patch({ settings: { ...campaign.settings, routingThreshold: val } })}
+                          className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${campaign.settings.routingThreshold === val
                             ? 'bg-primary text-on-primary shadow-sm'
                             : 'text-on-surface-variant hover:bg-surface-container-low'
                             }`}

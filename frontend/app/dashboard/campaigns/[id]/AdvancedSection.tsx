@@ -1,6 +1,6 @@
 'use client';
 
-import { CampaignConfig, RatingIconType } from './types';
+import { CampaignConfig, RatingIconType } from '@/types/campaign';
 
 interface Props {
   campaign: CampaignConfig;
@@ -33,12 +33,11 @@ export default function AdvancedSection({ campaign, onChange }: Props) {
             {RATING_TYPES.map((type) => (
               <button
                 key={type.value}
-                onClick={() => onChange({ ratingIconType: type.value })}
-                className={`p-3 rounded-xl border text-center transition-all ${
-                  campaign.ratingIconType === type.value
+                onClick={() => onChange({ style: { ...campaign.style, ratingIconType: type.value } })}
+                className={`p-3 rounded-xl border text-center transition-all ${campaign.style?.ratingIconType === type.value
                     ? 'border-primary/50 bg-primary/5 shadow-sm'
                     : 'border-outline-variant/20 bg-surface-container-low hover:bg-surface-container'
-                }`}
+                  }`}
               >
                 <div className="text-lg mb-1 truncate">
                   {type.preview.slice(0, 3).join(' ')}
@@ -59,28 +58,26 @@ export default function AdvancedSection({ campaign, onChange }: Props) {
               </p>
             </div>
             <button
-              onClick={() => onChange({ collectContact: !campaign.collectContact })}
-              className={`relative w-11 h-6 rounded-full transition-all duration-200 flex-shrink-0 ${
-                campaign.collectContact ? 'bg-primary' : 'bg-outline-variant/40'
-              }`}
+              onClick={() => onChange({ settings: { ...campaign.settings, collectContact: !campaign.settings.collectContact } })}
+              className={`relative w-11 h-6 rounded-full transition-all duration-200 flex-shrink-0 ${campaign.settings.collectContact ? 'bg-primary' : 'bg-outline-variant/40'
+                }`}
             >
               <span
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200 ${
-                  campaign.collectContact ? 'left-5' : 'left-0.5'
-                }`}
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200 ${campaign.settings.collectContact ? 'left-5' : 'left-0.5'
+                  }`}
               />
             </button>
           </div>
-          {campaign.collectContact && (
+          {campaign.settings.collectContact && (
             <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/20 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-lg">check_circle</span>
               <p className="text-xs font-medium text-on-surface-variant">
-                Customers will see an optional "Email or phone (for follow-up)" field.
+                Customers will see an optional &quot;Email or phone (for follow-up)&quot; field.
               </p>
             </div>
           )}
         </div>
-
+ 
         {/* Incentive / Coupon */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -91,29 +88,27 @@ export default function AdvancedSection({ campaign, onChange }: Props) {
               </p>
             </div>
             <button
-              onClick={() => onChange({ incentiveEnabled: !campaign.incentiveEnabled })}
-              className={`relative w-11 h-6 rounded-full transition-all duration-200 flex-shrink-0 ${
-                campaign.incentiveEnabled ? 'bg-primary' : 'bg-outline-variant/40'
-              }`}
+              onClick={() => onChange({ settings: { ...campaign.settings, incentiveEnabled: !campaign.settings.incentiveEnabled } })}
+              className={`relative w-11 h-6 rounded-full transition-all duration-200 flex-shrink-0 ${campaign.settings.incentiveEnabled ? 'bg-primary' : 'bg-outline-variant/40'
+                }`}
             >
               <span
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200 ${
-                  campaign.incentiveEnabled ? 'left-5' : 'left-0.5'
-                }`}
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200 ${campaign.settings.incentiveEnabled ? 'left-5' : 'left-0.5'
+                  }`}
               />
             </button>
           </div>
-          {campaign.incentiveEnabled && (
+          {campaign.settings.incentiveEnabled && (
             <div className="space-y-2">
               <input
                 className="w-full bg-surface-container-low border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl px-4 py-3 text-sm font-mono font-bold uppercase tracking-wider transition-all outline-none text-on-surface placeholder:text-outline/50 placeholder:normal-case placeholder:tracking-normal placeholder:font-normal"
                 placeholder="e.g. THANKS10"
                 type="text"
-                value={campaign.incentiveCoupon}
-                onChange={(e) => onChange({ incentiveCoupon: e.target.value.toUpperCase() })}
+                value={campaign.settings.incentiveCoupon}
+                onChange={(e) => onChange({ settings: { ...campaign.settings, incentiveCoupon: e.target.value.toUpperCase() } })}
               />
               <p className="text-[11px] text-on-surface-variant/60 italic">
-                Shown on the "Thank You" screen for customers who left 4+ star ratings.
+                Shown on the &quot;Thank You&quot; screen for customers who left 4+ star ratings.
               </p>
             </div>
           )}

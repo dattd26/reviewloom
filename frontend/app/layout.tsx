@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Manrope, Inter } from 'next/font/google'
+import { Toaster } from 'react-hot-toast'
 import './globals.css'
 import 'material-symbols/outlined.css'
 
@@ -17,8 +18,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'ReviewLoom | Build Trust, Automate Growth',
-  description: "Intercept negative experiences before they go public. Our automated ledger captures dissatisfaction privately while routing happy customers to Google and Yelp.",
+  title: 'ReviewLoom | Smart QR Review Campaigns',
+  description: 'ReviewLoom helps local businesses collect more Google reviews, capture private feedback, and measure QR campaign performance.',
 }
 
 export default function RootLayout({
@@ -28,8 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" className="light">
+      <html lang="en" className="light" suppressHydrationWarning>
         <body className={`${manrope.variable} ${inter.variable} antialiased font-body bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed`}>
+          <Toaster position="bottom-right" />
           {children}
         </body>
       </html>

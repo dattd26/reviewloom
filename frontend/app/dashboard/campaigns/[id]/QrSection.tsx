@@ -1,6 +1,6 @@
 'use client';
 
-import { CampaignConfig, QR_FRAMES, QrFrameType } from './types';
+import { CampaignConfig, QR_FRAMES, QrFrameType } from '@/types/campaign';
 
 interface Props {
   campaign: CampaignConfig;
@@ -30,12 +30,11 @@ export default function QrSection({ campaign, onChange }: Props) {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-on-surface-variant">
-              {campaign.logo ? 'Logo ready' : 'Upload logo first'}
+              {campaign.logoUrl ? 'Logo ready' : 'Upload logo first'}
             </span>
             <div
-              className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${
-                campaign.logo ? 'bg-primary' : 'bg-outline-variant/40 cursor-not-allowed'
-              }`}
+              className={`w-10 h-5 rounded-full relative transition-all cursor-pointer ${campaign.logoUrl ? 'bg-primary' : 'bg-outline-variant/40 cursor-not-allowed'
+                }`}
             >
               <div className="w-4 h-4 bg-white rounded-full absolute top-0.5 right-0.5 shadow-sm" />
             </div>
@@ -51,12 +50,12 @@ export default function QrSection({ campaign, onChange }: Props) {
             {QR_DOT_PRESETS.map((color) => (
               <button
                 key={color}
-                onClick={() => onChange({ qrDotColor: color })}
+                onClick={() => onChange({ style: { ...campaign.style, qrDotColor: color } })}
                 className="w-8 h-8 rounded-full border-2 transition-all hover:scale-110 active:scale-95"
                 style={{
                   backgroundColor: color,
                   borderColor: 'transparent',
-                  boxShadow: campaign.qrDotColor === color ? `0 0 0 3px white, 0 0 0 5px ${color}` : '0 1px 3px rgba(0,0,0,0.2)',
+                  boxShadow: campaign.style.qrDotColor === color ? `0 0 0 3px white, 0 0 0 5px ${color}` : '0 1px 3px rgba(0,0,0,0.2)',
                 }}
               />
             ))}
@@ -64,8 +63,8 @@ export default function QrSection({ campaign, onChange }: Props) {
               <span className="material-symbols-outlined text-outline text-[14px]">add</span>
               <input
                 type="color"
-                value={campaign.qrDotColor}
-                onChange={(e) => onChange({ qrDotColor: e.target.value })}
+                value={campaign.style.qrDotColor}
+                onChange={(e) => onChange({ style: { ...campaign.style, qrDotColor: e.target.value } })}
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
               />
             </label>
@@ -81,18 +80,17 @@ export default function QrSection({ campaign, onChange }: Props) {
             {QR_FRAMES.map((frame) => (
               <label
                 key={frame.value}
-                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                  campaign.qrFrame === frame.value
+                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${campaign.style.qrFrame === frame.value
                     ? 'border-primary/50 bg-primary/5'
                     : 'border-outline-variant/20 bg-surface-container-low hover:bg-surface-container'
-                }`}
+                  }`}
               >
                 <input
                   type="radio"
                   name="qrFrame"
                   value={frame.value}
-                  checked={campaign.qrFrame === frame.value}
-                  onChange={() => onChange({ qrFrame: frame.value as QrFrameType })}
+                  checked={campaign.style.qrFrame === frame.value}
+                  onChange={() => onChange({ style: { ...campaign.style, qrFrame: frame.value as QrFrameType } })}
                   className="accent-primary"
                 />
                 <span className="text-sm font-medium text-on-surface">{frame.label}</span>
