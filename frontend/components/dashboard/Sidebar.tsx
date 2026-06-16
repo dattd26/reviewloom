@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { UserButton, useUser } from '@clerk/nextjs';
 import { usePathname } from 'next/navigation';
+import { Logo } from '@/components/ui/Logo';
 
 export function Sidebar() {
   const { user } = useUser();
@@ -12,9 +13,7 @@ export function Sidebar() {
     <aside className="w-64 bg-surface-container-lowest border-r border-outline-variant/10 flex flex-col fixed h-screen z-50">
       <div className="p-8">
         <Link href="/dashboard" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-            <span className="material-symbols-outlined text-on-primary">weaving</span>
-          </div>
+          <Logo className="w-10 h-10 text-primary group-hover:scale-110 transition-transform drop-shadow-md" />
           <h1 className="text-xl font-headline font-black text-on-surface tracking-tighter">ReviewLoom</h1>
         </Link>
       </div>

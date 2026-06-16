@@ -2,15 +2,14 @@
 
 import Link from 'next/link';
 import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { Logo } from '@/components/ui/Logo';
 
 export function Header() {
   return (
     <header className="fixed top-0 w-full z-50 glass-effect bg-surface/80 no-line-architecture">
       <nav className="flex justify-between items-center px-8 py-5 max-w-7xl mx-auto font-display tracking-tight">
-        <Link id="header-logo-link" href="/" className="text-2xl font-extrabold tracking-tighter text-primary-container flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <div className="w-4 h-4 bg-white rounded-sm rotate-45" />
-          </div>
+        <Link id="header-logo-link" href="/" className="text-2xl font-extrabold tracking-tighter text-primary flex items-center gap-2">
+          <Logo className="w-8 h-8 text-primary" />
           ReviewLoom
         </Link>
         

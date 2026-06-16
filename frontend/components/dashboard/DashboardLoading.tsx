@@ -1,5 +1,7 @@
 "use client";
 
+import { Logo } from '@/components/ui/Logo';
+
 interface DashboardLoadingProps {
   title?: string;
   description?: string;
@@ -18,13 +20,8 @@ export function DashboardLoading({
       <div className="flex flex-col items-center gap-6 relative z-10">
         {/* Animated Logo Container */}
         <div className="relative">
-          <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-primary to-primary-container animate-pulse" />
-            <span className="material-symbols-outlined text-3xl text-on-primary relative z-10 animate-bounce">
-              weaving
-            </span>
-          </div>
+          <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+          <Logo className="w-16 h-16 text-primary relative z-10 animate-bounce drop-shadow-xl" />
         </div>
 
         {/* Loading Text */}
