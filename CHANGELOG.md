@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Somee Deployment CD Workflow**:
+  - Created `.github/workflows/deploy.yml` referencing the WanderVN deploy workflow.
+  - Configured automated publish pipeline for .NET 10.0 ASP.NET Core API to Somee FTP with Python app-offline automation.
 - **Async Feedback Reply via Email**:
   - Installed `MailKit` and `Microsoft.Extensions.Hosting.Abstractions` packages.
   - Implemented `IEmailService` and `IEmailQueue` in the Application layer.

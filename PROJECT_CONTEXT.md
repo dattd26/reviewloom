@@ -99,7 +99,7 @@ sequenceDiagram
 
 ### Infrastructure & External Services:
 *   **Docker:** Chưa xác định (Không có Dockerfile trong thư mục dự án).
-*   **CI/CD:** Chưa xác định.
+*   **CI/CD:** Github Actions cho CI (build & lint cho cả backend/frontend qua `ci.yml`) và CD (tự động deploy Backend lên Somee qua FTP với Python app-offline automation qua `deploy.yml`).
 *   **External Integrations:**
     *   **Clerk:** Định danh người dùng. Xác thực JWT từ API Client và nhận Webhooks đồng bộ user (`Svix` signatures verification).
     *   **Stripe:** Cổng thanh toán quốc tế và quản lý gói đăng ký định kỳ.
