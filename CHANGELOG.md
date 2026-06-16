@@ -21,6 +21,13 @@ All notable changes to this project will be documented in this file.
   - Updated the Next.js frontend to retrieve template catalogs from the API, group them by category in the Standee Designer sidebar, show dynamic loading states, and dynamically resolve layouts/styling styles for all 16 template configurations.
 
 ### Refactored
+- **Backend Directory Structure Refactoring (Enterprise Standard)**:
+  - Created `src/` and `tests/` directories inside the `backend` folder to segregate production code and test suites.
+  - Moved production projects (`ReviewLoom.Api`, `ReviewLoom.Application`, `ReviewLoom.Domain`, `ReviewLoom.Infrastructure`) into `backend/src/`.
+  - Moved the test project (`ReviewLoom.Infrastructure.Tests`) into `backend/tests/`.
+  - Updated project references in `ReviewLoom.Infrastructure.Tests.csproj` and project paths in the solution file `ReviewLoom.slnx`.
+  - Adjusted VS Code launch configurations (`launch.json`) and build/publish/watch tasks (`tasks.json`) to target the new project paths.
+  - Updated workspace documentation (`README.md`, `PROJECT_CONTEXT.md`) with the new layout and updated database setup/migration CLI commands.
 - **Clean Architecture & Layering Enforcement**:
   - Removed direct dependencies on `IUnitOfWork` and repositories from all API Controllers (`RController`, `CampaignsController`, `InboxController`, `DashboardController`, `BillingController`, `ClerkWebhookController`).
   - Created `IUserService` and `UserService` in the Application layer to centralize user management and Clerk synchronization logic, avoiding duplicate user lookups in controllers.

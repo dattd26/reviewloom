@@ -112,19 +112,22 @@ sequenceDiagram
 ```text
 reviewloom/
 ├── backend/                             # Giải pháp backend ASP.NET Core
-│   ├── ReviewLoom.Domain/               # Tầng nghiệp vụ trung tâm (Entities, Enums, Interfaces)
-│   │   ├── Entities/                    # Các Domain Model chính (Campaign, User, Scan, Subscription...)
-│   │   └── Interfaces/                  # Các giao diện hợp đồng Repository (IUnitOfWork, IRepository...)
-│   ├── ReviewLoom.Application/          # Tầng nghiệp vụ chính (Services, DTOs, Mappings)
-│   │   ├── Services/                    # Triển khai Service chính (CampaignService, ScanService...)
-│   │   └── Mappings/                    # Chứa logic chuyển đổi Entity <-> DTO
-│   ├── ReviewLoom.Infrastructure/       # Chi tiết cơ sở dữ liệu và API bên thứ ba (Stripe, Cloudinary)
-│   │   ├── Data/                        # DbContext & EF Core Migrations
-│   │   ├── Repositories/                # Cài đặt cụ thể cho các Repo (EF Core + Dapper)
-│   │   └── Services/                    # Integrations (Stripe, Cloudinary)
-│   ├── ReviewLoom.Api/                  # REST API Host
-│   │   ├── Controllers/                 # API Controllers (CampaignsController, RController...)
-│   │   └── Program.cs                   # Cấu hình Host, Middleware Pipeline
+│   ├── src/                             # Mã nguồn chạy ứng dụng (Production Code)
+│   │   ├── ReviewLoom.Domain/           # Tầng nghiệp vụ trung tâm (Entities, Enums, Interfaces)
+│   │   │   ├── Entities/                # Các Domain Model chính (Campaign, User, Scan, Subscription...)
+│   │   │   └── Interfaces/              # Các giao diện hợp đồng Repository (IUnitOfWork, IRepository...)
+│   │   ├── ReviewLoom.Application/      # Tầng nghiệp vụ chính (Services, DTOs, Mappings)
+│   │   │   ├── Services/                # Triển khai Service chính (CampaignService, ScanService...)
+│   │   │   └── Mappings/                # Chứa logic chuyển đổi Entity <-> DTO
+│   │   ├── ReviewLoom.Infrastructure/   # Chi tiết cơ sở dữ liệu và API bên thứ ba (Stripe, Cloudinary)
+│   │   │   ├── Data/                    # DbContext & EF Core Migrations
+│   │   │   ├── Repositories/            # Cài đặt cụ thể cho các Repo (EF Core + Dapper)
+│   │   │   └── Services/                # Integrations (Stripe, Cloudinary)
+│   │   └── ReviewLoom.Api/              # REST API Host
+│   │       ├── Controllers/             # API Controllers (CampaignsController, RController...)
+│   │       └── Program.cs               # Cấu hình Host, Middleware Pipeline
+│   ├── tests/                           # Thư mục chứa các dự án Test
+│   │   └── ReviewLoom.Infrastructure.Tests/ # Các test case cho tầng Infrastructure
 │   └── database/                        # Thư mục lưu schema.sql khởi tạo cơ sở dữ liệu gốc
 ├── frontend/                            # Mã nguồn ứng dụng Next.js
 │   ├── app/                             # Các route của Next.js (App Router)
@@ -146,7 +149,7 @@ reviewloom/
 
 ## 5. Domain Model (Các thực thể chính)
 
-Tất cả thực thể được định nghĩa trong thư mục [backend/ReviewLoom.Domain/Entities](file:///home/ducdat/IT/CNPM/LT-Web-ASP.Net-Core/reviewloom/backend/ReviewLoom.Domain/Entities):
+Tất cả thực thể được định nghĩa trong thư mục [backend/src/ReviewLoom.Domain/Entities](file:///home/ducdat/IT/CNPM/LT-Web-ASP.Net-Core/reviewloom/backend/src/ReviewLoom.Domain/Entities):
 
 1.  **User (`User.cs`):** Đại diện cho chủ cửa hàng đăng ký tài khoản trên hệ thống.
     *   *Mối quan hệ:*
@@ -343,15 +346,15 @@ Dựa trên phân tích thực tế mã nguồn:
 ### Cách chạy môi trường Local:
 #### 1. Chạy Backend API:
 *   Cài đặt môi trường .NET SDK 8.0+.
-*   Cấu hình PostgreSQL connection string và các keys của Clerk/Cloudinary trong file `backend/ReviewLoom.Api/appsettings.Development.json`.
+*   Cấu hình PostgreSQL connection string và các keys của Clerk/Cloudinary trong file `backend/src/ReviewLoom.Api/appsettings.Development.json`.
 *   Cập nhật database bằng Entity Framework Core CLI:
     ```bash
     cd backend
-    dotnet ef database update --project ReviewLoom.Infrastructure --startup-project ReviewLoom.Api
+    dotnet ef database update --project src/ReviewLoom.Infrastructure --startup-project src/ReviewLoom.Api
     ```
 *   Khởi chạy Backend:
     ```bash
-    dotnet run --project ReviewLoom.Api
+    dotnet run --project src/ReviewLoom.Api
     ```
     Swagger sẽ tự động kích hoạt tại địa chỉ mặc định (ví dụ: `http://localhost:5165/swagger`).
 
@@ -372,8 +375,8 @@ Dựa trên phân tích thực tế mã nguồn:
 ### Quy trình tạo Database Migration mới:
 Khi thay đổi các Entity ở tầng Domain, chạy lệnh sau tại thư mục `backend/` để sinh file migration mới:
 ```bash
-dotnet ef migrations add <Ten_Migration> --project ReviewLoom.Infrastructure --startup-project ReviewLoom.Api
-dotnet ef database update --project ReviewLoom.Infrastructure --startup-project ReviewLoom.Api
+dotnet ef migrations add <Ten_Migration> --project src/ReviewLoom.Infrastructure --startup-project src/ReviewLoom.Api
+dotnet ef database update --project src/ReviewLoom.Infrastructure --startup-project src/ReviewLoom.Api
 ```
 
 ---
