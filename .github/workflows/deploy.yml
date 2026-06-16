@@ -3,7 +3,7 @@ name: ReviewLoom CD Pipeline (Auto Deploy Backend to Somee)
 on:
   push:
     branches:
-      - main # Tự động chạy deploy khi push hoặc merge PR vào nhánh main
+      - develop # Tự động chạy deploy khi push hoặc merge PR vào nhánh main
 
 jobs:
   deploy-backend:
