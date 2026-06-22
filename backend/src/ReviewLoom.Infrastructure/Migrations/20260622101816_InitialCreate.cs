@@ -1,17 +1,34 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace ReviewLoom.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddNormalizedCampaignTables : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            /*
+            migrationBuilder.CreateTable(
+                name: "standee_templates",
+                columns: table => new
+                {
+                    id = table.Column<string>(type: "text", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    category = table.Column<string>(type: "text", nullable: false),
+                    is_premium = table.Column<bool>(type: "boolean", nullable: false),
+                    thumbnail_url = table.Column<string>(type: "text", nullable: false),
+                    schema_json = table.Column<string>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("standee_templates_pkey", x => x.id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "users",
                 columns: table => new
@@ -32,13 +49,15 @@ namespace ReviewLoom.Infrastructure.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    status = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     slug = table.Column<string>(type: "text", nullable: false),
-                    google_review_url = table.Column<string>(type: "text", nullable: false),
+                    google_review_url = table.Column<string>(type: "text", nullable: true),
                     business_name = table.Column<string>(type: "text", nullable: false),
                     logo_url = table.Column<string>(type: "text", nullable: true),
                     thank_you_message = table.Column<string>(type: "text", nullable: true, defaultValueSql: "'Thank you for your review!'::text"),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP")
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    Placement = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -76,7 +95,6 @@ namespace ReviewLoom.Infrastructure.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
-            */
 
             migrationBuilder.CreateTable(
                 name: "campaign_settings",
@@ -120,6 +138,12 @@ namespace ReviewLoom.Infrastructure.Migrations
                         principalTable: "campaigns",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "campaign_standee_configs_template_id_fkey",
+                        column: x => x.template_id,
+                        principalTable: "standee_templates",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -148,7 +172,6 @@ namespace ReviewLoom.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            /*
             migrationBuilder.CreateTable(
                 name: "scans",
                 columns: table => new
@@ -156,9 +179,13 @@ namespace ReviewLoom.Infrastructure.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
                     campaign_id = table.Column<Guid>(type: "uuid", nullable: false),
                     action = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Rating = table.Column<int>(type: "integer", nullable: false),
                     feedback_name = table.Column<string>(type: "text", nullable: true),
                     feedback_email = table.Column<string>(type: "text", nullable: true),
                     feedback_message = table.Column<string>(type: "text", nullable: true),
+                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false, defaultValue: "unread"),
+                    reply_message = table.Column<string>(type: "text", nullable: true),
+                    replied_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     scanned_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
@@ -171,9 +198,35 @@ namespace ReviewLoom.Infrastructure.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
-            */
 
-            /*
+            migrationBuilder.InsertData(
+                table: "standee_templates",
+                columns: new[] { "id", "category", "is_premium", "name", "schema_json", "thumbnail_url" },
+                values: new object[,]
+                {
+                    { "cafe_kraft", "coffee", false, "Cafe Kraft", "{\"layout\": \"cafe_kraft\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "coffee-cozy", "coffee", false, "Cozy Cafe", "{\"layout\": \"coffee-cozy\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "coffee-minimal", "coffee", false, "Minimal Coffee", "{\"layout\": \"coffee-minimal\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "coffee-premium", "coffee", true, "Premium Coffee", "{\"layout\": \"coffee-premium\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "minimal_white", "general", false, "Minimal White", "{\"layout\": \"minimal_white\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "prestige_dark", "general", true, "Prestige Dark", "{\"layout\": \"prestige_dark\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "restaurant-casual", "restaurant", false, "Fast Casual", "{\"layout\": \"restaurant-casual\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "restaurant-elegant", "restaurant", true, "Elegant Dining", "{\"layout\": \"restaurant-elegant\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "restaurant-modern", "restaurant", false, "Modern Table", "{\"layout\": \"restaurant-modern\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "salon_blush", "salon", true, "Salon Blush", "{\"layout\": \"salon_blush\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "salon-barber", "salon", false, "Modern Barber", "{\"layout\": \"salon-barber\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "salon-luxury", "salon", true, "Luxury Spa", "{\"layout\": \"salon-luxury\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "salon-minimal", "salon", false, "Beauty Minimal", "{\"layout\": \"salon-minimal\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "services-hvac", "services", false, "HVAC Trust", "{\"layout\": \"services-hvac\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "services-plumbing", "services", true, "Plumbing Expert", "{\"layout\": \"services-plumbing\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" },
+                    { "services-roofing", "services", false, "Roofing Pro", "{\"layout\": \"services-roofing\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}", "" }
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_campaign_standee_configs_template_id",
+                table: "campaign_standee_configs",
+                column: "template_id");
+
             migrationBuilder.CreateIndex(
                 name: "campaigns_slug_key",
                 table: "campaigns",
@@ -200,7 +253,6 @@ namespace ReviewLoom.Infrastructure.Migrations
                 table: "users",
                 column: "clerk_id",
                 unique: true);
-            */
         }
 
         /// <inheritdoc />
@@ -215,7 +267,6 @@ namespace ReviewLoom.Infrastructure.Migrations
             migrationBuilder.DropTable(
                 name: "campaign_styles");
 
-            /*
             migrationBuilder.DropTable(
                 name: "scans");
 
@@ -223,11 +274,13 @@ namespace ReviewLoom.Infrastructure.Migrations
                 name: "subscriptions");
 
             migrationBuilder.DropTable(
+                name: "standee_templates");
+
+            migrationBuilder.DropTable(
                 name: "campaigns");
 
             migrationBuilder.DropTable(
                 name: "users");
-            */
         }
     }
 }
