@@ -270,12 +270,8 @@ Dự án được cấu hình quy trình triển khai tự động (CD) lên má
 ## 📈 Lộ Trình Phát Triển (Roadmap)
 
 *   [ ] **AI Phân Tích Sắc Thái (Sentiment Analysis):** Tự động phân tích nội dung góp ý tiêu cực của khách hàng để cảnh báo các vấn đề khẩn cấp cho chủ cửa hàng.
-*   [ ] **Thông báo đa kênh:** Hỗ trợ nhận thông báo góp ý mới qua Telegram, SMS hoặc Zalo.
+*   [ ] **Thông báo đa kênh:** Hỗ trợ nhận thông báo góp ý mới qua Telegram, SMS,...
 *   [ ] **Báo cáo chuyên sâu bằng PDF:** Cho phép tải báo cáo định kỳ tháng/quý về hiệu suất đánh giá và xếp hạng.
 *   [ ] **Hỗ trợ đa ngôn ngữ (i18n):** Cho phép Landing page hiển thị nhiều ngôn ngữ khác nhau dựa trên vị trí/trình duyệt của khách hàng.
 
 ---
-
-## 📄 Bản quyền (License)
-
-Bản quyền thuộc về **ReviewLoom Team © 2026**. Mọi quyền được bảo lưu.
