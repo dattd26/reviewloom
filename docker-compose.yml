@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: reviewloom-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-reviewloom_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-051124}
+      POSTGRES_DB: ${DB_NAME:-reviewloomdb}
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: reviewloom-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: reviewloom-backend
+    restart: always
+    ports:
+      - "5275:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${DB_NAME:-reviewloomdb};Username=${DB_USER:-reviewloom_admin};Password=${DB_PASSWORD:-051124}
+      - Clerk__Authority=${CLERK_AUTHORITY}
+      - Clerk__WebhookSecret=${CLERK_WEBHOOK_SECRET}
+      - Cloudinary__CloudName=${CLOUDINARY_CLOUD_NAME}
+      - Cloudinary__ApiKey=${CLOUDINARY_API_KEY}
+      - Cloudinary__ApiSecret=${CLOUDINARY_API_SECRET}
+      - Stripe__ApiKey=${STRIPE_API_KEY}
+      - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
+      - Stripe__Prices__ProMonthly=${STRIPE_PRICE_MONTHLY}
+      - Stripe__Prices__ProYearly=${STRIPE_PRICE_YEARLY}
+      - Frontend__BaseUrl=http://localhost:3000
+      - Frontend__AllowedOrigins=http://localhost:3000;https://reviewloom.vercel.app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: reviewloom-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    container_name: reviewloom-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
