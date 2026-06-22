@@ -181,6 +181,37 @@ dotnet test
 
 ---
 
+## 💳 Thông Tin Thẻ Thử Nghiệm Stripe (Sandbox)
+
+Để thực hiện kiểm thử chức năng thanh toán nâng cấp gói dịch vụ (Pro Plan) thông qua cổng thanh toán Stripe trong môi trường phát triển/thử nghiệm (sandbox), bạn có thể sử dụng các thông tin thẻ dưới đây:
+
+### 1. Thẻ kiểm thử thành công (Successful Payments)
+Sử dụng thẻ này để giả lập giao dịch thanh toán và đăng ký gói cước thành công:
+
+| Loại thẻ | Số thẻ | Ngày hết hạn | Mã CVC |
+| :--- | :--- | :--- | :--- |
+| **Visa (Thành công)** | `4242 4242 4242 4242` | Bất kỳ ngày nào trong tương lai (Ví dụ: `12/28`) | Bất kỳ số 3 chữ số nào (Ví dụ: `123`) |
+
+### 2. Thẻ kiểm thử thất bại (Failed Payments & Error Codes)
+Sử dụng các thẻ dưới đây để kiểm tra cách hệ thống xử lý các lỗi thanh toán khác nhau:
+
+| Trường hợp lỗi | Số thẻ | Ngày hết hạn | Mã CVC |
+| :--- | :--- | :--- | :--- |
+| **Lỗi từ chối chung (Generic Decline)** | `4000 0000 0000 0002` | Tương lai | `123` |
+| **Không đủ số dư (Insufficient Funds)** | `4000 0000 0000 9995` | Tương lai | `123` |
+| **Thẻ hết hạn (Expired Card)** | `4000 0000 0000 0015` | Tương lai | `123` |
+| **Sai mã bảo mật (Incorrect CVC)** | `4000 0000 0000 0023` | Tương lai | `123` |
+
+### 3. Thẻ yêu cầu xác thực bảo mật 3D Secure (3DS)
+Đối với các giao dịch yêu cầu xác thực 2 bước từ ngân hàng:
+
+| Trường hợp | Số thẻ | Hướng dẫn xử lý trên giao diện thử nghiệm |
+| :--- | :--- | :--- |
+| **3DS Xác thực thành công** | `4000 0000 0000 3063` | Khi popup 3DS hiện ra, chọn **Complete Authentication** (Hoàn thành xác thực). |
+| **3DS Xác thực thất bại** | `4000 0000 0000 3064` | Khi popup 3DS hiện ra, chọn **Fail Authentication** (Thất bại xác thực). |
+
+---
+
 ## 🚀 CI/CD & Triển khai (Deployment)
 
 ### Frontend (Next.js)
