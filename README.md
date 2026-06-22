@@ -170,6 +170,36 @@ reviewloom/
 
 ---
 
+### Hướng dẫn chạy bằng Docker & Docker Compose
+
+Dự án cung cấp cấu hình Docker Compose để khởi chạy nhanh toàn bộ các dịch vụ (PostgreSQL Database, Backend API, Frontend Next.js) chỉ bằng một lệnh duy nhất.
+
+1.  **Chuẩn bị file môi trường:**
+    Sao chép file cấu hình mẫu `.env.docker.example` thành `.env` ở thư mục gốc:
+    ```bash
+    cp .env.docker.example .env
+    ```
+    *Lưu ý: Bạn có thể cập nhật các API keys của Clerk, Stripe, Cloudinary trong file `.env` mới tạo nếu cần.*
+
+2.  **Khởi chạy hệ thống:**
+    Tại thư mục gốc của dự án, chạy lệnh:
+    ```bash
+    docker compose up --build
+    ```
+    Lệnh này sẽ tự động:
+    * Khởi động một container PostgreSQL (`reviewloom-db`) phục vụ dữ liệu.
+    * Build và chạy container Backend API (`reviewloom-backend`) lắng nghe trên cổng `5275` (`http://localhost:5275`).
+    * Build và chạy container Frontend Next.js (`reviewloom-frontend`) lắng nghe trên cổng `3000` (`http://localhost:3000`).
+
+3.  **Áp dụng Database Migrations (nếu chạy lần đầu):**
+    Để chạy migrations cấu hình cơ sở dữ liệu trên container PostgreSQL vừa tạo:
+    ```bash
+    cd backend
+    dotnet ef database update --project src/ReviewLoom.Infrastructure --startup-project src/ReviewLoom.Api --connection "Host=localhost;Port=5432;Database=reviewloomdb;Username=reviewloom_admin;Password=051124"
+    ```
+
+---
+
 ## 🧪 Chạy Kiểm Thử (Unit Tests)
 
 Dự án sử dụng **xUnit** và **Moq** để viết unit test cho các thành phần quan trọng (ví dụ như dịch vụ gửi Email). Để chạy toàn bộ test suite ở backend:
