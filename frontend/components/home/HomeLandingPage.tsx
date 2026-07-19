@@ -5,6 +5,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { PricingSection } from "./PricingSection";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -277,6 +278,7 @@ export function HomeLandingPage() {
       <StandeeDesignerSection />
       <AnalyticsPreviewSection />
       <HowItWorksSection />
+      <PricingSection />
       <HomeCTASection />
     </main>
   );
@@ -662,7 +664,7 @@ function HowItWorksSection() {
 
 function HomeCTASection() {
   return (
-    <section id="pricing" className="px-6 py-24 md:px-8">
+    <section id="get-started-cta" className="px-6 py-24 md:px-8">
       <div className="cta-panel mx-auto grid max-w-7xl gap-8 rounded-2xl bg-primary p-8 text-on-primary shadow-2xl shadow-primary/20 md:p-12 lg:grid-cols-[1fr_auto] lg:items-center">
         <div className="max-w-3xl">
           <p className="font-label text-xs font-bold uppercase tracking-[0.18em] text-on-primary/75">Launch smarter review campaigns</p>
