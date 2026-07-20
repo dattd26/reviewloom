@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Professional SaaS Pricing System**:
+  - Implemented the `PricingSection` component at `frontend/components/home/PricingSection.tsx` featuring a smooth Monthly/Yearly toggle, glowing Pro card, interactive ROI growth estimator calculator, full feature comparison grid, and frequently asked questions accordion.
+  - Integrated `PricingSection` into `HomeLandingPage.tsx` under the `#pricing` element and cleaned up duplicate element IDs.
+  - Redesigned `/dashboard/upgrade/page.tsx` for logged-in users to share the same premium UI theme, billing period toggle, and growth ROI calculator.
 - **Somee Deployment CD Workflow**:
   - Created `.github/workflows/deploy.yml` referencing the WanderVN deploy workflow.
   - Configured automated publish pipeline for .NET 10.0 ASP.NET Core API to Somee FTP with Python app-offline automation.

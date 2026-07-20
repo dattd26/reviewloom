@@ -12,8 +12,8 @@ using ReviewLoom.Infrastructure.Data;
 namespace ReviewLoom.Infrastructure.Migrations
 {
     [DbContext(typeof(ReviewLoomDbContext))]
-    [Migration("20260503135722_AddIsActiveToCampaign")]
-    partial class AddIsActiveToCampaign
+    [Migration("20260622101816_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,24 +45,26 @@ namespace ReviewLoom.Infrastructure.Migrations
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("GoogleReviewUrl")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("google_review_url");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
 
                     b.Property<string>("LogoUrl")
                         .HasColumnType("text")
                         .HasColumnName("logo_url");
 
+                    b.Property<string>("Placement")
+                        .HasColumnType("text");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("slug");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("status");
 
                     b.Property<string>("ThankYouMessage")
                         .ValueGeneratedOnAdd()
@@ -158,6 +160,8 @@ namespace ReviewLoom.Infrastructure.Migrations
 
                     b.HasKey("CampaignId")
                         .HasName("campaign_standee_configs_pkey");
+
+                    b.HasIndex("TemplateId");
 
                     b.ToTable("campaign_standee_configs", (string)null);
                 });
@@ -263,11 +267,30 @@ namespace ReviewLoom.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("feedback_name");
 
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("RepliedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("replied_at");
+
+                    b.Property<string>("ReplyMessage")
+                        .HasColumnType("text")
+                        .HasColumnName("reply_message");
+
                     b.Property<DateTime?>("ScannedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("scanned_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("unread")
+                        .HasColumnName("status");
 
                     b.HasKey("Id")
                         .HasName("scans_pkey");
@@ -275,6 +298,188 @@ namespace ReviewLoom.Infrastructure.Migrations
                     b.HasIndex("CampaignId");
 
                     b.ToTable("scans", (string)null);
+                });
+
+            modelBuilder.Entity("ReviewLoom.Domain.Entities.StandeeTemplate", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("category");
+
+                    b.Property<bool>("IsPremium")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_premium");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("SchemaJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("schema_json");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("thumbnail_url");
+
+                    b.HasKey("Id")
+                        .HasName("standee_templates_pkey");
+
+                    b.ToTable("standee_templates", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "minimal_white",
+                            Category = "general",
+                            IsPremium = false,
+                            Name = "Minimal White",
+                            SchemaJson = "{\"layout\": \"minimal_white\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "prestige_dark",
+                            Category = "general",
+                            IsPremium = true,
+                            Name = "Prestige Dark",
+                            SchemaJson = "{\"layout\": \"prestige_dark\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "salon_blush",
+                            Category = "salon",
+                            IsPremium = true,
+                            Name = "Salon Blush",
+                            SchemaJson = "{\"layout\": \"salon_blush\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "cafe_kraft",
+                            Category = "coffee",
+                            IsPremium = false,
+                            Name = "Cafe Kraft",
+                            SchemaJson = "{\"layout\": \"cafe_kraft\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "restaurant-modern",
+                            Category = "restaurant",
+                            IsPremium = false,
+                            Name = "Modern Table",
+                            SchemaJson = "{\"layout\": \"restaurant-modern\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "restaurant-elegant",
+                            Category = "restaurant",
+                            IsPremium = true,
+                            Name = "Elegant Dining",
+                            SchemaJson = "{\"layout\": \"restaurant-elegant\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "restaurant-casual",
+                            Category = "restaurant",
+                            IsPremium = false,
+                            Name = "Fast Casual",
+                            SchemaJson = "{\"layout\": \"restaurant-casual\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "coffee-minimal",
+                            Category = "coffee",
+                            IsPremium = false,
+                            Name = "Minimal Coffee",
+                            SchemaJson = "{\"layout\": \"coffee-minimal\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "coffee-cozy",
+                            Category = "coffee",
+                            IsPremium = false,
+                            Name = "Cozy Cafe",
+                            SchemaJson = "{\"layout\": \"coffee-cozy\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "coffee-premium",
+                            Category = "coffee",
+                            IsPremium = true,
+                            Name = "Premium Coffee",
+                            SchemaJson = "{\"layout\": \"coffee-premium\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "salon-minimal",
+                            Category = "salon",
+                            IsPremium = false,
+                            Name = "Beauty Minimal",
+                            SchemaJson = "{\"layout\": \"salon-minimal\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "salon-luxury",
+                            Category = "salon",
+                            IsPremium = true,
+                            Name = "Luxury Spa",
+                            SchemaJson = "{\"layout\": \"salon-luxury\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "salon-barber",
+                            Category = "salon",
+                            IsPremium = false,
+                            Name = "Modern Barber",
+                            SchemaJson = "{\"layout\": \"salon-barber\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "services-hvac",
+                            Category = "services",
+                            IsPremium = false,
+                            Name = "HVAC Trust",
+                            SchemaJson = "{\"layout\": \"services-hvac\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "services-roofing",
+                            Category = "services",
+                            IsPremium = false,
+                            Name = "Roofing Pro",
+                            SchemaJson = "{\"layout\": \"services-roofing\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        },
+                        new
+                        {
+                            Id = "services-plumbing",
+                            Category = "services",
+                            IsPremium = true,
+                            Name = "Plumbing Expert",
+                            SchemaJson = "{\"layout\": \"services-plumbing\", \"editableFields\": [\"logo\", \"businessName\", \"ctaText\", \"qrCode\"]}",
+                            ThumbnailUrl = ""
+                        });
                 });
 
             modelBuilder.Entity("ReviewLoom.Domain.Entities.Subscription", b =>
@@ -407,7 +612,16 @@ namespace ReviewLoom.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ReviewLoom.Domain.Entities.StandeeTemplate", "Template")
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("campaign_standee_configs_template_id_fkey");
+
                     b.Navigation("Campaign");
+
+                    b.Navigation("Template");
                 });
 
             modelBuilder.Entity("ReviewLoom.Domain.Entities.CampaignStyle", b =>

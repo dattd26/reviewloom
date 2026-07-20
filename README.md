@@ -170,6 +170,36 @@ reviewloom/
 
 ---
 
+### Hướng dẫn chạy bằng Docker & Docker Compose
+
+Dự án cung cấp cấu hình Docker Compose để khởi chạy nhanh toàn bộ các dịch vụ (PostgreSQL Database, Backend API, Frontend Next.js) chỉ bằng một lệnh duy nhất.
+
+1.  **Chuẩn bị file môi trường:**
+    Sao chép file cấu hình mẫu `.env.docker.example` thành `.env` ở thư mục gốc:
+    ```bash
+    cp .env.docker.example .env
+    ```
+    *Lưu ý: Bạn có thể cập nhật các API keys của Clerk, Stripe, Cloudinary trong file `.env` mới tạo nếu cần.*
+
+2.  **Khởi chạy hệ thống:**
+    Tại thư mục gốc của dự án, chạy lệnh:
+    ```bash
+    docker compose up --build
+    ```
+    Lệnh này sẽ tự động:
+    * Khởi động một container PostgreSQL (`reviewloom-db`) phục vụ dữ liệu.
+    * Build và chạy container Backend API (`reviewloom-backend`) lắng nghe trên cổng `5275` (`http://localhost:5275`).
+    * Build và chạy container Frontend Next.js (`reviewloom-frontend`) lắng nghe trên cổng `3000` (`http://localhost:3000`).
+
+3.  **Áp dụng Database Migrations (nếu chạy lần đầu):**
+    Để chạy migrations cấu hình cơ sở dữ liệu trên container PostgreSQL vừa tạo:
+    ```bash
+    cd backend
+    dotnet ef database update --project src/ReviewLoom.Infrastructure --startup-project src/ReviewLoom.Api --connection "Host=localhost;Port=5432;Database=reviewloomdb;Username=reviewloom_admin;Password=051124"
+    ```
+
+---
+
 ## 🧪 Chạy Kiểm Thử (Unit Tests)
 
 Dự án sử dụng **xUnit** và **Moq** để viết unit test cho các thành phần quan trọng (ví dụ như dịch vụ gửi Email). Để chạy toàn bộ test suite ở backend:
@@ -178,6 +208,37 @@ Dự án sử dụng **xUnit** và **Moq** để viết unit test cho các thàn
 cd backend
 dotnet test
 ```
+
+---
+
+## 💳 Thông Tin Thẻ Thử Nghiệm Stripe (Sandbox)
+
+Để thực hiện kiểm thử chức năng thanh toán nâng cấp gói dịch vụ (Pro Plan) thông qua cổng thanh toán Stripe trong môi trường phát triển/thử nghiệm (sandbox), bạn có thể sử dụng các thông tin thẻ dưới đây:
+
+### 1. Thẻ kiểm thử thành công (Successful Payments)
+Sử dụng thẻ này để giả lập giao dịch thanh toán và đăng ký gói cước thành công:
+
+| Loại thẻ | Số thẻ | Ngày hết hạn | Mã CVC |
+| :--- | :--- | :--- | :--- |
+| **Visa (Thành công)** | `4242 4242 4242 4242` | Bất kỳ ngày nào trong tương lai (Ví dụ: `12/28`) | Bất kỳ số 3 chữ số nào (Ví dụ: `123`) |
+
+### 2. Thẻ kiểm thử thất bại (Failed Payments & Error Codes)
+Sử dụng các thẻ dưới đây để kiểm tra cách hệ thống xử lý các lỗi thanh toán khác nhau:
+
+| Trường hợp lỗi | Số thẻ | Ngày hết hạn | Mã CVC |
+| :--- | :--- | :--- | :--- |
+| **Lỗi từ chối chung (Generic Decline)** | `4000 0000 0000 0002` | Tương lai | `123` |
+| **Không đủ số dư (Insufficient Funds)** | `4000 0000 0000 9995` | Tương lai | `123` |
+| **Thẻ hết hạn (Expired Card)** | `4000 0000 0000 0015` | Tương lai | `123` |
+| **Sai mã bảo mật (Incorrect CVC)** | `4000 0000 0000 0023` | Tương lai | `123` |
+
+### 3. Thẻ yêu cầu xác thực bảo mật 3D Secure (3DS)
+Đối với các giao dịch yêu cầu xác thực 2 bước từ ngân hàng:
+
+| Trường hợp | Số thẻ | Hướng dẫn xử lý trên giao diện thử nghiệm |
+| :--- | :--- | :--- |
+| **3DS Xác thực thành công** | `4000 0000 0000 3063` | Khi popup 3DS hiện ra, chọn **Complete Authentication** (Hoàn thành xác thực). |
+| **3DS Xác thực thất bại** | `4000 0000 0000 3064` | Khi popup 3DS hiện ra, chọn **Fail Authentication** (Thất bại xác thực). |
 
 ---
 
@@ -209,12 +270,8 @@ Dự án được cấu hình quy trình triển khai tự động (CD) lên má
 ## 📈 Lộ Trình Phát Triển (Roadmap)
 
 *   [ ] **AI Phân Tích Sắc Thái (Sentiment Analysis):** Tự động phân tích nội dung góp ý tiêu cực của khách hàng để cảnh báo các vấn đề khẩn cấp cho chủ cửa hàng.
-*   [ ] **Thông báo đa kênh:** Hỗ trợ nhận thông báo góp ý mới qua Telegram, SMS hoặc Zalo.
+*   [ ] **Thông báo đa kênh:** Hỗ trợ nhận thông báo góp ý mới qua Telegram, SMS,...
 *   [ ] **Báo cáo chuyên sâu bằng PDF:** Cho phép tải báo cáo định kỳ tháng/quý về hiệu suất đánh giá và xếp hạng.
 *   [ ] **Hỗ trợ đa ngôn ngữ (i18n):** Cho phép Landing page hiển thị nhiều ngôn ngữ khác nhau dựa trên vị trí/trình duyệt của khách hàng.
 
 ---
-
-## 📄 Bản quyền (License)
-
-Bản quyền thuộc về **ReviewLoom Team © 2026**. Mọi quyền được bảo lưu.
